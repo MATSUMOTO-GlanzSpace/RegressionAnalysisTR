@@ -1,9 +1,12 @@
-﻿using System.Data;
+﻿using Microsoft.Extensions.Configuration;
+using MySql.Data.MySqlClient;
+using System.Data;
+using System.Data.Common;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
-using System.Data.Common;
-using MySql.Data.MySqlClient;
+using System.Text.Json;
 
 namespace RegressionAnalysis
 {
@@ -201,5 +204,5 @@ namespace RegressionAnalysis
         {
             return table.Columns.Cast<DataColumn>().Select(col => col.ColumnName).ToArray();
         }
-    }
+	}
 }
