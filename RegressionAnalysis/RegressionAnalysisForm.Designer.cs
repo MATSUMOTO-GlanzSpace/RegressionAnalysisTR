@@ -52,6 +52,7 @@
 			dataGridView1 = new DataGridView();
 			groupBox1 = new GroupBox();
 			label8 = new Label();
+			label9 = new Label();
 			((System.ComponentModel.ISupportInitialize)DgvAnalysisData).BeginInit();
 			GrpAnalysisData.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
@@ -82,7 +83,6 @@
 			CmbResponseVariable.Name = "CmbResponseVariable";
 			CmbResponseVariable.Size = new Size(121, 23);
 			CmbResponseVariable.TabIndex = 2;
-			CmbResponseVariable.SelectedIndexChanged += CmbResponseVariable_SelectedIndexChanged;
 			// 
 			// label2
 			// 
@@ -92,7 +92,6 @@
 			label2.Size = new Size(55, 15);
 			label2.TabIndex = 1;
 			label2.Text = "目的変数";
-			label2.Click += this.label2_Click;
 			// 
 			// label3
 			// 
@@ -235,7 +234,6 @@
 			GrpAnalysisData.TabIndex = 9;
 			GrpAnalysisData.TabStop = false;
 			GrpAnalysisData.Text = "読込分析データ";
-			GrpAnalysisData.Enter += groupBox1_Enter;
 			// 
 			// BtnLoadAnalysisData
 			// 
@@ -276,11 +274,23 @@
 			label8.TabIndex = 12;
 			label8.Text = "分析結果";
 			// 
+			// label9
+			// 
+			label9.BackColor = Color.OldLace;
+			label9.BorderStyle = BorderStyle.Fixed3D;
+			label9.Font = new Font("Yu Gothic UI", 18F);
+			label9.Location = new Point(12, 9);
+			label9.Name = "label9";
+			label9.Size = new Size(653, 35);
+			label9.TabIndex = 13;
+			label9.Text = "重回帰分析(Sales-Weather)";
+			// 
 			// RegressionAnalysisForm
 			// 
 			AutoScaleDimensions = new SizeF(7F, 15F);
 			AutoScaleMode = AutoScaleMode.Font;
 			ClientSize = new Size(1009, 454);
+			Controls.Add(label9);
 			Controls.Add(label8);
 			Controls.Add(dataGridView1);
 			Controls.Add(label7);
@@ -337,5 +347,6 @@
 		private DataGridView dataGridView1;
 		private GroupBox groupBox1;
 		private Label label8;
+		private Label label9;
 	}
 }
