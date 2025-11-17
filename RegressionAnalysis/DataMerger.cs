@@ -181,4 +181,20 @@ namespace RegressionAnalysis
 			return table;
         }
     }
+
+    /**
+     * ユーティリティクラス
+     */
+    public static class DataTableUtils
+    {
+        /**
+         * DataTableからフィールド名取得メソッド
+         * @param table DataTableオブジェクト
+         * @return フィールド名配列
+         */
+        public static string[] GetFieldNames(DataTable table)
+        {
+            return table.Columns.Cast<DataColumn>().Select(col => col.ColumnName).ToArray();
+        }
+    }
 }
