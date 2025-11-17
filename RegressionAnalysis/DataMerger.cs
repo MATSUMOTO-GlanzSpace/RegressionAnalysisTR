@@ -70,13 +70,18 @@ namespace RegressionAnalysis
             var unitsTable = ReadCsv(unitsCsvPath);
 
             // LINQで結合
-            var query = from sales in salesTable.AsEnumerable()
-                        join weather in weatherTable.AsEnumerable()
+            var query =
+				// 売上データからループ
+				from sales in salesTable.AsEnumerable()
+						// 年月で天気データと結合
+						join weather in weatherTable.AsEnumerable()
                           on new { Year = sales.Field<string>("年"), Month = sales.Field<string>("月") }
                           equals new { Year = weather.Field<string>("年"), Month = weather.Field<string>("月") }
-                        join unit in unitsTable.AsEnumerable()
+						// 品種で単位データと結合
+						join unit in unitsTable.AsEnumerable()
                           on sales.Field<string>("品種") equals unit.Field<string>("品種")
-                        select new
+						// 必要なフィールドを選択
+						select new
                         {
                             部門 = sales.Field<string>("部門"),
                             中分類 = sales.Field<string>("中分類"),
