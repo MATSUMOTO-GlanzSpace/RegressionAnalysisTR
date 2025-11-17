@@ -31,6 +31,17 @@
 		}
 
 		/**
+		 * 単位CSVファイルを選択するボタンがクリックされたときに発生するイベント ハンドラー
+		 * @param sender イベントの送信元
+		 * @param e イベント データ
+		 */
+		private void BtnUnitsCSVFile_Click(object sender, EventArgs e)
+		{
+
+		}
+
+
+		/**
 		 * 分析データを読み込むボタンがクリックされたときに発生するイベント ハンドラー
 		 * @param sender イベントの送信元
 		 * @param e イベント データ

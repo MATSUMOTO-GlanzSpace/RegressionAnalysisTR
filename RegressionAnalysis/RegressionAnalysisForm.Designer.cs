@@ -49,6 +49,11 @@
 			TxtWeatherTableName = new TextBox();
 			GrpAnalysisData = new GroupBox();
 			BtnLoadAnalysisData = new Button();
+			label10 = new Label();
+			TxtUnitsTableName = new TextBox();
+			label11 = new Label();
+			TxtUnitsCSVFIleName = new TextBox();
+			BtnUnitsCSVFile = new Button();
 			dataGridView1 = new DataGridView();
 			groupBox1 = new GroupBox();
 			label8 = new Label();
@@ -122,7 +127,7 @@
 			// 
 			// BtnSelectSalesCSVFile
 			// 
-			BtnSelectSalesCSVFile.Location = new Point(923, 63);
+			BtnSelectSalesCSVFile.Location = new Point(252, 22);
 			BtnSelectSalesCSVFile.Name = "BtnSelectSalesCSVFile";
 			BtnSelectSalesCSVFile.Size = new Size(32, 23);
 			BtnSelectSalesCSVFile.TabIndex = 5;
@@ -132,7 +137,7 @@
 			// 
 			// BtnWeatherCSVFile
 			// 
-			BtnWeatherCSVFile.Location = new Point(923, 92);
+			BtnWeatherCSVFile.Location = new Point(252, 51);
 			BtnWeatherCSVFile.Name = "BtnWeatherCSVFile";
 			BtnWeatherCSVFile.Size = new Size(32, 23);
 			BtnWeatherCSVFile.TabIndex = 5;
@@ -142,14 +147,14 @@
 			// 
 			// TxtSalseCSVFileName
 			// 
-			TxtSalseCSVFileName.Location = new Point(817, 64);
+			TxtSalseCSVFileName.Location = new Point(146, 23);
 			TxtSalseCSVFileName.Name = "TxtSalseCSVFileName";
 			TxtSalseCSVFileName.Size = new Size(100, 23);
 			TxtSalseCSVFileName.TabIndex = 6;
 			// 
 			// TxtWeatherCSVFIleName
 			// 
-			TxtWeatherCSVFIleName.Location = new Point(817, 93);
+			TxtWeatherCSVFIleName.Location = new Point(146, 52);
 			TxtWeatherCSVFIleName.Name = "TxtWeatherCSVFIleName";
 			TxtWeatherCSVFIleName.Size = new Size(100, 23);
 			TxtWeatherCSVFIleName.TabIndex = 6;
@@ -157,7 +162,7 @@
 			// RbnCSVFile
 			// 
 			RbnCSVFile.AutoSize = true;
-			RbnCSVFile.Location = new Point(705, 68);
+			RbnCSVFile.Location = new Point(34, 27);
 			RbnCSVFile.Name = "RbnCSVFile";
 			RbnCSVFile.Size = new Size(63, 19);
 			RbnCSVFile.TabIndex = 7;
@@ -168,7 +173,7 @@
 			// RbnDataBase
 			// 
 			RbnDataBase.AutoSize = true;
-			RbnDataBase.Location = new Point(705, 125);
+			RbnDataBase.Location = new Point(34, 112);
 			RbnDataBase.Name = "RbnDataBase";
 			RbnDataBase.Size = new Size(40, 19);
 			RbnDataBase.TabIndex = 7;
@@ -179,7 +184,7 @@
 			// label4
 			// 
 			label4.AutoSize = true;
-			label4.Location = new Point(773, 68);
+			label4.Location = new Point(102, 27);
 			label4.Name = "label4";
 			label4.Size = new Size(31, 15);
 			label4.TabIndex = 8;
@@ -188,7 +193,7 @@
 			// label5
 			// 
 			label5.AutoSize = true;
-			label5.Location = new Point(773, 96);
+			label5.Location = new Point(102, 55);
 			label5.Name = "label5";
 			label5.Size = new Size(31, 15);
 			label5.TabIndex = 8;
@@ -197,7 +202,7 @@
 			// label6
 			// 
 			label6.AutoSize = true;
-			label6.Location = new Point(773, 127);
+			label6.Location = new Point(102, 114);
 			label6.Name = "label6";
 			label6.Size = new Size(31, 15);
 			label6.TabIndex = 8;
@@ -206,7 +211,7 @@
 			// label7
 			// 
 			label7.AutoSize = true;
-			label7.Location = new Point(773, 155);
+			label7.Location = new Point(102, 142);
 			label7.Name = "label7";
 			label7.Size = new Size(31, 15);
 			label7.TabIndex = 8;
@@ -214,7 +219,7 @@
 			// 
 			// TxtSalesTableName
 			// 
-			TxtSalesTableName.Location = new Point(817, 121);
+			TxtSalesTableName.Location = new Point(146, 108);
 			TxtSalesTableName.Name = "TxtSalesTableName";
 			TxtSalesTableName.Size = new Size(100, 23);
 			TxtSalesTableName.TabIndex = 6;
@@ -222,7 +227,7 @@
 			// 
 			// TxtWeatherTableName
 			// 
-			TxtWeatherTableName.Location = new Point(817, 150);
+			TxtWeatherTableName.Location = new Point(146, 137);
 			TxtWeatherTableName.Name = "TxtWeatherTableName";
 			TxtWeatherTableName.Size = new Size(100, 23);
 			TxtWeatherTableName.TabIndex = 6;
@@ -231,16 +236,33 @@
 			// GrpAnalysisData
 			// 
 			GrpAnalysisData.Controls.Add(BtnLoadAnalysisData);
-			GrpAnalysisData.Location = new Point(671, 42);
+			GrpAnalysisData.Controls.Add(label10);
+			GrpAnalysisData.Controls.Add(TxtUnitsTableName);
+			GrpAnalysisData.Controls.Add(label5);
+			GrpAnalysisData.Controls.Add(label11);
+			GrpAnalysisData.Controls.Add(label4);
+			GrpAnalysisData.Controls.Add(label6);
+			GrpAnalysisData.Controls.Add(RbnCSVFile);
+			GrpAnalysisData.Controls.Add(label7);
+			GrpAnalysisData.Controls.Add(TxtWeatherCSVFIleName);
+			GrpAnalysisData.Controls.Add(TxtSalseCSVFileName);
+			GrpAnalysisData.Controls.Add(TxtUnitsCSVFIleName);
+			GrpAnalysisData.Controls.Add(BtnWeatherCSVFile);
+			GrpAnalysisData.Controls.Add(TxtWeatherTableName);
+			GrpAnalysisData.Controls.Add(BtnSelectSalesCSVFile);
+			GrpAnalysisData.Controls.Add(TxtSalesTableName);
+			GrpAnalysisData.Controls.Add(BtnUnitsCSVFile);
+			GrpAnalysisData.Controls.Add(RbnDataBase);
+			GrpAnalysisData.Location = new Point(687, 42);
 			GrpAnalysisData.Name = "GrpAnalysisData";
-			GrpAnalysisData.Size = new Size(309, 188);
+			GrpAnalysisData.Size = new Size(310, 228);
 			GrpAnalysisData.TabIndex = 9;
 			GrpAnalysisData.TabStop = false;
 			GrpAnalysisData.Text = "読込分析データ";
 			// 
 			// BtnLoadAnalysisData
 			// 
-			BtnLoadAnalysisData.Location = new Point(203, 155);
+			BtnLoadAnalysisData.Location = new Point(203, 199);
 			BtnLoadAnalysisData.Name = "BtnLoadAnalysisData";
 			BtnLoadAnalysisData.Size = new Size(100, 23);
 			BtnLoadAnalysisData.TabIndex = 4;
@@ -248,12 +270,55 @@
 			BtnLoadAnalysisData.UseVisualStyleBackColor = true;
 			BtnLoadAnalysisData.Click += BtnLoadAnalysisData_Click;
 			// 
+			// label10
+			// 
+			label10.AutoSize = true;
+			label10.Location = new Point(102, 172);
+			label10.Name = "label10";
+			label10.Size = new Size(31, 15);
+			label10.TabIndex = 8;
+			label10.Text = "単位";
+			// 
+			// TxtUnitsTableName
+			// 
+			TxtUnitsTableName.Location = new Point(146, 166);
+			TxtUnitsTableName.Name = "TxtUnitsTableName";
+			TxtUnitsTableName.Size = new Size(100, 23);
+			TxtUnitsTableName.TabIndex = 6;
+			TxtUnitsTableName.Text = "units";
+			// 
+			// label11
+			// 
+			label11.AutoSize = true;
+			label11.Location = new Point(102, 84);
+			label11.Name = "label11";
+			label11.Size = new Size(31, 15);
+			label11.TabIndex = 8;
+			label11.Text = "単位";
+			// 
+			// TxtUnitsCSVFIleName
+			// 
+			TxtUnitsCSVFIleName.Location = new Point(146, 81);
+			TxtUnitsCSVFIleName.Name = "TxtUnitsCSVFIleName";
+			TxtUnitsCSVFIleName.Size = new Size(100, 23);
+			TxtUnitsCSVFIleName.TabIndex = 6;
+			// 
+			// BtnUnitsCSVFile
+			// 
+			BtnUnitsCSVFile.Location = new Point(252, 80);
+			BtnUnitsCSVFile.Name = "BtnUnitsCSVFile";
+			BtnUnitsCSVFile.Size = new Size(32, 23);
+			BtnUnitsCSVFile.TabIndex = 5;
+			BtnUnitsCSVFile.Text = "...";
+			BtnUnitsCSVFile.UseVisualStyleBackColor = true;
+			BtnUnitsCSVFile.Click += BtnUnitsCSVFile_Click;
+			// 
 			// dataGridView1
 			// 
 			dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
 			dataGridView1.Location = new Point(574, 276);
 			dataGridView1.Name = "dataGridView1";
-			dataGridView1.Size = new Size(406, 150);
+			dataGridView1.Size = new Size(423, 150);
 			dataGridView1.TabIndex = 10;
 			// 
 			// groupBox1
@@ -297,18 +362,6 @@
 			Controls.Add(label9);
 			Controls.Add(label8);
 			Controls.Add(dataGridView1);
-			Controls.Add(label7);
-			Controls.Add(label6);
-			Controls.Add(label5);
-			Controls.Add(label4);
-			Controls.Add(RbnDataBase);
-			Controls.Add(RbnCSVFile);
-			Controls.Add(TxtWeatherTableName);
-			Controls.Add(TxtWeatherCSVFIleName);
-			Controls.Add(TxtSalesTableName);
-			Controls.Add(TxtSalseCSVFileName);
-			Controls.Add(BtnWeatherCSVFile);
-			Controls.Add(BtnSelectSalesCSVFile);
 			Controls.Add(BtnRunAnalysis);
 			Controls.Add(label1);
 			Controls.Add(DgvAnalysisData);
@@ -318,6 +371,7 @@
 			Text = "RegressionAnalysisForm";
 			((System.ComponentModel.ISupportInitialize)DgvAnalysisData).EndInit();
 			GrpAnalysisData.ResumeLayout(false);
+			GrpAnalysisData.PerformLayout();
 			((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
 			groupBox1.ResumeLayout(false);
 			groupBox1.PerformLayout();
@@ -352,5 +406,10 @@
 		private GroupBox groupBox1;
 		private Label label8;
 		private Label label9;
+		private Label label10;
+		private TextBox TxtUnitsTableName;
+		private Label label11;
+		private TextBox TxtUnitsCSVFIleName;
+		private Button BtnUnitsCSVFile;
 	}
 }
