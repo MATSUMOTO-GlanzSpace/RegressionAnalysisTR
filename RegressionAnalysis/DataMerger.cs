@@ -49,28 +49,14 @@ namespace RegressionAnalysis
         }
     }
 
-    /**
+	/**
      * 1. CSVファイル結合クラス
+     * @param salesCsvPath 売上CSVファイルパス
+     * @param weatherCsvPath 天気CSVファイルパス
+     * @param unitsCsvPath 単位CSVファイルパス
      */
-    public class CsvDataMerger : DataMerger
+	public class CsvDataMerger(string salesCsvPath, string weatherCsvPath, string unitsCsvPath) : DataMerger
     {
-		/** CSVファイルパス */
-		private readonly string salesCsvPath;
-        private readonly string weatherCsvPath;
-        private readonly string unitsCsvPath;
-
-		/**
-         * コンストラクタ
-         * @param salesCsvPath 売上CSVファイルパス
-         * @param weatherCsvPath 天気CSVファイルパス
-         * @param unitsCsvPath 単位CSVファイルパス
-         */
-		public CsvDataMerger(string salesCsvPath, string weatherCsvPath, string unitsCsvPath)
-        {
-            this.salesCsvPath = salesCsvPath;
-            this.weatherCsvPath = weatherCsvPath;
-            this.unitsCsvPath = unitsCsvPath;
-        }
 
 		/**
          * CSVファイル結合ロジック実装
@@ -107,7 +93,7 @@ namespace RegressionAnalysis
                         };
 
             // DataTable生成
-            DataTable mergedTable = new DataTable();
+            DataTable mergedTable = new();
             mergedTable.Columns.Add("部門");
             mergedTable.Columns.Add("中分類");
             mergedTable.Columns.Add("品種");
@@ -134,56 +120,39 @@ namespace RegressionAnalysis
          * @param path CSVファイルパス
          * @return 読み込んだDataTable
          */
-		private DataTable ReadCsv(string path)
+		private static DataTable ReadCsv(string path)
         {
-			// CSVファイルをDataTableに読み込み
-			DataTable table = new DataTable();
+            // CSVファイルをDataTableに読み込み
+            DataTable table = new();
             using (var reader = new StreamReader(path, Encoding.UTF8))
             {
-				// ヘッダー行読み込み
-				string? headerLine = reader.ReadLine();
+                // ヘッダー行読み込み
+                string? headerLine = reader.ReadLine();
                 if (headerLine == null) return table;
                 var headers = headerLine.Split(',');
                 foreach (var h in headers) table.Columns.Add(h);
-				// データ行読み込み
-				string? line;
+                // データ行読み込み
+                string? line;
                 while ((line = reader.ReadLine()) != null)
                 {
                     var fields = line.Split(',');
                     table.Rows.Add(fields);
                 }
             }
-			// 読み込んだDataTableを返す
-			return table;
+            // 読み込んだDataTableを返す
+            return table;
         }
     }
 
-    /**
+	/**
      * 2. MySQLテーブル結合クラス
+     * @param connectionString MySQL接続文字列
+     * @param salesTable 売上テーブル名
+     * @param weatherTable 天気テーブル名
+     * @param unitsTable 単位テーブル名
      */
-    public class MySqlDataMerger : DataMerger
+	public class MySqlDataMerger(string connectionString, string salesTable, string weatherTable, string unitsTable) : DataMerger
     {
-		/** MySQL接続文字列 */
-		private readonly string connectionString;
-		/** テーブル名 */
-		private readonly string salesTable;
-        private readonly string weatherTable;
-        private readonly string unitsTable;
-
-		/**
-         * コンストラクタ
-         * @param connectionString MySQL接続文字列
-         * @param salesTable 売上テーブル名
-         * @param weatherTable 天気テーブル名
-         * @param unitsTable 単位テーブル名
-         */
-		public MySqlDataMerger(string connectionString, string salesTable, string weatherTable, string unitsTable)
-        {
-            this.connectionString = connectionString;
-            this.salesTable = salesTable;
-            this.weatherTable = weatherTable;
-            this.unitsTable = unitsTable;
-        }
 
 		/**
          * MySQLテーブル結合ロジック実装
@@ -206,7 +175,7 @@ namespace RegressionAnalysis
 			// データ取得
 			using var cmd = new MySqlCommand(sql, conn);
             using var adapter = new MySqlDataAdapter(cmd);
-            DataTable table = new DataTable();
+            DataTable table = new();
             adapter.Fill(table);
 			// 結合データテーブルを返す
 			return table;
