@@ -118,6 +118,7 @@
 			BtnRunAnalysis.TabIndex = 4;
 			BtnRunAnalysis.Text = "分析実行";
 			BtnRunAnalysis.UseVisualStyleBackColor = true;
+			BtnRunAnalysis.Click += BtnRunAnalysis_Click;
 			// 
 			// BtnSelectSalesCSVFile
 			// 
@@ -127,6 +128,7 @@
 			BtnSelectSalesCSVFile.TabIndex = 5;
 			BtnSelectSalesCSVFile.Text = "...";
 			BtnSelectSalesCSVFile.UseVisualStyleBackColor = true;
+			BtnSelectSalesCSVFile.Click += BtnSelectSalesCSVFile_Click;
 			// 
 			// BtnWeatherCSVFile
 			// 
@@ -136,6 +138,7 @@
 			BtnWeatherCSVFile.TabIndex = 5;
 			BtnWeatherCSVFile.Text = "...";
 			BtnWeatherCSVFile.UseVisualStyleBackColor = true;
+			BtnWeatherCSVFile.Click += BtnWeatherCSVFile_Click;
 			// 
 			// TxtSalseCSVFileName
 			// 
@@ -243,6 +246,7 @@
 			BtnLoadAnalysisData.TabIndex = 4;
 			BtnLoadAnalysisData.Text = "分析データ読込";
 			BtnLoadAnalysisData.UseVisualStyleBackColor = true;
+			BtnLoadAnalysisData.Click += BtnLoadAnalysisData_Click;
 			// 
 			// dataGridView1
 			// 
