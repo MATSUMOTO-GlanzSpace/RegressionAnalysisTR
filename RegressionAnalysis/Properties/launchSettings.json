@@ -1,8 +1,9 @@
-{
+﻿{
   "profiles": {
     "RegressionAnalysis": {
       "commandName": "Project",
       "environmentVariables": {
+        "__comment": "Set Development for local debugging",
         "DOTNET_ENVIRONMENT": "Development"
       }
     }
