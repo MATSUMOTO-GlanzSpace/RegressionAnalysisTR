@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- ホスト: 127.0.0.1
--- 生成日時: 2025-11-18 12:53:12
+-- 生成日時: 2025-11-18 14:52:59
 -- サーバのバージョン： 10.4.32-MariaDB
 -- PHP のバージョン: 8.2.12
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- データベース: `sales`
+-- データベース: `salesdb`
 --
 
 -- --------------------------------------------------------
@@ -304,7 +304,8 @@ INSERT INTO `units` (`id`, `varety`, `unit`) VALUES
 -- テーブルのインデックス `units`
 --
 ALTER TABLE `units`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `varety` (`varety`);
 
 --
 -- ダンプしたテーブルの AUTO_INCREMENT

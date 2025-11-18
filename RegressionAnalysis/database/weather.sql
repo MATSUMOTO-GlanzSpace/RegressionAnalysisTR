@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- ホスト: 127.0.0.1
--- 生成日時: 2025-11-18 12:57:04
+-- 生成日時: 2025-11-18 14:53:08
 -- サーバのバージョン： 10.4.32-MariaDB
 -- PHP のバージョン: 8.2.12
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- データベース: `sales`
+-- データベース: `salesdb`
 --
 
 -- --------------------------------------------------------
@@ -240,7 +240,8 @@ INSERT INTO `weather` (`id`, `year`, `month`, `average_temperature`, `maximum_te
 -- テーブルのインデックス `weather`
 --
 ALTER TABLE `weather`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `year` (`year`,`month`);
 
 --
 -- ダンプしたテーブルの AUTO_INCREMENT

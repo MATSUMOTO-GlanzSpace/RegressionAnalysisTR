@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- ホスト: 127.0.0.1
--- 生成日時: 2025-11-18 12:52:58
+-- 生成日時: 2025-11-18 14:52:49
 -- サーバのバージョン： 10.4.32-MariaDB
 -- PHP のバージョン: 8.2.12
 
@@ -18,16 +18,16 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- データベース: `sales`
+-- データベース: `salesdb`
 --
 
 -- --------------------------------------------------------
 
 --
--- テーブルの構造 `salses`
+-- テーブルの構造 `sales`
 --
 
-CREATE TABLE `salses` (
+CREATE TABLE `sales` (
   `id` int(11) NOT NULL,
   `department` varchar(32) NOT NULL COMMENT '部門名',
   `primary_item` varchar(32) NOT NULL COMMENT '商品大分類',
@@ -39,10 +39,10 @@ CREATE TABLE `salses` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='売上テーブル';
 
 --
--- テーブルのデータのダンプ `salses`
+-- テーブルのデータのダンプ `sales`
 --
 
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (1, '食料', '穀類', '米', '米', 2008, 1, 2508.00),
 (2, '食料', '穀類', '米', '米', 2008, 2, 2424.00),
 (3, '食料', '穀類', '米', '米', 2008, 3, 2395.00),
@@ -1070,7 +1070,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (1025, '食料', '穀類', '麺類', '他の麺類', 2008, 9, 85.00),
 (1026, '食料', '穀類', '麺類', '他の麺類', 2008, 10, 53.00),
 (1027, '食料', '穀類', '麺類', '他の麺類', 2008, 11, 50.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (1028, '食料', '穀類', '麺類', '他の麺類', 2008, 12, 49.00),
 (1029, '食料', '穀類', '麺類', '他の麺類', 2009, 1, 43.00),
 (1030, '食料', '穀類', '麺類', '他の麺類', 2009, 2, 62.00),
@@ -2066,9 +2066,9 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (2020, '食料', '魚介類', '生鮮魚介', 'いわし', 2017, 7, 65.00),
 (2021, '食料', '魚介類', '生鮮魚介', 'いわし', 2017, 8, 58.00),
 (2022, '食料', '魚介類', '生鮮魚介', 'いわし', 2017, 9, 71.00),
-(2023, '食料', '魚介類', '生鮮魚介', 'いわし', 2017, 10, 119.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
-(2024, '食料', '魚介類', '生鮮魚介', 'いわし', 2017, 11, 84.00),
+(2023, '食料', '魚介類', '生鮮魚介', 'いわし', 2017, 10, 119.00),
+(2024, '食料', '魚介類', '生鮮魚介', 'いわし', 2017, 11, 84.00);
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (2025, '食料', '魚介類', '生鮮魚介', 'いわし', 2017, 12, 84.00),
 (2026, '食料', '魚介類', '生鮮魚介', 'いわし', 2018, 1, 72.00),
 (2027, '食料', '魚介類', '生鮮魚介', 'いわし', 2018, 2, 83.00),
@@ -3049,9 +3049,9 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (3002, '食料', '魚介類', '生鮮魚介', 'さんま', 2014, 9, 351.00),
 (3003, '食料', '魚介類', '生鮮魚介', 'さんま', 2014, 10, 253.00),
 (3004, '食料', '魚介類', '生鮮魚介', 'さんま', 2014, 11, 89.00),
-(3005, '食料', '魚介類', '生鮮魚介', 'さんま', 2014, 12, 22.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
-(3006, '食料', '魚介類', '生鮮魚介', 'さんま', 2015, 1, 14.00),
+(3005, '食料', '魚介類', '生鮮魚介', 'さんま', 2014, 12, 22.00),
+(3006, '食料', '魚介類', '生鮮魚介', 'さんま', 2015, 1, 14.00);
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (3007, '食料', '魚介類', '生鮮魚介', 'さんま', 2015, 2, 13.00),
 (3008, '食料', '魚介類', '生鮮魚介', 'さんま', 2015, 3, 5.00),
 (3009, '食料', '魚介類', '生鮮魚介', 'さんま', 2015, 4, 13.00),
@@ -4033,9 +4033,9 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (3985, '食料', '魚介類', '生鮮魚介', 'しじみ', 2011, 12, 9.00),
 (3986, '食料', '魚介類', '生鮮魚介', 'しじみ', 2012, 1, 4.00),
 (3987, '食料', '魚介類', '生鮮魚介', 'しじみ', 2012, 2, 7.00),
-(3988, '食料', '魚介類', '生鮮魚介', 'しじみ', 2012, 3, 7.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
-(3989, '食料', '魚介類', '生鮮魚介', 'しじみ', 2012, 4, 0.00),
+(3988, '食料', '魚介類', '生鮮魚介', 'しじみ', 2012, 3, 7.00),
+(3989, '食料', '魚介類', '生鮮魚介', 'しじみ', 2012, 4, 0.00);
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (3990, '食料', '魚介類', '生鮮魚介', 'しじみ', 2012, 5, 0.00),
 (3991, '食料', '魚介類', '生鮮魚介', 'しじみ', 2012, 6, 6.00),
 (3992, '食料', '魚介類', '生鮮魚介', 'しじみ', 2012, 7, 24.00),
@@ -5003,9 +5003,9 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (4954, '食料', '魚介類', '魚肉練製品', 'かまぼこ', 2008, 1, 156.00),
 (4955, '食料', '魚介類', '魚肉練製品', 'かまぼこ', 2008, 2, 187.00),
 (4956, '食料', '魚介類', '魚肉練製品', 'かまぼこ', 2008, 3, 190.00),
-(4957, '食料', '魚介類', '魚肉練製品', 'かまぼこ', 2008, 4, 188.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
-(4958, '食料', '魚介類', '魚肉練製品', 'かまぼこ', 2008, 5, 231.00),
+(4957, '食料', '魚介類', '魚肉練製品', 'かまぼこ', 2008, 4, 188.00),
+(4958, '食料', '魚介類', '魚肉練製品', 'かまぼこ', 2008, 5, 231.00);
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (4959, '食料', '魚介類', '魚肉練製品', 'かまぼこ', 2008, 6, 165.00),
 (4960, '食料', '魚介類', '魚肉練製品', 'かまぼこ', 2008, 7, 131.00),
 (4961, '食料', '魚介類', '魚肉練製品', 'かまぼこ', 2008, 8, 174.00),
@@ -5903,9 +5903,9 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (5853, '食料', '魚介類', '他の魚介加工品', '魚介の漬物', 2008, 11, 142.00),
 (5854, '食料', '魚介類', '他の魚介加工品', '魚介の漬物', 2008, 12, 379.00),
 (5855, '食料', '魚介類', '他の魚介加工品', '魚介の漬物', 2009, 1, 188.00),
-(5856, '食料', '魚介類', '他の魚介加工品', '魚介の漬物', 2009, 2, 120.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
-(5857, '食料', '魚介類', '他の魚介加工品', '魚介の漬物', 2009, 3, 129.00),
+(5856, '食料', '魚介類', '他の魚介加工品', '魚介の漬物', 2009, 2, 120.00),
+(5857, '食料', '魚介類', '他の魚介加工品', '魚介の漬物', 2009, 3, 129.00);
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (5858, '食料', '魚介類', '他の魚介加工品', '魚介の漬物', 2009, 4, 105.00),
 (5859, '食料', '魚介類', '他の魚介加工品', '魚介の漬物', 2009, 5, 108.00),
 (5860, '食料', '魚介類', '他の魚介加工品', '魚介の漬物', 2009, 6, 119.00),
@@ -6854,9 +6854,9 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (6803, '食料', '肉類', '加工肉', 'ソーセージ', 2013, 12, 553.00),
 (6804, '食料', '肉類', '加工肉', 'ソーセージ', 2014, 1, 508.00),
 (6805, '食料', '肉類', '加工肉', 'ソーセージ', 2014, 2, 480.00),
-(6806, '食料', '肉類', '加工肉', 'ソーセージ', 2014, 3, 574.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
-(6807, '食料', '肉類', '加工肉', 'ソーセージ', 2014, 4, 477.00),
+(6806, '食料', '肉類', '加工肉', 'ソーセージ', 2014, 3, 574.00),
+(6807, '食料', '肉類', '加工肉', 'ソーセージ', 2014, 4, 477.00);
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (6808, '食料', '肉類', '加工肉', 'ソーセージ', 2014, 5, 518.00),
 (6809, '食料', '肉類', '加工肉', 'ソーセージ', 2014, 6, 485.00),
 (6810, '食料', '肉類', '加工肉', 'ソーセージ', 2014, 7, 564.00),
@@ -7848,9 +7848,9 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (7796, '食料', '乳卵類', '乳製品', '他の乳製品', 2012, 1, 59.00),
 (7797, '食料', '乳卵類', '乳製品', '他の乳製品', 2012, 2, 68.00),
 (7798, '食料', '乳卵類', '乳製品', '他の乳製品', 2012, 3, 71.00),
-(7799, '食料', '乳卵類', '乳製品', '他の乳製品', 2012, 4, 30.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
-(7800, '食料', '乳卵類', '乳製品', '他の乳製品', 2012, 5, 34.00),
+(7799, '食料', '乳卵類', '乳製品', '他の乳製品', 2012, 4, 30.00),
+(7800, '食料', '乳卵類', '乳製品', '他の乳製品', 2012, 5, 34.00);
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (7801, '食料', '乳卵類', '乳製品', '他の乳製品', 2012, 6, 49.00),
 (7802, '食料', '乳卵類', '乳製品', '他の乳製品', 2012, 7, 47.00),
 (7803, '食料', '乳卵類', '乳製品', '他の乳製品', 2012, 8, 26.00),
@@ -8798,9 +8798,9 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (8745, '食料', '野菜・海藻', '生鮮野菜', 'ほうれんそう', 2017, 1, 249.00),
 (8746, '食料', '野菜・海藻', '生鮮野菜', 'ほうれんそう', 2017, 2, 280.00),
 (8747, '食料', '野菜・海藻', '生鮮野菜', 'ほうれんそう', 2017, 3, 284.00),
-(8748, '食料', '野菜・海藻', '生鮮野菜', 'ほうれんそう', 2017, 4, 196.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
-(8749, '食料', '野菜・海藻', '生鮮野菜', 'ほうれんそう', 2017, 5, 125.00),
+(8748, '食料', '野菜・海藻', '生鮮野菜', 'ほうれんそう', 2017, 4, 196.00),
+(8749, '食料', '野菜・海藻', '生鮮野菜', 'ほうれんそう', 2017, 5, 125.00);
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (8750, '食料', '野菜・海藻', '生鮮野菜', 'ほうれんそう', 2017, 6, 128.00),
 (8751, '食料', '野菜・海藻', '生鮮野菜', 'ほうれんそう', 2017, 7, 55.00),
 (8752, '食料', '野菜・海藻', '生鮮野菜', 'ほうれんそう', 2017, 8, 33.00),
@@ -9723,9 +9723,9 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (9669, '食料', '野菜・海藻', '生鮮野菜', 'だいこん', 2009, 5, 87.00),
 (9670, '食料', '野菜・海藻', '生鮮野菜', 'だいこん', 2009, 6, 83.00),
 (9671, '食料', '野菜・海藻', '生鮮野菜', 'だいこん', 2009, 7, 63.00),
-(9672, '食料', '野菜・海藻', '生鮮野菜', 'だいこん', 2009, 8, 112.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
-(9673, '食料', '野菜・海藻', '生鮮野菜', 'だいこん', 2009, 9, 170.00),
+(9672, '食料', '野菜・海藻', '生鮮野菜', 'だいこん', 2009, 8, 112.00),
+(9673, '食料', '野菜・海藻', '生鮮野菜', 'だいこん', 2009, 9, 170.00);
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (9674, '食料', '野菜・海藻', '生鮮野菜', 'だいこん', 2009, 10, 152.00),
 (9675, '食料', '野菜・海藻', '生鮮野菜', 'だいこん', 2009, 11, 151.00),
 (9676, '食料', '野菜・海藻', '生鮮野菜', 'だいこん', 2009, 12, 144.00),
@@ -10638,9 +10638,9 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (10583, '食料', '野菜・海藻', '生鮮野菜', 'かぼちゃ', 2011, 6, 179.00),
 (10584, '食料', '野菜・海藻', '生鮮野菜', 'かぼちゃ', 2011, 7, 185.00),
 (10585, '食料', '野菜・海藻', '生鮮野菜', 'かぼちゃ', 2011, 8, 143.00),
-(10586, '食料', '野菜・海藻', '生鮮野菜', 'かぼちゃ', 2011, 9, 131.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
-(10587, '食料', '野菜・海藻', '生鮮野菜', 'かぼちゃ', 2011, 10, 137.00),
+(10586, '食料', '野菜・海藻', '生鮮野菜', 'かぼちゃ', 2011, 9, 131.00),
+(10587, '食料', '野菜・海藻', '生鮮野菜', 'かぼちゃ', 2011, 10, 137.00);
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (10588, '食料', '野菜・海藻', '生鮮野菜', 'かぼちゃ', 2011, 11, 100.00),
 (10589, '食料', '野菜・海藻', '生鮮野菜', 'かぼちゃ', 2011, 12, 108.00),
 (10590, '食料', '野菜・海藻', '生鮮野菜', 'かぼちゃ', 2012, 1, 84.00),
@@ -11555,9 +11555,9 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (11499, '食料', '野菜・海藻', '生鮮野菜', '生しいたけ', 2013, 9, 110.00),
 (11500, '食料', '野菜・海藻', '生鮮野菜', '生しいたけ', 2013, 10, 127.00),
 (11501, '食料', '野菜・海藻', '生鮮野菜', '生しいたけ', 2013, 11, 221.00),
-(11502, '食料', '野菜・海藻', '生鮮野菜', '生しいたけ', 2013, 12, 232.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
-(11503, '食料', '野菜・海藻', '生鮮野菜', '生しいたけ', 2014, 1, 178.00),
+(11502, '食料', '野菜・海藻', '生鮮野菜', '生しいたけ', 2013, 12, 232.00),
+(11503, '食料', '野菜・海藻', '生鮮野菜', '生しいたけ', 2014, 1, 178.00);
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (11504, '食料', '野菜・海藻', '生鮮野菜', '生しいたけ', 2014, 2, 192.00),
 (11505, '食料', '野菜・海藻', '生鮮野菜', '生しいたけ', 2014, 3, 168.00),
 (11506, '食料', '野菜・海藻', '生鮮野菜', '生しいたけ', 2014, 4, 97.00),
@@ -12395,9 +12395,9 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (12338, '食料', '野菜・海藻', '乾物・海藻', '他の乾物・海藻', 2009, 7, 311.00),
 (12339, '食料', '野菜・海藻', '乾物・海藻', '他の乾物・海藻', 2009, 8, 296.00),
 (12340, '食料', '野菜・海藻', '乾物・海藻', '他の乾物・海藻', 2009, 9, 296.00),
-(12341, '食料', '野菜・海藻', '乾物・海藻', '他の乾物・海藻', 2009, 10, 253.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
-(12342, '食料', '野菜・海藻', '乾物・海藻', '他の乾物・海藻', 2009, 11, 243.00),
+(12341, '食料', '野菜・海藻', '乾物・海藻', '他の乾物・海藻', 2009, 10, 253.00),
+(12342, '食料', '野菜・海藻', '乾物・海藻', '他の乾物・海藻', 2009, 11, 243.00);
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (12343, '食料', '野菜・海藻', '乾物・海藻', '他の乾物・海藻', 2009, 12, 243.00),
 (12344, '食料', '野菜・海藻', '乾物・海藻', '他の乾物・海藻', 2010, 1, 194.00),
 (12345, '食料', '野菜・海藻', '乾物・海藻', '他の乾物・海藻', 2010, 2, 238.00),
@@ -13265,9 +13265,9 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (13207, '食料', '野菜・海藻', '他の野菜・海藻加工品', 'こんにゃく', 2018, 6, 99.00),
 (13208, '食料', '野菜・海藻', '他の野菜・海藻加工品', 'こんにゃく', 2018, 7, 98.00),
 (13209, '食料', '野菜・海藻', '他の野菜・海藻加工品', 'こんぶつくだ煮', 2008, 1, 45.00),
-(13210, '食料', '野菜・海藻', '他の野菜・海藻加工品', 'こんぶつくだ煮', 2008, 2, 43.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
-(13211, '食料', '野菜・海藻', '他の野菜・海藻加工品', 'こんぶつくだ煮', 2008, 3, 97.00),
+(13210, '食料', '野菜・海藻', '他の野菜・海藻加工品', 'こんぶつくだ煮', 2008, 2, 43.00),
+(13211, '食料', '野菜・海藻', '他の野菜・海藻加工品', 'こんぶつくだ煮', 2008, 3, 97.00);
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (13212, '食料', '野菜・海藻', '他の野菜・海藻加工品', 'こんぶつくだ煮', 2008, 4, 45.00),
 (13213, '食料', '野菜・海藻', '他の野菜・海藻加工品', 'こんぶつくだ煮', 2008, 5, 41.00),
 (13214, '食料', '野菜・海藻', '他の野菜・海藻加工品', 'こんぶつくだ煮', 2008, 6, 72.00),
@@ -14035,9 +14035,9 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (13976, '食料', '野菜・海藻', '他の野菜・海藻加工品', '梅干し', 2008, 6, 102.00),
 (13977, '食料', '野菜・海藻', '他の野菜・海藻加工品', '梅干し', 2008, 7, 126.00),
 (13978, '食料', '野菜・海藻', '他の野菜・海藻加工品', '梅干し', 2008, 8, 47.00),
-(13979, '食料', '野菜・海藻', '他の野菜・海藻加工品', '梅干し', 2008, 9, 68.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
-(13980, '食料', '野菜・海藻', '他の野菜・海藻加工品', '梅干し', 2008, 10, 45.00),
+(13979, '食料', '野菜・海藻', '他の野菜・海藻加工品', '梅干し', 2008, 9, 68.00),
+(13980, '食料', '野菜・海藻', '他の野菜・海藻加工品', '梅干し', 2008, 10, 45.00);
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (13981, '食料', '野菜・海藻', '他の野菜・海藻加工品', '梅干し', 2008, 11, 27.00),
 (13982, '食料', '野菜・海藻', '他の野菜・海藻加工品', '梅干し', 2008, 12, 43.00),
 (13983, '食料', '野菜・海藻', '他の野菜・海藻加工品', '梅干し', 2009, 1, 53.00),
@@ -14979,9 +14979,9 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (14919, '食料', '果物', '生鮮果物', 'ぶどう', 2012, 12, 11.00),
 (14920, '食料', '果物', '生鮮果物', 'ぶどう', 2013, 1, 2.00),
 (14921, '食料', '果物', '生鮮果物', 'ぶどう', 2013, 2, 0.00),
-(14922, '食料', '果物', '生鮮果物', 'ぶどう', 2013, 3, 12.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
-(14923, '食料', '果物', '生鮮果物', 'ぶどう', 2013, 4, 25.00),
+(14922, '食料', '果物', '生鮮果物', 'ぶどう', 2013, 3, 12.00),
+(14923, '食料', '果物', '生鮮果物', 'ぶどう', 2013, 4, 25.00);
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (14924, '食料', '果物', '生鮮果物', 'ぶどう', 2013, 5, 41.00),
 (14925, '食料', '果物', '生鮮果物', 'ぶどう', 2013, 6, 46.00),
 (14926, '食料', '果物', '生鮮果物', 'ぶどう', 2013, 7, 712.00),
@@ -15968,9 +15968,9 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (15907, '食料', '果物', '生鮮果物', '梨', 2010, 8, 622.00),
 (15908, '食料', '果物', '生鮮果物', '梨', 2010, 9, 405.00),
 (15909, '食料', '果物', '生鮮果物', '梨', 2010, 10, 345.00),
-(15910, '食料', '果物', '生鮮果物', '梨', 2010, 11, 84.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
-(15911, '食料', '果物', '生鮮果物', '梨', 2010, 12, 36.00),
+(15910, '食料', '果物', '生鮮果物', '梨', 2010, 11, 84.00),
+(15911, '食料', '果物', '生鮮果物', '梨', 2010, 12, 36.00);
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (15912, '食料', '果物', '生鮮果物', '梨', 2011, 1, 2.00),
 (15913, '食料', '果物', '生鮮果物', '梨', 2011, 2, 0.00),
 (15914, '食料', '果物', '生鮮果物', '梨', 2011, 3, 0.00),
@@ -16895,9 +16895,9 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (16833, '食料', '油脂・調味料', '調味料', 'しょう油', 2013, 9, 106.00),
 (16834, '食料', '油脂・調味料', '調味料', 'しょう油', 2013, 10, 126.00),
 (16835, '食料', '油脂・調味料', '調味料', 'しょう油', 2013, 11, 137.00),
-(16836, '食料', '油脂・調味料', '調味料', 'しょう油', 2013, 12, 196.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
-(16837, '食料', '油脂・調味料', '調味料', 'しょう油', 2014, 1, 104.00),
+(16836, '食料', '油脂・調味料', '調味料', 'しょう油', 2013, 12, 196.00),
+(16837, '食料', '油脂・調味料', '調味料', 'しょう油', 2014, 1, 104.00);
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (16838, '食料', '油脂・調味料', '調味料', 'しょう油', 2014, 2, 173.00),
 (16839, '食料', '油脂・調味料', '調味料', 'しょう油', 2014, 3, 203.00),
 (16840, '食料', '油脂・調味料', '調味料', 'しょう油', 2014, 4, 118.00),
@@ -17776,9 +17776,9 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (17713, '食料', '油脂・調味料', '調味料', '乾燥スープ', 2012, 12, 312.00),
 (17714, '食料', '油脂・調味料', '調味料', '乾燥スープ', 2013, 1, 265.00),
 (17715, '食料', '油脂・調味料', '調味料', '乾燥スープ', 2013, 2, 226.00),
-(17716, '食料', '油脂・調味料', '調味料', '乾燥スープ', 2013, 3, 203.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
-(17717, '食料', '油脂・調味料', '調味料', '乾燥スープ', 2013, 4, 157.00),
+(17716, '食料', '油脂・調味料', '調味料', '乾燥スープ', 2013, 3, 203.00),
+(17717, '食料', '油脂・調味料', '調味料', '乾燥スープ', 2013, 4, 157.00);
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (17718, '食料', '油脂・調味料', '調味料', '乾燥スープ', 2013, 5, 113.00),
 (17719, '食料', '油脂・調味料', '調味料', '乾燥スープ', 2013, 6, 103.00),
 (17720, '食料', '油脂・調味料', '調味料', '乾燥スープ', 2013, 7, 106.00),
@@ -18680,9 +18680,9 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (18616, '食料', '菓子類', '（なし）', 'カステラ', 2014, 2, 63.00),
 (18617, '食料', '菓子類', '（なし）', 'カステラ', 2014, 3, 98.00),
 (18618, '食料', '菓子類', '（なし）', 'カステラ', 2014, 4, 53.00),
-(18619, '食料', '菓子類', '（なし）', 'カステラ', 2014, 5, 54.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
-(18620, '食料', '菓子類', '（なし）', 'カステラ', 2014, 6, 31.00),
+(18619, '食料', '菓子類', '（なし）', 'カステラ', 2014, 5, 54.00),
+(18620, '食料', '菓子類', '（なし）', 'カステラ', 2014, 6, 31.00);
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (18621, '食料', '菓子類', '（なし）', 'カステラ', 2014, 7, 57.00),
 (18622, '食料', '菓子類', '（なし）', 'カステラ', 2014, 8, 46.00),
 (18623, '食料', '菓子類', '（なし）', 'カステラ', 2014, 9, 40.00),
@@ -19605,9 +19605,9 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (19540, '食料', '菓子類', '（なし）', 'チョコレート菓子', 2017, 1, 111.00),
 (19541, '食料', '菓子類', '（なし）', 'チョコレート菓子', 2017, 2, 122.00),
 (19542, '食料', '菓子類', '（なし）', 'チョコレート菓子', 2017, 3, 120.00),
-(19543, '食料', '菓子類', '（なし）', 'チョコレート菓子', 2017, 4, 120.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
-(19544, '食料', '菓子類', '（なし）', 'チョコレート菓子', 2017, 5, 110.00),
+(19543, '食料', '菓子類', '（なし）', 'チョコレート菓子', 2017, 4, 120.00),
+(19544, '食料', '菓子類', '（なし）', 'チョコレート菓子', 2017, 5, 110.00);
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (19545, '食料', '菓子類', '（なし）', 'チョコレート菓子', 2017, 6, 91.00),
 (19546, '食料', '菓子類', '（なし）', 'チョコレート菓子', 2017, 7, 117.00),
 (19547, '食料', '菓子類', '（なし）', 'チョコレート菓子', 2017, 8, 92.00),
@@ -20530,7 +20530,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (20464, '食料', '調理食品', '主食的調理食品', 'おにぎり・その他', 2009, 5, 283.00),
 (20465, '食料', '調理食品', '主食的調理食品', 'おにぎり・その他', 2009, 6, 202.00),
 (20466, '食料', '調理食品', '主食的調理食品', 'おにぎり・その他', 2009, 7, 255.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (20467, '食料', '調理食品', '主食的調理食品', 'おにぎり・その他', 2009, 8, 360.00),
 (20468, '食料', '調理食品', '主食的調理食品', 'おにぎり・その他', 2009, 9, 202.00),
 (20469, '食料', '調理食品', '主食的調理食品', 'おにぎり・その他', 2009, 10, 251.00),
@@ -21379,7 +21379,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (21312, '食料', '調理食品', '他の調理食品', 'カツレツ', 2016, 7, 121.00),
 (21313, '食料', '調理食品', '他の調理食品', 'カツレツ', 2016, 8, 111.00),
 (21314, '食料', '調理食品', '他の調理食品', 'カツレツ', 2016, 9, 82.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (21315, '食料', '調理食品', '他の調理食品', 'カツレツ', 2016, 10, 76.00),
 (21316, '食料', '調理食品', '他の調理食品', 'カツレツ', 2016, 11, 80.00),
 (21317, '食料', '調理食品', '他の調理食品', 'カツレツ', 2016, 12, 34.00),
@@ -22259,7 +22259,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (22191, '食料', '調理食品', '他の調理食品', 'やきとり', 2015, 9, 96.00),
 (22192, '食料', '調理食品', '他の調理食品', 'やきとり', 2015, 10, 99.00),
 (22193, '食料', '調理食品', '他の調理食品', 'やきとり', 2015, 11, 210.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (22194, '食料', '調理食品', '他の調理食品', 'やきとり', 2015, 12, 96.00),
 (22195, '食料', '調理食品', '他の調理食品', 'やきとり', 2016, 1, 143.00),
 (22196, '食料', '調理食品', '他の調理食品', 'やきとり', 2016, 2, 119.00),
@@ -23188,7 +23188,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (23119, '食料', '飲料', 'コーヒー・ココア', 'コーヒー', 2008, 5, 377.00),
 (23120, '食料', '飲料', 'コーヒー・ココア', 'コーヒー', 2008, 6, 429.00),
 (23121, '食料', '飲料', 'コーヒー・ココア', 'コーヒー', 2008, 7, 457.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (23122, '食料', '飲料', 'コーヒー・ココア', 'コーヒー', 2008, 8, 296.00),
 (23123, '食料', '飲料', 'コーヒー・ココア', 'コーヒー', 2008, 9, 332.00),
 (23124, '食料', '飲料', 'コーヒー・ココア', 'コーヒー', 2008, 10, 382.00),
@@ -24035,7 +24035,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (23965, '食料', '飲料', '他の飲料', '他の飲料のその他(2014年までは38Yを含む)', 2015, 5, 315.00),
 (23966, '食料', '飲料', '他の飲料', '他の飲料のその他(2014年までは38Yを含む)', 2015, 6, 279.00),
 (23967, '食料', '飲料', '他の飲料', '他の飲料のその他(2014年までは38Yを含む)', 2015, 7, 340.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (23968, '食料', '飲料', '他の飲料', '他の飲料のその他(2014年までは38Yを含む)', 2015, 8, 424.00),
 (23969, '食料', '飲料', '他の飲料', '他の飲料のその他(2014年までは38Yを含む)', 2015, 9, 280.00),
 (23970, '食料', '飲料', '他の飲料', '他の飲料のその他(2014年までは38Yを含む)', 2015, 10, 434.00),
@@ -24971,7 +24971,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (24900, '食料', '酒類', '（なし）', '焼酎', 2008, 8, 600.00),
 (24901, '食料', '酒類', '（なし）', '焼酎', 2008, 9, 584.00),
 (24902, '食料', '酒類', '（なし）', '焼酎', 2008, 10, 753.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (24903, '食料', '酒類', '（なし）', '焼酎', 2008, 11, 580.00),
 (24904, '食料', '酒類', '（なし）', '焼酎', 2008, 12, 1435.00),
 (24905, '食料', '酒類', '（なし）', '焼酎', 2009, 1, 433.00),
@@ -25869,7 +25869,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (25797, '食料', '外食', '一般外食', 'ハンバーガー', 2009, 4, 453.00),
 (25798, '食料', '外食', '一般外食', 'ハンバーガー', 2009, 5, 295.00),
 (25799, '食料', '外食', '一般外食', 'ハンバーガー', 2009, 6, 389.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (25800, '食料', '外食', '一般外食', 'ハンバーガー', 2009, 7, 328.00),
 (25801, '食料', '外食', '一般外食', 'ハンバーガー', 2009, 8, 422.00),
 (25802, '食料', '外食', '一般外食', 'ハンバーガー', 2009, 9, 274.00),
@@ -26792,7 +26792,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (26719, '食料', '外食', '一般外食', '洋食(2014年までは399を含む)', 2012, 1, 1258.00),
 (26720, '食料', '外食', '一般外食', '洋食(2014年までは399を含む)', 2012, 2, 1005.00),
 (26721, '食料', '外食', '一般外食', '洋食(2014年までは399を含む)', 2012, 3, 2020.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (26722, '食料', '外食', '一般外食', '洋食(2014年までは399を含む)', 2012, 4, 1519.00),
 (26723, '食料', '外食', '一般外食', '洋食(2014年までは399を含む)', 2012, 5, 1668.00),
 (26724, '食料', '外食', '一般外食', '洋食(2014年までは399を含む)', 2012, 6, 1706.00),
@@ -27608,7 +27608,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (27534, '家具・家事用品', '家庭用耐久財', '家事用耐久財', '電気洗濯機', 2016, 6, 0.00),
 (27535, '家具・家事用品', '家庭用耐久財', '家事用耐久財', '電気洗濯機', 2016, 7, 0.00),
 (27536, '家具・家事用品', '家庭用耐久財', '家事用耐久財', '電気洗濯機', 2016, 8, 0.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (27537, '家具・家事用品', '家庭用耐久財', '家事用耐久財', '電気洗濯機', 2016, 9, 0.00),
 (27538, '家具・家事用品', '家庭用耐久財', '家事用耐久財', '電気洗濯機', 2016, 10, 0.00),
 (27539, '家具・家事用品', '家庭用耐久財', '家事用耐久財', '電気洗濯機', 2016, 11, 0.00),
@@ -28373,7 +28373,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (28298, '家具・家事用品', '家庭用耐久財', '冷暖房用器具', '他の冷暖房用器具', 2016, 8, 0.00),
 (28299, '家具・家事用品', '家庭用耐久財', '冷暖房用器具', '他の冷暖房用器具', 2016, 9, 52.00),
 (28300, '家具・家事用品', '家庭用耐久財', '冷暖房用器具', '他の冷暖房用器具', 2016, 10, 805.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (28301, '家具・家事用品', '家庭用耐久財', '冷暖房用器具', '他の冷暖房用器具', 2016, 11, 1326.00),
 (28302, '家具・家事用品', '家庭用耐久財', '冷暖房用器具', '他の冷暖房用器具', 2016, 12, 525.00),
 (28303, '家具・家事用品', '家庭用耐久財', '冷暖房用器具', '他の冷暖房用器具', 2017, 1, 396.00),
@@ -29195,7 +29195,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (29119, '家具・家事用品', '室内装備・装飾品', '（なし）', '室内装飾品', 2010, 12, 81.00),
 (29120, '家具・家事用品', '室内装備・装飾品', '（なし）', '室内装飾品', 2011, 1, 34.00),
 (29121, '家具・家事用品', '室内装備・装飾品', '（なし）', '室内装飾品', 2011, 2, 471.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (29122, '家具・家事用品', '室内装備・装飾品', '（なし）', '室内装飾品', 2011, 3, 219.00),
 (29123, '家具・家事用品', '室内装備・装飾品', '（なし）', '室内装飾品', 2011, 4, 16.00),
 (29124, '家具・家事用品', '室内装備・装飾品', '（なし）', '室内装飾品', 2011, 5, 317.00),
@@ -30021,7 +30021,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (29944, '家具・家事用品', '寝具類', '（なし）', '布団', 2016, 3, 448.00),
 (29945, '家具・家事用品', '寝具類', '（なし）', '布団', 2016, 4, 33.00),
 (29946, '家具・家事用品', '寝具類', '（なし）', '布団', 2016, 5, 594.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (29947, '家具・家事用品', '寝具類', '（なし）', '布団', 2016, 6, 524.00),
 (29948, '家具・家事用品', '寝具類', '（なし）', '布団', 2016, 7, 90.00),
 (29949, '家具・家事用品', '寝具類', '（なし）', '布団', 2016, 8, 0.00),
@@ -30869,7 +30869,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (30791, '家具・家事用品', '家事雑貨', '（なし）', '茶わん・皿・鉢', 2012, 9, 204.00),
 (30792, '家具・家事用品', '家事雑貨', '（なし）', '茶わん・皿・鉢', 2012, 10, 71.00),
 (30793, '家具・家事用品', '家事雑貨', '（なし）', '茶わん・皿・鉢', 2012, 11, 206.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (30794, '家具・家事用品', '家事雑貨', '（なし）', '茶わん・皿・鉢', 2012, 12, 112.00),
 (30795, '家具・家事用品', '家事雑貨', '（なし）', '茶わん・皿・鉢', 2013, 1, 255.00),
 (30796, '家具・家事用品', '家事雑貨', '（なし）', '茶わん・皿・鉢', 2013, 2, 45.00),
@@ -31645,7 +31645,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (31566, '家具・家事用品', '家事用消耗品', '（なし）', '他の家事用消耗品のその他(2014年までは536,537を含む)', 2013, 10, 1103.00),
 (31567, '家具・家事用品', '家事用消耗品', '（なし）', '他の家事用消耗品のその他(2014年までは536,537を含む)', 2013, 11, 1347.00),
 (31568, '家具・家事用品', '家事用消耗品', '（なし）', '他の家事用消耗品のその他(2014年までは536,537を含む)', 2013, 12, 1097.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (31569, '家具・家事用品', '家事用消耗品', '（なし）', '他の家事用消耗品のその他(2014年までは536,537を含む)', 2014, 1, 955.00),
 (31570, '家具・家事用品', '家事用消耗品', '（なし）', '他の家事用消耗品のその他(2014年までは536,537を含む)', 2014, 2, 928.00),
 (31571, '家具・家事用品', '家事用消耗品', '（なし）', '他の家事用消耗品のその他(2014年までは536,537を含む)', 2014, 3, 1461.00),
@@ -32394,7 +32394,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (32314, '家具・家事用品', '家事サービス', '（なし）', '家具・家事用品関連サービス', 2012, 8, 679.00),
 (32315, '家具・家事用品', '家事サービス', '（なし）', '家具・家事用品関連サービス', 2012, 9, 319.00),
 (32316, '家具・家事用品', '家事サービス', '（なし）', '家具・家事用品関連サービス', 2012, 10, 684.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (32317, '家具・家事用品', '家事サービス', '（なし）', '家具・家事用品関連サービス', 2012, 11, 434.00),
 (32318, '家具・家事用品', '家事サービス', '（なし）', '家具・家事用品関連サービス', 2012, 12, 738.00),
 (32319, '家具・家事用品', '家事サービス', '（なし）', '家具・家事用品関連サービス', 2013, 1, 315.00),
@@ -33313,7 +33313,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (33232, '食料', '穀類', '麺類', 'スパゲッティ', 2015, 1, 64.00),
 (33233, '食料', '穀類', '麺類', 'スパゲッティ', 2015, 2, 85.00),
 (33234, '食料', '穀類', '麺類', 'スパゲッティ', 2015, 3, 73.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (33235, '食料', '穀類', '麺類', 'スパゲッティ', 2015, 4, 133.00),
 (33236, '食料', '穀類', '麺類', 'スパゲッティ', 2015, 5, 110.00),
 (33237, '食料', '穀類', '麺類', 'スパゲッティ', 2015, 6, 99.00),
@@ -34295,7 +34295,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (34213, '食料', '穀類', '他の穀類', '他の穀類のその他', 2012, 2, 132.00),
 (34214, '食料', '穀類', '他の穀類', '他の穀類のその他', 2012, 3, 175.00),
 (34215, '食料', '穀類', '他の穀類', '他の穀類のその他', 2012, 4, 118.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (34216, '食料', '穀類', '他の穀類', '他の穀類のその他', 2012, 5, 251.00),
 (34217, '食料', '穀類', '他の穀類', '他の穀類のその他', 2012, 6, 183.00),
 (34218, '食料', '穀類', '他の穀類', '他の穀類のその他', 2012, 7, 170.00),
@@ -35263,7 +35263,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (35180, '食料', '魚介類', '生鮮魚介', 'さけ', 2008, 1, 236.00),
 (35181, '食料', '魚介類', '生鮮魚介', 'さけ', 2008, 2, 236.00),
 (35182, '食料', '魚介類', '生鮮魚介', 'さけ', 2008, 3, 241.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (35183, '食料', '魚介類', '生鮮魚介', 'さけ', 2008, 4, 303.00),
 (35184, '食料', '魚介類', '生鮮魚介', 'さけ', 2008, 5, 327.00),
 (35185, '食料', '魚介類', '生鮮魚介', 'さけ', 2008, 6, 345.00),
@@ -36227,7 +36227,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (36143, '食料', '魚介類', '生鮮魚介', 'まぐろ', 2014, 3, 112.00),
 (36144, '食料', '魚介類', '生鮮魚介', 'まぐろ', 2014, 4, 244.00),
 (36145, '食料', '魚介類', '生鮮魚介', 'まぐろ', 2014, 5, 181.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (36146, '食料', '魚介類', '生鮮魚介', 'まぐろ', 2014, 6, 158.00),
 (36147, '食料', '魚介類', '生鮮魚介', 'まぐろ', 2014, 7, 169.00),
 (36148, '食料', '魚介類', '生鮮魚介', 'まぐろ', 2014, 8, 234.00),
@@ -37183,7 +37183,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (37098, '食料', '魚介類', '塩干魚介', 'たらこ', 2009, 2, 351.00),
 (37099, '食料', '魚介類', '塩干魚介', 'たらこ', 2009, 3, 586.00),
 (37100, '食料', '魚介類', '塩干魚介', 'たらこ', 2009, 4, 671.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (37101, '食料', '魚介類', '塩干魚介', 'たらこ', 2009, 5, 594.00),
 (37102, '食料', '魚介類', '塩干魚介', 'たらこ', 2009, 6, 351.00),
 (37103, '食料', '魚介類', '塩干魚介', 'たらこ', 2009, 7, 640.00),
@@ -38111,7 +38111,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (38025, '食料', '魚介類', '魚肉練製品', '揚げかまぼこ', 2012, 4, 172.00),
 (38026, '食料', '魚介類', '魚肉練製品', '揚げかまぼこ', 2012, 5, 181.00),
 (38027, '食料', '魚介類', '魚肉練製品', '揚げかまぼこ', 2012, 6, 127.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (38028, '食料', '魚介類', '魚肉練製品', '揚げかまぼこ', 2012, 7, 247.00),
 (38029, '食料', '魚介類', '魚肉練製品', '揚げかまぼこ', 2012, 8, 230.00),
 (38030, '食料', '魚介類', '魚肉練製品', '揚げかまぼこ', 2012, 9, 145.00),
@@ -38985,7 +38985,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (38898, '食料', '肉類', '生鮮肉', '鶏肉', 2010, 12, 1574.00),
 (38899, '食料', '肉類', '生鮮肉', '鶏肉', 2011, 1, 1370.00),
 (38900, '食料', '肉類', '生鮮肉', '鶏肉', 2011, 2, 1121.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (38901, '食料', '肉類', '生鮮肉', '鶏肉', 2011, 3, 1150.00),
 (38902, '食料', '肉類', '生鮮肉', '鶏肉', 2011, 4, 1009.00),
 (38903, '食料', '肉類', '生鮮肉', '鶏肉', 2011, 5, 1121.00),
@@ -39959,7 +39959,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (39871, '食料', '肉類', '加工肉', '他の加工肉', 2017, 12, 226.00),
 (39872, '食料', '肉類', '加工肉', '他の加工肉', 2018, 1, 94.00),
 (39873, '食料', '肉類', '加工肉', '他の加工肉', 2018, 2, 87.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (39874, '食料', '肉類', '加工肉', '他の加工肉', 2018, 3, 214.00),
 (39875, '食料', '肉類', '加工肉', '他の加工肉', 2018, 4, 253.00),
 (39876, '食料', '肉類', '加工肉', '他の加工肉', 2018, 5, 142.00),
@@ -40933,7 +40933,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (40844, '食料', '野菜・海藻', '生鮮野菜', 'キャベツ', 2014, 5, 231.00),
 (40845, '食料', '野菜・海藻', '生鮮野菜', 'キャベツ', 2014, 6, 213.00),
 (40846, '食料', '野菜・海藻', '生鮮野菜', 'キャベツ', 2014, 7, 218.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (40847, '食料', '野菜・海藻', '生鮮野菜', 'キャベツ', 2014, 8, 277.00),
 (40848, '食料', '野菜・海藻', '生鮮野菜', 'キャベツ', 2014, 9, 338.00),
 (40849, '食料', '野菜・海藻', '生鮮野菜', 'キャベツ', 2014, 10, 339.00),
@@ -41838,7 +41838,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (41748, '食料', '野菜・海藻', '生鮮野菜', '他の葉茎菜', 2015, 8, 628.00),
 (41749, '食料', '野菜・海藻', '生鮮野菜', '他の葉茎菜', 2015, 9, 606.00),
 (41750, '食料', '野菜・海藻', '生鮮野菜', '他の葉茎菜', 2015, 10, 540.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (41751, '食料', '野菜・海藻', '生鮮野菜', '他の葉茎菜', 2015, 11, 412.00),
 (41752, '食料', '野菜・海藻', '生鮮野菜', '他の葉茎菜', 2015, 12, 515.00),
 (41753, '食料', '野菜・海藻', '生鮮野菜', '他の葉茎菜', 2016, 1, 644.00),
@@ -42745,7 +42745,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (42654, '食料', '野菜・海藻', '生鮮野菜', 'たまねぎ', 2017, 1, 329.00),
 (42655, '食料', '野菜・海藻', '生鮮野菜', 'たまねぎ', 2017, 2, 360.00),
 (42656, '食料', '野菜・海藻', '生鮮野菜', 'たまねぎ', 2017, 3, 369.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (42657, '食料', '野菜・海藻', '生鮮野菜', 'たまねぎ', 2017, 4, 368.00),
 (42658, '食料', '野菜・海藻', '生鮮野菜', 'たまねぎ', 2017, 5, 231.00),
 (42659, '食料', '野菜・海藻', '生鮮野菜', 'たまねぎ', 2017, 6, 238.00),
@@ -43653,7 +43653,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (43561, '食料', '野菜・海藻', '生鮮野菜', 'さやまめ', 2018, 7, 144.00),
 (43562, '食料', '野菜・海藻', '生鮮野菜', 'しめじ', 2008, 1, 0.00),
 (43563, '食料', '野菜・海藻', '生鮮野菜', 'しめじ', 2008, 2, 0.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (43564, '食料', '野菜・海藻', '生鮮野菜', 'しめじ', 2008, 3, 0.00),
 (43565, '食料', '野菜・海藻', '生鮮野菜', 'しめじ', 2008, 4, 0.00),
 (43566, '食料', '野菜・海藻', '生鮮野菜', 'しめじ', 2008, 5, 0.00),
@@ -44513,7 +44513,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (44420, '食料', '野菜・海藻', '生鮮野菜', '他の野菜のその他', 2016, 1, 82.00),
 (44421, '食料', '野菜・海藻', '生鮮野菜', '他の野菜のその他', 2016, 2, 183.00),
 (44422, '食料', '野菜・海藻', '生鮮野菜', '他の野菜のその他', 2016, 3, 171.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (44423, '食料', '野菜・海藻', '生鮮野菜', '他の野菜のその他', 2016, 4, 277.00),
 (44424, '食料', '野菜・海藻', '生鮮野菜', '他の野菜のその他', 2016, 5, 601.00),
 (44425, '食料', '野菜・海藻', '生鮮野菜', '他の野菜のその他', 2016, 6, 784.00),
@@ -45402,7 +45402,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (45308, '食料', '野菜・海藻', '大豆加工品', '他の大豆製品', 2015, 12, 84.00),
 (45309, '食料', '野菜・海藻', '大豆加工品', '他の大豆製品', 2016, 1, 54.00),
 (45310, '食料', '野菜・海藻', '大豆加工品', '他の大豆製品', 2016, 2, 81.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (45311, '食料', '野菜・海藻', '大豆加工品', '他の大豆製品', 2016, 3, 105.00),
 (45312, '食料', '野菜・海藻', '大豆加工品', '他の大豆製品', 2016, 4, 43.00),
 (45313, '食料', '野菜・海藻', '大豆加工品', '他の大豆製品', 2016, 5, 64.00),
@@ -46242,7 +46242,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (46147, '食料', '野菜・海藻', '他の野菜・海藻加工品', 'はくさい漬', 2011, 10, 32.00),
 (46148, '食料', '野菜・海藻', '他の野菜・海藻加工品', 'はくさい漬', 2011, 11, 30.00),
 (46149, '食料', '野菜・海藻', '他の野菜・海藻加工品', 'はくさい漬', 2011, 12, 65.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (46150, '食料', '野菜・海藻', '他の野菜・海藻加工品', 'はくさい漬', 2012, 1, 41.00),
 (46151, '食料', '野菜・海藻', '他の野菜・海藻加工品', 'はくさい漬', 2012, 2, 36.00),
 (46152, '食料', '野菜・海藻', '他の野菜・海藻加工品', 'はくさい漬', 2012, 3, 31.00),
@@ -47059,7 +47059,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (46963, '食料', '果物', '生鮮果物', 'オレンジ', 2016, 4, 80.00),
 (46964, '食料', '果物', '生鮮果物', 'オレンジ', 2016, 5, 99.00),
 (46965, '食料', '果物', '生鮮果物', 'オレンジ', 2016, 6, 92.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (46966, '食料', '果物', '生鮮果物', 'オレンジ', 2016, 7, 65.00),
 (46967, '食料', '果物', '生鮮果物', 'オレンジ', 2016, 8, 22.00),
 (46968, '食料', '果物', '生鮮果物', 'オレンジ', 2016, 9, 29.00),
@@ -48024,7 +48024,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (47927, '食料', '果物', '生鮮果物', 'りんご', 2011, 12, 408.00),
 (47928, '食料', '果物', '生鮮果物', 'りんご', 2012, 1, 276.00),
 (47929, '食料', '果物', '生鮮果物', 'りんご', 2012, 2, 383.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (47930, '食料', '果物', '生鮮果物', 'りんご', 2012, 3, 514.00),
 (47931, '食料', '果物', '生鮮果物', 'りんご', 2012, 4, 434.00),
 (47932, '食料', '果物', '生鮮果物', 'りんご', 2012, 5, 390.00),
@@ -48999,7 +48999,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (48901, '食料', '油脂・調味料', '油脂', '食用油', 2008, 6, 262.00),
 (48902, '食料', '油脂・調味料', '油脂', '食用油', 2008, 7, 309.00),
 (48903, '食料', '油脂・調味料', '油脂', '食用油', 2008, 8, 270.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (48904, '食料', '油脂・調味料', '油脂', '食用油', 2008, 9, 272.00),
 (48905, '食料', '油脂・調味料', '油脂', '食用油', 2008, 10, 257.00),
 (48906, '食料', '油脂・調味料', '油脂', '食用油', 2008, 11, 221.00),
@@ -49911,7 +49911,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (49812, '食料', '油脂・調味料', '調味料', 'ドレッシング', 2010, 4, 153.00),
 (49813, '食料', '油脂・調味料', '調味料', 'ドレッシング', 2010, 5, 211.00),
 (49814, '食料', '油脂・調味料', '調味料', 'ドレッシング', 2010, 6, 137.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (49815, '食料', '油脂・調味料', '調味料', 'ドレッシング', 2010, 7, 130.00),
 (49816, '食料', '油脂・調味料', '調味料', 'ドレッシング', 2010, 8, 162.00),
 (49817, '食料', '油脂・調味料', '調味料', 'ドレッシング', 2010, 9, 108.00),
@@ -50804,7 +50804,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (50704, '食料', '油脂・調味料', '調味料', '酢', 2010, 7, 203.00),
 (50705, '食料', '油脂・調味料', '調味料', '酢', 2010, 8, 132.00),
 (50706, '食料', '油脂・調味料', '調味料', '酢', 2010, 9, 97.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (50707, '食料', '油脂・調味料', '調味料', '酢', 2010, 10, 86.00),
 (50708, '食料', '油脂・調味料', '調味料', '酢', 2010, 11, 93.00),
 (50709, '食料', '油脂・調味料', '調味料', '酢', 2010, 12, 128.00),
@@ -51705,7 +51705,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (51604, '食料', '菓子類', '（なし）', 'スナック菓子', 2011, 6, 198.00),
 (51605, '食料', '菓子類', '（なし）', 'スナック菓子', 2011, 7, 327.00),
 (51606, '食料', '菓子類', '（なし）', 'スナック菓子', 2011, 8, 307.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (51607, '食料', '菓子類', '（なし）', 'スナック菓子', 2011, 9, 187.00),
 (51608, '食料', '菓子類', '（なし）', 'スナック菓子', 2011, 10, 225.00),
 (51609, '食料', '菓子類', '（なし）', 'スナック菓子', 2011, 11, 302.00),
@@ -52630,7 +52630,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (52528, '食料', '菓子類', '（なし）', 'まんじゅう', 2014, 5, 127.00),
 (52529, '食料', '菓子類', '（なし）', 'まんじゅう', 2014, 6, 126.00),
 (52530, '食料', '菓子類', '（なし）', 'まんじゅう', 2014, 7, 74.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (52531, '食料', '菓子類', '（なし）', 'まんじゅう', 2014, 8, 160.00),
 (52532, '食料', '菓子類', '（なし）', 'まんじゅう', 2014, 9, 183.00),
 (52533, '食料', '菓子類', '（なし）', 'まんじゅう', 2014, 10, 133.00),
@@ -53512,7 +53512,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (53409, '食料', '調理食品', '主食的調理食品', '他の主食的調理食品', 2013, 9, 810.00),
 (53410, '食料', '調理食品', '主食的調理食品', '他の主食的調理食品', 2013, 10, 970.00),
 (53411, '食料', '調理食品', '主食的調理食品', '他の主食的調理食品', 2013, 11, 705.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (53412, '食料', '調理食品', '主食的調理食品', '他の主食的調理食品', 2013, 12, 1092.00),
 (53413, '食料', '調理食品', '主食的調理食品', '他の主食的調理食品', 2014, 1, 579.00),
 (53414, '食料', '調理食品', '主食的調理食品', '他の主食的調理食品', 2014, 2, 684.00),
@@ -54387,7 +54387,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (54283, '食料', '調理食品', '他の調理食品', 'サラダ', 2012, 6, 305.00),
 (54284, '食料', '調理食品', '他の調理食品', 'サラダ', 2012, 7, 270.00),
 (54285, '食料', '調理食品', '他の調理食品', 'サラダ', 2012, 8, 284.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (54286, '食料', '調理食品', '他の調理食品', 'サラダ', 2012, 9, 200.00),
 (54287, '食料', '調理食品', '他の調理食品', 'サラダ', 2012, 10, 180.00),
 (54288, '食料', '調理食品', '他の調理食品', 'サラダ', 2012, 11, 149.00),
@@ -55242,7 +55242,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (55137, '食料', '調理食品', '他の調理食品', '冷凍調理食品', 2009, 7, 306.00),
 (55138, '食料', '調理食品', '他の調理食品', '冷凍調理食品', 2009, 8, 449.00),
 (55139, '食料', '調理食品', '他の調理食品', '冷凍調理食品', 2009, 9, 542.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (55140, '食料', '調理食品', '他の調理食品', '冷凍調理食品', 2009, 10, 563.00),
 (55141, '食料', '調理食品', '他の調理食品', '冷凍調理食品', 2009, 11, 415.00),
 (55142, '食料', '調理食品', '他の調理食品', '冷凍調理食品', 2009, 12, 490.00),
@@ -56184,7 +56184,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (56078, '食料', '飲料', 'コーヒー・ココア', 'ココア・ココア飲料', 2013, 11, 27.00),
 (56079, '食料', '飲料', 'コーヒー・ココア', 'ココア・ココア飲料', 2013, 12, 29.00),
 (56080, '食料', '飲料', 'コーヒー・ココア', 'ココア・ココア飲料', 2014, 1, 63.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (56081, '食料', '飲料', 'コーヒー・ココア', 'ココア・ココア飲料', 2014, 2, 44.00),
 (56082, '食料', '飲料', 'コーヒー・ココア', 'ココア・ココア飲料', 2014, 3, 46.00),
 (56083, '食料', '飲料', 'コーヒー・ココア', 'ココア・ココア飲料', 2014, 4, 24.00),
@@ -57056,7 +57056,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (56949, '食料', '飲料', '他の飲料', '乳酸菌飲料', 2012, 5, 197.00),
 (56950, '食料', '飲料', '他の飲料', '乳酸菌飲料', 2012, 6, 154.00),
 (56951, '食料', '飲料', '他の飲料', '乳酸菌飲料', 2012, 7, 198.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (56952, '食料', '飲料', '他の飲料', '乳酸菌飲料', 2012, 8, 281.00),
 (56953, '食料', '飲料', '他の飲料', '乳酸菌飲料', 2012, 9, 160.00),
 (56954, '食料', '飲料', '他の飲料', '乳酸菌飲料', 2012, 10, 137.00),
@@ -57985,7 +57985,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (57877, '食料', '酒類', '（なし）', '他の酒(2014年までは3X8を含む)', 2015, 8, 27.00),
 (57878, '食料', '酒類', '（なし）', '他の酒(2014年までは3X8を含む)', 2015, 9, 132.00),
 (57879, '食料', '酒類', '（なし）', '他の酒(2014年までは3X8を含む)', 2015, 10, 74.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (57880, '食料', '酒類', '（なし）', '他の酒(2014年までは3X8を含む)', 2015, 11, 76.00),
 (57881, '食料', '酒類', '（なし）', '他の酒(2014年までは3X8を含む)', 2015, 12, 164.00),
 (57882, '食料', '酒類', '（なし）', '他の酒(2014年までは3X8を含む)', 2016, 1, 54.00),
@@ -58895,7 +58895,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (58786, '食料', '外食', '一般外食', '他の主食的外食', 2017, 4, 4560.00),
 (58787, '食料', '外食', '一般外食', '他の主食的外食', 2017, 5, 4780.00),
 (58788, '食料', '外食', '一般外食', '他の主食的外食', 2017, 6, 4780.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (58789, '食料', '外食', '一般外食', '他の主食的外食', 2017, 7, 4792.00),
 (58790, '食料', '外食', '一般外食', '他の主食的外食', 2017, 8, 5289.00),
 (58791, '食料', '外食', '一般外食', '他の主食的外食', 2017, 9, 4934.00),
@@ -59802,7 +59802,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (59692, '家具・家事用品', '家庭用耐久財', '家事用耐久財', '炊事用ガス器具', 2008, 2, 0.00),
 (59693, '家具・家事用品', '家庭用耐久財', '家事用耐久財', '炊事用ガス器具', 2008, 3, 131.00),
 (59694, '家具・家事用品', '家庭用耐久財', '家事用耐久財', '炊事用ガス器具', 2008, 4, 0.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (59695, '家具・家事用品', '家庭用耐久財', '家事用耐久財', '炊事用ガス器具', 2008, 5, 0.00),
 (59696, '家具・家事用品', '家庭用耐久財', '家事用耐久財', '炊事用ガス器具', 2008, 6, 349.00),
 (59697, '家具・家事用品', '家庭用耐久財', '家事用耐久財', '炊事用ガス器具', 2008, 7, 0.00),
@@ -60577,7 +60577,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (60466, '家具・家事用品', '家庭用耐久財', '家事用耐久財', '電子レンジ', 2009, 2, 0.00),
 (60467, '家具・家事用品', '家庭用耐久財', '家事用耐久財', '電子レンジ', 2009, 3, 131.00),
 (60468, '家具・家事用品', '家庭用耐久財', '家事用耐久財', '電子レンジ', 2009, 4, 0.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (60469, '家具・家事用品', '家庭用耐久財', '家事用耐久財', '電子レンジ', 2009, 5, 0.00),
 (60470, '家具・家事用品', '家庭用耐久財', '家事用耐久財', '電子レンジ', 2009, 6, 0.00),
 (60471, '家具・家事用品', '家庭用耐久財', '家事用耐久財', '電子レンジ', 2009, 7, 0.00),
@@ -61357,7 +61357,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (61245, '家具・家事用品', '家庭用耐久財', '一般家具', '食器戸棚', 2010, 7, 0.00),
 (61246, '家具・家事用品', '家庭用耐久財', '一般家具', '食器戸棚', 2010, 8, 0.00),
 (61247, '家具・家事用品', '家庭用耐久財', '一般家具', '食器戸棚', 2010, 9, 0.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (61248, '家具・家事用品', '家庭用耐久財', '一般家具', '食器戸棚', 2010, 10, 0.00),
 (61249, '家具・家事用品', '家庭用耐久財', '一般家具', '食器戸棚', 2010, 11, 0.00),
 (61250, '家具・家事用品', '家庭用耐久財', '一般家具', '食器戸棚', 2010, 12, 0.00),
@@ -62162,7 +62162,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (62049, '家具・家事用品', '室内装備・装飾品', '（なし）', '他の室内装備品', 2014, 1, 209.00),
 (62050, '家具・家事用品', '室内装備・装飾品', '（なし）', '他の室内装備品', 2014, 2, 58.00),
 (62051, '家具・家事用品', '室内装備・装飾品', '（なし）', '他の室内装備品', 2014, 3, 133.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (62052, '家具・家事用品', '室内装備・装飾品', '（なし）', '他の室内装備品', 2014, 4, 6.00),
 (62053, '家具・家事用品', '室内装備・装飾品', '（なし）', '他の室内装備品', 2014, 5, 87.00),
 (62054, '家具・家事用品', '室内装備・装飾品', '（なし）', '他の室内装備品', 2014, 6, 49.00),
@@ -63030,7 +63030,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (62916, '家具・家事用品', '家事雑貨', '（なし）', 'タオル', 2012, 3, 115.00),
 (62917, '家具・家事用品', '家事雑貨', '（なし）', 'タオル', 2012, 4, 173.00),
 (62918, '家具・家事用品', '家事雑貨', '（なし）', 'タオル', 2012, 5, 67.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (62919, '家具・家事用品', '家事雑貨', '（なし）', 'タオル', 2012, 6, 143.00),
 (62920, '家具・家事用品', '家事雑貨', '（なし）', 'タオル', 2012, 7, 329.00),
 (62921, '家具・家事用品', '家事雑貨', '（なし）', 'タオル', 2012, 8, 99.00),
@@ -63850,7 +63850,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (63735, '家具・家事用品', '家事雑貨', '（なし）', '鍋・やかん', 2016, 12, 257.00),
 (63736, '家具・家事用品', '家事雑貨', '（なし）', '鍋・やかん', 2017, 1, 318.00),
 (63737, '家具・家事用品', '家事雑貨', '（なし）', '鍋・やかん', 2017, 2, 72.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (63738, '家具・家事用品', '家事雑貨', '（なし）', '鍋・やかん', 2017, 3, 134.00),
 (63739, '家具・家事用品', '家事雑貨', '（なし）', '鍋・やかん', 2017, 4, 85.00),
 (63740, '家具・家事用品', '家事雑貨', '（なし）', '鍋・やかん', 2017, 5, 82.00),
@@ -64590,7 +64590,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (64474, '家具・家事用品', '家事用消耗品', '（なし）', 'ティッシュペーパー', 2015, 1, 138.00),
 (64475, '家具・家事用品', '家事用消耗品', '（なし）', 'ティッシュペーパー', 2015, 2, 131.00),
 (64476, '家具・家事用品', '家事用消耗品', '（なし）', 'ティッシュペーパー', 2015, 3, 177.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (64477, '家具・家事用品', '家事用消耗品', '（なし）', 'ティッシュペーパー', 2015, 4, 170.00),
 (64478, '家具・家事用品', '家事用消耗品', '（なし）', 'ティッシュペーパー', 2015, 5, 165.00),
 (64479, '家具・家事用品', '家事用消耗品', '（なし）', 'ティッシュペーパー', 2015, 6, 158.00),
@@ -65366,7 +65366,7 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 (65249, '家具・家事用品', '家事サービス', '（なし）', '清掃代', 2016, 2, 132.00),
 (65250, '家具・家事用品', '家事サービス', '（なし）', '清掃代', 2016, 3, 192.00),
 (65251, '家具・家事用品', '家事サービス', '（なし）', '清掃代', 2016, 4, 155.00);
-INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
+INSERT INTO `sales` (`id`, `department`, `primary_item`, `secondary_item`, `varety`, `year`, `month`, `sales`) VALUES
 (65252, '家具・家事用品', '家事サービス', '（なし）', '清掃代', 2016, 5, 174.00),
 (65253, '家具・家事用品', '家事サービス', '（なし）', '清掃代', 2016, 6, 146.00),
 (65254, '家具・家事用品', '家事サービス', '（なし）', '清掃代', 2016, 7, 202.00),
@@ -65400,19 +65400,20 @@ INSERT INTO `salses` (`id`, `department`, `primary_item`, `secondary_item`, `var
 --
 
 --
--- テーブルのインデックス `salses`
+-- テーブルのインデックス `sales`
 --
-ALTER TABLE `salses`
-  ADD PRIMARY KEY (`id`);
+ALTER TABLE `sales`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `varety` (`varety`,`year`,`month`);
 
 --
 -- ダンプしたテーブルの AUTO_INCREMENT
 --
 
 --
--- テーブルの AUTO_INCREMENT `salses`
+-- テーブルの AUTO_INCREMENT `sales`
 --
-ALTER TABLE `salses`
+ALTER TABLE `sales`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65279;
 COMMIT;
 
