@@ -83,11 +83,12 @@ namespace RegressionAnalysis
         select new
         {
             部門 = sales.Field<string>("部門"),
+            大分類 = sales.Field<string>("大分類"),
             中分類 = sales.Field<string>("中分類"),
             品種 = sales.Field<string>("品種"),
             年 = sales.Field<string>("年"),
             月 = sales.Field<string>("月"),
-            販売量 = sales.Field<string>("販売量"),
+            売上 = sales.Field<string>("売上"),
             平均気温 = weather.Field<string>("平均気温(℃)"),
             最高気温 = weather.Field<string>("最高気温(℃)"),
             最低気温 = weather.Field<string>("最低気温(℃)"),
@@ -99,11 +100,12 @@ namespace RegressionAnalysis
     // DataTable生成
     DataTable mergedTable = new();
     mergedTable.Columns.Add("部門");
+    mergedTable.Columns.Add("大分類");
     mergedTable.Columns.Add("中分類");
     mergedTable.Columns.Add("品種");
     mergedTable.Columns.Add("年");
     mergedTable.Columns.Add("月");
-    mergedTable.Columns.Add("販売量");
+    mergedTable.Columns.Add("売上");
     mergedTable.Columns.Add("平均気温(℃)");
     mergedTable.Columns.Add("最高気温(℃)");
     mergedTable.Columns.Add("最低気温(℃)");
@@ -113,7 +115,7 @@ namespace RegressionAnalysis
 
     foreach (var row in query)
     {
-        mergedTable.Rows.Add(row.部門, row.中分類, row.品種, row.年, row.月, row.販売量,
+        mergedTable.Rows.Add(row.部門, row.大分類, row.中分類, row.品種, row.年, row.月, row.売上,
             row.平均気温, row.最高気温, row.最低気温, row.降水量合計, row.日照時間, row.単位);
     }
     return mergedTable;
@@ -141,7 +143,7 @@ namespace RegressionAnalysis
             conn.Open();
 			// 結合クエリ実行
 			string sql = $@"
-                SELECT s.department AS 部門, s.secondary_item AS 中分類, s.varety AS 品種, s.year AS 年, s.month AS 月, s.sales AS 売上,
+                SELECT s.department AS 部門, s.primary_item AS 大分類, s.secondary_item AS 中分類, s.varety AS 品種, s.year AS 年, s.month AS 月, s.sales AS 売上,
                        w.average_temperature AS 平均気温, w.maximum_temperature AS 最高気温, w.lowest_temperature AS 最低気温,
                        w.precipitation AS 降水量合計, w.sunshine_hours AS 日照時間, u.unit AS 単位
                 FROM {salesTable} s
