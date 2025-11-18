@@ -74,54 +74,50 @@ namespace RegressionAnalysis
 
             // LINQで結合
             var query =
-				// 売上データからループ
-				from sales in salesTable.AsEnumerable()
-						// 年月で天気データと結合
-						join weather in weatherTable.AsEnumerable()
-                          on new { Year = sales.Field<string>("年"), Month = sales.Field<string>("月") }
-                          equals new { Year = weather.Field<string>("年"), Month = weather.Field<string>("月") }
-						// 品種で単位データと結合
-						join unit in unitsTable.AsEnumerable()
-                          on sales.Field<string>("品種") equals unit.Field<string>("品種")
-						// 必要なフィールドを選択
-						select new
-                        {
-                            部門 = sales.Field<string>("部門"),
-                            中分類 = sales.Field<string>("中分類"),
-                            品種 = sales.Field<string>("品種"),
-                            年 = sales.Field<string>("年"),
-                            月 = sales.Field<string>("月"),
-                            販売量 = sales.Field<string>("販売量"),
-                            平均気温 = weather.Field<string>("平均気温(℃)"),
-                            最低気温 = weather.Field<string>("最低気温(℃)"),
-                            最高気温 = weather.Field<string>("最高気温(℃)"),
-                            降水量合計 = weather.Field<string>("降水量の合計(mm)"),
-                            日照時間 = weather.Field<string>("日照時間(時間)"),
-                            単位 = unit.Field<string>("単位")
-                        };
+        from sales in salesTable.AsEnumerable()
+        join weather in weatherTable.AsEnumerable()
+          on new { Year = sales.Field<string>("年"), Month = sales.Field<string>("月") }
+          equals new { Year = weather.Field<string>("年"), Month = weather.Field<string>("月") }
+        join unit in unitsTable.AsEnumerable()
+          on sales.Field<string>("品種") equals unit.Field<string>("品種")
+        select new
+        {
+            部門 = sales.Field<string>("部門"),
+            中分類 = sales.Field<string>("中分類"),
+            品種 = sales.Field<string>("品種"),
+            年 = sales.Field<string>("年"),
+            月 = sales.Field<string>("月"),
+            販売量 = sales.Field<string>("販売量"),
+            平均気温 = weather.Field<string>("平均気温(℃)"),
+            最高気温 = weather.Field<string>("最高気温(℃)"),
+            最低気温 = weather.Field<string>("最低気温(℃)"),
+            降水量合計 = weather.Field<string>("降水量の合計(mm)"),
+            日照時間 = weather.Field<string>("日照時間(時間)"),
+            単位 = unit.Field<string>("単位")
+        };
 
-            // DataTable生成
-            DataTable mergedTable = new();
-            mergedTable.Columns.Add("部門");
-            mergedTable.Columns.Add("中分類");
-            mergedTable.Columns.Add("品種");
-            mergedTable.Columns.Add("年");
-            mergedTable.Columns.Add("月");
-            mergedTable.Columns.Add("販売量");
-            mergedTable.Columns.Add("平均気温(℃)");
-            mergedTable.Columns.Add("最低気温(℃)");
-            mergedTable.Columns.Add("最高気温(℃)");
-            mergedTable.Columns.Add("降水量の合計(mm)");
-            mergedTable.Columns.Add("日照時間(時間)");
-            mergedTable.Columns.Add("単位");
+    // DataTable生成
+    DataTable mergedTable = new();
+    mergedTable.Columns.Add("部門");
+    mergedTable.Columns.Add("中分類");
+    mergedTable.Columns.Add("品種");
+    mergedTable.Columns.Add("年");
+    mergedTable.Columns.Add("月");
+    mergedTable.Columns.Add("販売量");
+    mergedTable.Columns.Add("平均気温(℃)");
+    mergedTable.Columns.Add("最高気温(℃)");
+    mergedTable.Columns.Add("最低気温(℃)");
+    mergedTable.Columns.Add("降水量の合計(mm)");
+    mergedTable.Columns.Add("日照時間(時間)");
+    mergedTable.Columns.Add("単位");
 
-            foreach (var row in query)
-            {
-                mergedTable.Rows.Add(row.部門, row.中分類, row.品種, row.年, row.月, row.販売量,
-                    row.平均気温, row.最低気温, row.最高気温, row.降水量合計, row.日照時間, row.単位);
-            }
-            return mergedTable;
-        }
+    foreach (var row in query)
+    {
+        mergedTable.Rows.Add(row.部門, row.中分類, row.品種, row.年, row.月, row.販売量,
+            row.平均気温, row.最高気温, row.最低気温, row.降水量合計, row.日照時間, row.単位);
+    }
+    return mergedTable;
+}
 	}
 
 	/**
@@ -146,7 +142,7 @@ namespace RegressionAnalysis
 			// 結合クエリ実行
 			string sql = $@"
                 SELECT s.department AS 部門, s.secondary_item AS 中分類, s.varety AS 品種, s.year AS 年, s.month AS 月, s.sales AS 売上,
-                       w.average_temperature AS 平均気温, w.lowest_temperature AS 最低気温, w.maximum_temperature AS 最高気温,
+                       w.average_temperature AS 平均気温, w.maximum_temperature AS 最高気温, w.lowest_temperature AS 最低気温,
                        w.precipitation AS 降水量合計, w.sunshine_hours AS 日照時間, u.unit AS 単位
                 FROM {salesTable} s
                 INNER JOIN {weatherTable} w ON s.year = w.year AND s.month = w.month

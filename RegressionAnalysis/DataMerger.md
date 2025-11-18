@@ -61,8 +61,8 @@
 | 年                   | 年               |
 | 月                   | 月               |
 | 平均気温(℃)         | 月平均気温       |
-| 最低気温(℃)         | 月最低気温       |
 | 最高気温(℃)         | 月最高気温       |
+| 最低気温(℃)         | 月最低気温       |
 | 降水量の合計(mm)     | 月降水量合計     |
 | 日照時間(時間)       | 月日照時間       |
 
@@ -94,8 +94,8 @@
 | year                | 年             |
 | month               | 月             |
 | average_temperature | 月平均気温     |
-| lowest_temperature  | 月最低気温     |
 | maximum_temperature | 月最高気温     |
+| lowest_temperature  | 月最低気温     |
 | precipitation       | 月降水量合計   |
 | sunshine_hours      | 月日照時間     |
 
