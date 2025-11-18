@@ -58,6 +58,8 @@
 			groupBox1 = new GroupBox();
 			label8 = new Label();
 			label9 = new Label();
+			CmbSelectVarety = new ComboBox();
+			label12 = new Label();
 			((System.ComponentModel.ISupportInitialize)DgvAnalysisData).BeginInit();
 			GrpAnalysisData.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
@@ -67,15 +69,15 @@
 			// DgvAnalysisData
 			// 
 			DgvAnalysisData.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-			DgvAnalysisData.Location = new Point(42, 62);
+			DgvAnalysisData.Location = new Point(42, 80);
 			DgvAnalysisData.Name = "DgvAnalysisData";
-			DgvAnalysisData.Size = new Size(623, 169);
+			DgvAnalysisData.Size = new Size(414, 151);
 			DgvAnalysisData.TabIndex = 0;
 			// 
 			// label1
 			// 
 			label1.AutoSize = true;
-			label1.Location = new Point(42, 44);
+			label1.Location = new Point(42, 62);
 			label1.Name = "label1";
 			label1.Size = new Size(57, 15);
 			label1.TabIndex = 1;
@@ -117,9 +119,9 @@
 			// 
 			// BtnRunAnalysis
 			// 
-			BtnRunAnalysis.Location = new Point(493, 276);
+			BtnRunAnalysis.Location = new Point(702, 267);
 			BtnRunAnalysis.Name = "BtnRunAnalysis";
-			BtnRunAnalysis.Size = new Size(75, 151);
+			BtnRunAnalysis.Size = new Size(90, 23);
 			BtnRunAnalysis.TabIndex = 4;
 			BtnRunAnalysis.Text = "分析実行";
 			BtnRunAnalysis.UseVisualStyleBackColor = true;
@@ -162,6 +164,7 @@
 			// RbnCSVFile
 			// 
 			RbnCSVFile.AutoSize = true;
+			RbnCSVFile.Checked = true;
 			RbnCSVFile.Location = new Point(34, 27);
 			RbnCSVFile.Name = "RbnCSVFile";
 			RbnCSVFile.Size = new Size(63, 19);
@@ -235,7 +238,6 @@
 			// 
 			// GrpAnalysisData
 			// 
-			GrpAnalysisData.Controls.Add(BtnLoadAnalysisData);
 			GrpAnalysisData.Controls.Add(label10);
 			GrpAnalysisData.Controls.Add(TxtUnitsTableName);
 			GrpAnalysisData.Controls.Add(label5);
@@ -253,16 +255,16 @@
 			GrpAnalysisData.Controls.Add(TxtSalesTableName);
 			GrpAnalysisData.Controls.Add(BtnUnitsCSVFile);
 			GrpAnalysisData.Controls.Add(RbnDataBase);
-			GrpAnalysisData.Location = new Point(687, 42);
+			GrpAnalysisData.Location = new Point(482, 60);
 			GrpAnalysisData.Name = "GrpAnalysisData";
-			GrpAnalysisData.Size = new Size(310, 228);
+			GrpAnalysisData.Size = new Size(310, 201);
 			GrpAnalysisData.TabIndex = 9;
 			GrpAnalysisData.TabStop = false;
 			GrpAnalysisData.Text = "読込分析データ";
 			// 
 			// BtnLoadAnalysisData
 			// 
-			BtnLoadAnalysisData.Location = new Point(203, 199);
+			BtnLoadAnalysisData.Location = new Point(584, 267);
 			BtnLoadAnalysisData.Name = "BtnLoadAnalysisData";
 			BtnLoadAnalysisData.Size = new Size(100, 23);
 			BtnLoadAnalysisData.TabIndex = 4;
@@ -316,9 +318,9 @@
 			// dataGridView1
 			// 
 			dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-			dataGridView1.Location = new Point(574, 276);
+			dataGridView1.Location = new Point(482, 315);
 			dataGridView1.Name = "dataGridView1";
-			dataGridView1.Size = new Size(423, 150);
+			dataGridView1.Size = new Size(310, 128);
 			dataGridView1.TabIndex = 10;
 			// 
 			// groupBox1
@@ -332,12 +334,12 @@
 			groupBox1.Size = new Size(414, 194);
 			groupBox1.TabIndex = 11;
 			groupBox1.TabStop = false;
-			groupBox1.Text = "分析条件";
+			groupBox1.Text = "変数の指定";
 			// 
 			// label8
 			// 
 			label8.AutoSize = true;
-			label8.Location = new Point(574, 258);
+			label8.Location = new Point(482, 296);
 			label8.Name = "label8";
 			label8.Size = new Size(55, 15);
 			label8.TabIndex = 12;
@@ -350,15 +352,35 @@
 			label9.Font = new Font("Yu Gothic UI", 18F);
 			label9.Location = new Point(12, 9);
 			label9.Name = "label9";
-			label9.Size = new Size(653, 35);
+			label9.Size = new Size(780, 35);
 			label9.TabIndex = 13;
 			label9.Text = "重回帰分析(Sales-Weather)";
+			// 
+			// CmbSelectVarety
+			// 
+			CmbSelectVarety.FormattingEnabled = true;
+			CmbSelectVarety.Location = new Point(317, 54);
+			CmbSelectVarety.Name = "CmbSelectVarety";
+			CmbSelectVarety.Size = new Size(139, 23);
+			CmbSelectVarety.TabIndex = 14;
+			// 
+			// label12
+			// 
+			label12.AutoSize = true;
+			label12.Location = new Point(234, 57);
+			label12.Name = "label12";
+			label12.Size = new Size(77, 15);
+			label12.TabIndex = 15;
+			label12.Text = "品種の選択：";
 			// 
 			// RegressionAnalysisForm
 			// 
 			AutoScaleDimensions = new SizeF(7F, 15F);
 			AutoScaleMode = AutoScaleMode.Font;
-			ClientSize = new Size(1009, 454);
+			ClientSize = new Size(809, 454);
+			Controls.Add(BtnLoadAnalysisData);
+			Controls.Add(label12);
+			Controls.Add(CmbSelectVarety);
 			Controls.Add(label9);
 			Controls.Add(label8);
 			Controls.Add(dataGridView1);
@@ -411,5 +433,7 @@
 		private Label label11;
 		private TextBox TxtUnitsCSVFIleName;
 		private Button BtnUnitsCSVFile;
+		private ComboBox CmbSelectVarety;
+		private Label label12;
 	}
 }
