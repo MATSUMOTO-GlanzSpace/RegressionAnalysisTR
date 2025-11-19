@@ -6,6 +6,8 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>RegressionAnalysis</AssemblyName>
+    <RootNamespace>RegressionAnalysis</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,13 +18,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="appsettings.Development.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <ProjectReference Include="..\SalesAnalysisSource\SalesAnalysisSource.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AnalysisSource\AnalysisSource.csproj" />
+    <None Update="appsettings.Development.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

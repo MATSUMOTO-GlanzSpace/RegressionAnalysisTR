@@ -1,5 +1,5 @@
 ﻿using System.Data;
-using AnalysisSource;
+using SalesAnalysisSource;
 
 namespace RegressionAnalysis
 {
@@ -51,7 +51,7 @@ namespace RegressionAnalysis
 		 */
 		private void BtnLoadAnalysisData_Click(object sender, EventArgs e)
 		{
-			DataTable? result = null;
+			DataTable? result;
 			if (RbnCSVFile.Checked)
 			{
 				// for test - start
@@ -62,11 +62,13 @@ namespace RegressionAnalysis
 				// for test - end
 
 				var csvMerger = new CsvSalesDataMerger(salesCsvPath, weatherCsvPath, unitsCsvPath);
+				csvMerger.AddFilterCondition("", "sales.品種", "='だいこん'");
 				result = csvMerger.GetMergedDataTable();
 			}
 			else if (RbnDataBase.Checked)
 			{
 				var mysqlMerger = new MySqlSalesDataMerger(ConfigurationHelper.GetConnectionString(), "sales", "weather", "units");
+				mysqlMerger.AddFilterCondition("", "sales.variety", "='だいこん'");
 				result = mysqlMerger.GetMergedDataTable();
 			}
 			else
