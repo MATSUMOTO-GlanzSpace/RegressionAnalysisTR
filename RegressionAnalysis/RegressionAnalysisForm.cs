@@ -61,12 +61,12 @@ namespace RegressionAnalysis
 				string unitsCsvPath = projectRoot + "Units.csv";
 				// for test - end
 
-				var csvMerger = new CsvDataMerger(salesCsvPath, weatherCsvPath, unitsCsvPath);
+				var csvMerger = new CsvSalesDataMerger(salesCsvPath, weatherCsvPath, unitsCsvPath);
 				result = csvMerger.GetMergedDataTable();
 			}
 			else if (RbnDataBase.Checked)
 			{
-				var mysqlMerger = new MySqlDataMerger(ConfigurationHelper.GetConnectionString(), "sales", "weather", "units");
+				var mysqlMerger = new MySqlSalesDataMerger(ConfigurationHelper.GetConnectionString(), "sales", "weather", "units");
 				result = mysqlMerger.GetMergedDataTable();
 			}
 			else

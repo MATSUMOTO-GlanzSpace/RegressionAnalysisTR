@@ -57,7 +57,7 @@ namespace AnalysisSource
      * @param weatherCsvPath 天気CSVファイルパス
      * @param unitsCsvPath 単位CSVファイルパス
      */
-	public class CsvDataMerger(string salesCsvPath, string weatherCsvPath, string unitsCsvPath) : DataMerger
+	public class CsvSalesDataMerger(string salesCsvPath, string weatherCsvPath, string unitsCsvPath) : DataMerger
     {
 
 		/**
@@ -136,7 +136,7 @@ namespace AnalysisSource
      * @param weatherTable 天気テーブル名
      * @param unitsTable 単位テーブル名
      */
-	public class MySqlDataMerger(string connectionString, string salesTable, string weatherTable, string unitsTable) : DataMerger
+	public class MySqlSalesDataMerger(string connectionString, string salesTable, string weatherTable, string unitsTable) : DataMerger
     {
 
 		/**
