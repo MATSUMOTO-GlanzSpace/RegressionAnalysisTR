@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using AnalysisSource;
 
 namespace RegressionAnalysis
 {
@@ -54,7 +55,7 @@ namespace RegressionAnalysis
 			if (RbnCSVFile.Checked)
 			{
 				// for test - start
-				string projectRoot = @"C:\Users\hi_ma\OneDrive\ドキュメント\Private\Study\統計分析\RegressionAnalysis\RegressionAnalysis\database\";
+				string projectRoot = @"C:\Users\hi_ma\OneDrive\ドキュメント\Private\Study\統計分析\RegressionAnalysis\AnalysisSource\database\";
 				string salesCsvPath = projectRoot + "Sales.csv";
 				string weatherCsvPath = projectRoot + "Weather.csv";
 				string unitsCsvPath = projectRoot + "Units.csv";

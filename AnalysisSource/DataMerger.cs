@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using MySqlConnector;
+﻿using MySqlConnector;
 using System.Data;
 using System.Data.Common;
 using System.IO;
@@ -8,7 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json;
 
-namespace RegressionAnalysis
+namespace AnalysisSource
 {
 	/**
      * データ結合基底クラス

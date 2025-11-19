@@ -2,13 +2,20 @@
 using System.Text;
 using Microsoft.VisualBasic.FileIO;
 
-namespace RegressionAnalysis
+namespace AnalysisSource
 {
+	/**
+	 * DataTableユーティリティクラス
+	 */
 	public static class DataTableUtils
 	{
+		/**
+         * CSVファイル読み込みメソッド
+         * @param path CSVファイルパス
+         * @return 読み込んだDataTable
+         */
 		public static DataTable ReadCsv(string path)
 		{
-			// TODD: エラーハンドリング追加
 			DataTable table = new();
 			using (var parser = new TextFieldParser(path, Encoding.UTF8))
 			{
@@ -32,6 +39,11 @@ namespace RegressionAnalysis
 			return table;
 		}
 
+		/**
+		 * DataTableからフィールド名取得メソッド
+		 * @param table DataTableオブジェクト
+		 * @return フィールド名配列
+		 */
 		public static string[] GetFieldNames(DataTable table)
 		{
 			return table.Columns.Cast<DataColumn>().Select(col => col.ColumnName).ToArray();

@@ -1,9 +1,9 @@
-﻿-- phpMyAdmin SQL Dump
+-- phpMyAdmin SQL Dump
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
 -- ホスト: 127.0.0.1
--- 生成日時: 2025-11-18 14:52:59
+-- 生成日時: 2025-11-19 02:41:01
 -- サーバのバージョン： 10.4.32-MariaDB
 -- PHP のバージョン: 8.2.12
 
@@ -305,7 +305,7 @@ INSERT INTO `units` (`id`, `variety`, `unit`) VALUES
 --
 ALTER TABLE `units`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `variety` (`variety`);
+  ADD KEY `variety` (`variety`) USING BTREE;
 
 --
 -- ダンプしたテーブルの AUTO_INCREMENT
