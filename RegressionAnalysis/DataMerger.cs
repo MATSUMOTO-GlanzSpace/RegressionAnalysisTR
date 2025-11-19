@@ -68,58 +68,66 @@ namespace RegressionAnalysis
 		protected override DataTable GetMergedDataTableCore()
         {
             // CSV読み込み
-            var salesTable = DataTableUtils.ReadCsv(salesCsvPath);
-            var weatherTable = DataTableUtils.ReadCsv(weatherCsvPath);
-            var unitsTable = DataTableUtils.ReadCsv(unitsCsvPath);
+            DataTable salesTable,weatherTable, unitsTable;
+			try
+            {
+                salesTable = DataTableUtils.ReadCsv(salesCsvPath);
+                weatherTable = DataTableUtils.ReadCsv(weatherCsvPath);
+                unitsTable = DataTableUtils.ReadCsv(unitsCsvPath);
+            }
+            catch (Exception ex)
+            {
+				throw new Exception($"CSVファイルの読み込みに失敗しました。(ファイルパス: {salesCsvPath}, {weatherCsvPath}, {unitsCsvPath})", ex);
+            }
 
             // LINQで結合
             var query =
-        from sales in salesTable.AsEnumerable()
-        join weather in weatherTable.AsEnumerable()
-          on new { Year = sales.Field<string>("年"), Month = sales.Field<string>("月") }
-          equals new { Year = weather.Field<string>("年"), Month = weather.Field<string>("月") }
-        join unit in unitsTable.AsEnumerable()
-          on sales.Field<string>("品種") equals unit.Field<string>("品種")
-        select new
-        {
-            部門 = sales.Field<string>("部門"),
-            大分類 = sales.Field<string>("大分類"),
-            中分類 = sales.Field<string>("中分類"),
-            品種 = sales.Field<string>("品種"),
-            年 = sales.Field<string>("年"),
-            月 = sales.Field<string>("月"),
-            売上 = sales.Field<string>("売上"),
-            平均気温 = weather.Field<string>("平均気温(℃)"),
-            最高気温 = weather.Field<string>("最高気温(℃)"),
-            最低気温 = weather.Field<string>("最低気温(℃)"),
-            降水量合計 = weather.Field<string>("降水量の合計(mm)"),
-            日照時間 = weather.Field<string>("日照時間(時間)"),
-            単位 = unit.Field<string>("単位")
-        };
+            from sales in salesTable.AsEnumerable()
+            join weather in weatherTable.AsEnumerable()
+              on new { Year = sales.Field<string>("年"), Month = sales.Field<string>("月") }
+              equals new { Year = weather.Field<string>("年"), Month = weather.Field<string>("月") }
+            join unit in unitsTable.AsEnumerable()
+              on sales.Field<string>("品種") equals unit.Field<string>("品種")
+            select new
+            {
+                部門 = sales.Field<string>("部門"),
+                大分類 = sales.Field<string>("大分類"),
+                中分類 = sales.Field<string>("中分類"),
+                品種 = sales.Field<string>("品種"),
+                年 = sales.Field<string>("年"),
+                月 = sales.Field<string>("月"),
+                売上 = sales.Field<string>("売上"),
+                平均気温 = weather.Field<string>("平均気温(℃)"),
+                最高気温 = weather.Field<string>("最高気温(℃)"),
+                最低気温 = weather.Field<string>("最低気温(℃)"),
+                降水量合計 = weather.Field<string>("降水量の合計(mm)"),
+                日照時間 = weather.Field<string>("日照時間(時間)"),
+                単位 = unit.Field<string>("単位")
+            };
 
-    // DataTable生成
-    DataTable mergedTable = new();
-    mergedTable.Columns.Add("部門");
-    mergedTable.Columns.Add("大分類");
-    mergedTable.Columns.Add("中分類");
-    mergedTable.Columns.Add("品種");
-    mergedTable.Columns.Add("年");
-    mergedTable.Columns.Add("月");
-    mergedTable.Columns.Add("売上");
-    mergedTable.Columns.Add("平均気温(℃)");
-    mergedTable.Columns.Add("最高気温(℃)");
-    mergedTable.Columns.Add("最低気温(℃)");
-    mergedTable.Columns.Add("降水量の合計(mm)");
-    mergedTable.Columns.Add("日照時間(時間)");
-    mergedTable.Columns.Add("単位");
+            // DataTable生成
+            DataTable mergedTable = new();
+            mergedTable.Columns.Add("部門");
+            mergedTable.Columns.Add("大分類");
+            mergedTable.Columns.Add("中分類");
+            mergedTable.Columns.Add("品種");
+            mergedTable.Columns.Add("年");
+            mergedTable.Columns.Add("月");
+            mergedTable.Columns.Add("売上");
+            mergedTable.Columns.Add("平均気温(℃)");
+            mergedTable.Columns.Add("最高気温(℃)");
+            mergedTable.Columns.Add("最低気温(℃)");
+            mergedTable.Columns.Add("降水量の合計(mm)");
+            mergedTable.Columns.Add("日照時間(時間)");
+            mergedTable.Columns.Add("単位");
 
-    foreach (var row in query)
-    {
-        mergedTable.Rows.Add(row.部門, row.大分類, row.中分類, row.品種, row.年, row.月, row.売上,
-            row.平均気温, row.最高気温, row.最低気温, row.降水量合計, row.日照時間, row.単位);
-    }
-    return mergedTable;
-}
+            foreach (var row in query)
+            {
+                mergedTable.Rows.Add(row.部門, row.大分類, row.中分類, row.品種, row.年, row.月, row.売上,
+                    row.平均気温, row.最高気温, row.最低気温, row.降水量合計, row.日照時間, row.単位);
+            }
+            return mergedTable;
+        }
 	}
 
 	/**

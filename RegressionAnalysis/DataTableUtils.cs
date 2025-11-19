@@ -1,46 +1,37 @@
 ﻿using System.Data;
 using System.Text;
+using Microsoft.VisualBasic.FileIO;
 
 namespace RegressionAnalysis
 {
-	/**
-	 * DataTableユーティリティクラス
-	 */
 	public static class DataTableUtils
 	{
-
-		/**
-         * CSVファイル読み込みメソッド
-         * @param path CSVファイルパス
-         * @return 読み込んだDataTable
-         */
 		public static DataTable ReadCsv(string path)
 		{
-			// CSVファイルをDataTableに読み込み
+			// TODD: エラーハンドリング追加
 			DataTable table = new();
-			using (var reader = new StreamReader(path, Encoding.UTF8))
+			using (var parser = new TextFieldParser(path, Encoding.UTF8))
 			{
-				// ヘッダー行読み込み
-				string? headerLine = reader.ReadLine();
-				if (headerLine == null) return table;
-				var headers = headerLine.Split(',');
-				foreach (var h in headers) table.Columns.Add(h);
-				// データ行読み込み
-				string? line;
-				while ((line = reader.ReadLine()) != null)
+				parser.TextFieldType = FieldType.Delimited;
+				parser.SetDelimiters(",");
+				parser.HasFieldsEnclosedInQuotes = true;
+
+				// ヘッダー行
+				if (!parser.EndOfData) {
+					string[] headers = parser.ReadFields() ?? Array.Empty<string>();
+					foreach (var h in headers) table.Columns.Add(h);
+				}
+
+				// データ行
+				while (!parser.EndOfData)
 				{
-					var fields = line.Split(',');
-					table.Rows.Add(fields);
+					string[]? fields = parser.ReadFields();
+					if (fields != null) table.Rows.Add(fields);
 				}
 			}
-			// 読み込んだDataTableを返す
 			return table;
 		}
-		/**
-		 * DataTableからフィールド名取得メソッド
-		 * @param table DataTableオブジェクト
-		 * @return フィールド名配列
-		 */
+
 		public static string[] GetFieldNames(DataTable table)
 		{
 			return table.Columns.Cast<DataColumn>().Select(col => col.ColumnName).ToArray();

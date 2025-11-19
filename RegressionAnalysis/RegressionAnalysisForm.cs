@@ -1,4 +1,6 @@
-﻿namespace RegressionAnalysis
+﻿using System.Data;
+
+namespace RegressionAnalysis
 {
 	public partial class RegressionAnalysisForm : Form
 	{
@@ -48,7 +50,31 @@
 		 */
 		private void BtnLoadAnalysisData_Click(object sender, EventArgs e)
 		{
+			DataTable? result = null;
+			if (RbnCSVFile.Checked)
+			{
+				// for test - start
+				string projectRoot = @"C:\Users\hi_ma\OneDrive\ドキュメント\Private\Study\統計分析\RegressionAnalysis\RegressionAnalysis\database\";
+				string salesCsvPath = projectRoot + "Sales.csv";
+				string weatherCsvPath = projectRoot + "Weather.csv";
+				string unitsCsvPath = projectRoot + "Units.csv";
+				// for test - end
 
+				var csvMerger = new CsvDataMerger(salesCsvPath, weatherCsvPath, unitsCsvPath);
+				result = csvMerger.GetMergedDataTable();
+			}
+			else if (RbnDataBase.Checked)
+			{
+				var mysqlMerger = new MySqlDataMerger(ConfigurationHelper.GetConnectionString(), "sales", "weather", "units");
+				result = mysqlMerger.GetMergedDataTable();
+			}
+			else
+			{
+				MessageBox.Show("読込分析データの選択が誤っています。", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				return;
+			}
+
+			DgvAnalysisData.DataSource = result;
 		}
 
 		/**
