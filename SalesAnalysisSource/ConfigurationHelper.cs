@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 
-namespace RegressionAnalysis
+namespace SalesAnalysisSource
 {
 	/**
 	 * 構成ヘルパークラス
