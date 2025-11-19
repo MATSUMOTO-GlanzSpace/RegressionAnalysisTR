@@ -48,12 +48,12 @@
 			TxtSalesTableName = new TextBox();
 			TxtWeatherTableName = new TextBox();
 			GrpAnalysisData = new GroupBox();
-			BtnLoadAnalysisData = new Button();
 			label10 = new Label();
 			TxtUnitsTableName = new TextBox();
 			label11 = new Label();
 			TxtUnitsCSVFIleName = new TextBox();
 			BtnUnitsCSVFile = new Button();
+			BtnLoadAnalysisData = new Button();
 			dataGridView1 = new DataGridView();
 			groupBox1 = new GroupBox();
 			label8 = new Label();
@@ -153,6 +153,7 @@
 			TxtSalseCSVFileName.Name = "TxtSalseCSVFileName";
 			TxtSalseCSVFileName.Size = new Size(100, 23);
 			TxtSalseCSVFileName.TabIndex = 6;
+			TxtSalseCSVFileName.Text = "Sales.csv";
 			// 
 			// TxtWeatherCSVFIleName
 			// 
@@ -160,6 +161,7 @@
 			TxtWeatherCSVFIleName.Name = "TxtWeatherCSVFIleName";
 			TxtWeatherCSVFIleName.Size = new Size(100, 23);
 			TxtWeatherCSVFIleName.TabIndex = 6;
+			TxtWeatherCSVFIleName.Text = "Weather.csv";
 			// 
 			// RbnCSVFile
 			// 
@@ -262,16 +264,6 @@
 			GrpAnalysisData.TabStop = false;
 			GrpAnalysisData.Text = "読込分析データ";
 			// 
-			// BtnLoadAnalysisData
-			// 
-			BtnLoadAnalysisData.Location = new Point(584, 267);
-			BtnLoadAnalysisData.Name = "BtnLoadAnalysisData";
-			BtnLoadAnalysisData.Size = new Size(100, 23);
-			BtnLoadAnalysisData.TabIndex = 4;
-			BtnLoadAnalysisData.Text = "分析データ読込";
-			BtnLoadAnalysisData.UseVisualStyleBackColor = true;
-			BtnLoadAnalysisData.Click += BtnLoadAnalysisData_Click;
-			// 
 			// label10
 			// 
 			label10.AutoSize = true;
@@ -304,6 +296,7 @@
 			TxtUnitsCSVFIleName.Name = "TxtUnitsCSVFIleName";
 			TxtUnitsCSVFIleName.Size = new Size(100, 23);
 			TxtUnitsCSVFIleName.TabIndex = 6;
+			TxtUnitsCSVFIleName.Text = "Units.csv";
 			// 
 			// BtnUnitsCSVFile
 			// 
@@ -314,6 +307,16 @@
 			BtnUnitsCSVFile.Text = "...";
 			BtnUnitsCSVFile.UseVisualStyleBackColor = true;
 			BtnUnitsCSVFile.Click += BtnUnitsCSVFile_Click;
+			// 
+			// BtnLoadAnalysisData
+			// 
+			BtnLoadAnalysisData.Location = new Point(584, 267);
+			BtnLoadAnalysisData.Name = "BtnLoadAnalysisData";
+			BtnLoadAnalysisData.Size = new Size(100, 23);
+			BtnLoadAnalysisData.TabIndex = 4;
+			BtnLoadAnalysisData.Text = "分析データ読込";
+			BtnLoadAnalysisData.UseVisualStyleBackColor = true;
+			BtnLoadAnalysisData.Click += BtnLoadAnalysisData_Click;
 			// 
 			// dataGridView1
 			// 
