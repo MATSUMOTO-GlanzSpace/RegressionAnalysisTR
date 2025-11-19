@@ -1,4 +1,4 @@
--- phpMyAdmin SQL Dump
+﻿-- phpMyAdmin SQL Dump
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
@@ -29,7 +29,7 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `units` (
   `id` int(11) NOT NULL,
-  `varety` varchar(32) NOT NULL COMMENT '商品品種',
+  `variety` varchar(32) NOT NULL COMMENT '商品品種',
   `unit` varchar(32) NOT NULL COMMENT '販売単位'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='単位';
 
@@ -37,7 +37,7 @@ CREATE TABLE `units` (
 -- テーブルのデータのダンプ `units`
 --
 
-INSERT INTO `units` (`id`, `varety`, `unit`) VALUES
+INSERT INTO `units` (`id`, `variety`, `unit`) VALUES
 (2, 'あさり', '個'),
 (3, 'あじ', '個'),
 (4, 'いか', '個'),
@@ -305,7 +305,7 @@ INSERT INTO `units` (`id`, `varety`, `unit`) VALUES
 --
 ALTER TABLE `units`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `varety` (`varety`);
+  ADD KEY `variety` (`variety`);
 
 --
 -- ダンプしたテーブルの AUTO_INCREMENT

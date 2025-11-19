@@ -151,12 +151,12 @@ namespace RegressionAnalysis
             conn.Open();
 			// 結合クエリ実行
 			string sql = $@"
-                SELECT s.department AS 部門, s.primary_item AS 大分類, s.secondary_item AS 中分類, s.varety AS 品種, s.year AS 年, s.month AS 月, s.sales AS 売上,
+                SELECT s.department AS 部門, s.primary_item AS 大分類, s.secondary_item AS 中分類, s.variety AS 品種, s.year AS 年, s.month AS 月, s.sales AS 売上,
                        w.average_temperature AS 平均気温, w.maximum_temperature AS 最高気温, w.lowest_temperature AS 最低気温,
                        w.precipitation AS 降水量合計, w.sunshine_hours AS 日照時間, u.unit AS 単位
                 FROM {salesTable} s
                 INNER JOIN {weatherTable} w ON s.year = w.year AND s.month = w.month
-                INNER JOIN {unitsTable} u ON s.varety = u.varety
+                INNER JOIN {unitsTable} u ON s.variety = u.variety
             ";
 			// データ取得
 			using var cmd = new MySqlCommand(sql, conn);

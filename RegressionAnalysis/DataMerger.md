@@ -84,7 +84,7 @@
 | department          | 部門名         |
 | primary_item        | 商品大分類     |
 | secondary_item      | 商品中分類     |
-| varety              | 商品品種       |
+| variety              | 商品品種       |
 | year                | 年             |
 | month               | 月             |
 | sales               | 売上数量       |
@@ -105,7 +105,7 @@
 | フィールド名        | 説明           |
 |---------------------|----------------|
 | id                  | id             |
-| varety              | 商品品種       |
+| variety              | 商品品種       |
 | unit                | 販売単位       |
 
 ---

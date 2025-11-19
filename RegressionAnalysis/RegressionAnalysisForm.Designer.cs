@@ -58,7 +58,7 @@
 			groupBox1 = new GroupBox();
 			label8 = new Label();
 			label9 = new Label();
-			CmbSelectVarety = new ComboBox();
+			CmbSelectVariety = new ComboBox();
 			label12 = new Label();
 			((System.ComponentModel.ISupportInitialize)DgvAnalysisData).BeginInit();
 			GrpAnalysisData.SuspendLayout();
@@ -359,13 +359,13 @@
 			label9.TabIndex = 13;
 			label9.Text = "重回帰分析(Sales-Weather)";
 			// 
-			// CmbSelectVarety
+			// CmbSelectVariety
 			// 
-			CmbSelectVarety.FormattingEnabled = true;
-			CmbSelectVarety.Location = new Point(317, 54);
-			CmbSelectVarety.Name = "CmbSelectVarety";
-			CmbSelectVarety.Size = new Size(139, 23);
-			CmbSelectVarety.TabIndex = 14;
+			CmbSelectVariety.FormattingEnabled = true;
+			CmbSelectVariety.Location = new Point(317, 54);
+			CmbSelectVariety.Name = "CmbSelectVariety";
+			CmbSelectVariety.Size = new Size(139, 23);
+			CmbSelectVariety.TabIndex = 14;
 			// 
 			// label12
 			// 
@@ -383,7 +383,7 @@
 			ClientSize = new Size(809, 454);
 			Controls.Add(BtnLoadAnalysisData);
 			Controls.Add(label12);
-			Controls.Add(CmbSelectVarety);
+			Controls.Add(CmbSelectVariety);
 			Controls.Add(label9);
 			Controls.Add(label8);
 			Controls.Add(dataGridView1);
@@ -436,7 +436,7 @@
 		private Label label11;
 		private TextBox TxtUnitsCSVFIleName;
 		private Button BtnUnitsCSVFile;
-		private ComboBox CmbSelectVarety;
+		private ComboBox CmbSelectVariety;
 		private Label label12;
 	}
 }
