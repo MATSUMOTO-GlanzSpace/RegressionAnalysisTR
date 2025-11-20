@@ -51,47 +51,76 @@ namespace SalesAnalysisSource
             Console.WriteLine($"[DataMerger Error] {ex.Message}");
         }
 
-        public List<FilterElement> Filters { get; } = [];
+		/**
+         * フィルタ条件リスト
+         */
+		public List<FilterElement> Filters { get; } = [];
 
-        public void AddFilterCondition(string logic, string field, string condition)
+		/**
+         * フィルタ条件追加メソッド
+         * @param logic 論理演算子（AND/OR）
+         * @param field フィールド名（テーブル名.フィールド名形式）
+         * @param condition 条件式（例: "='value'"）
+         */
+		public void AddFilterCondition(string logic, string field, string condition)
             => Filters.Add(new FilterCondition(logic, field, condition));
 
-        public void AddGroupStart(string logic = "")
+		/**
+         * フィルタグループ開始追加メソッド
+         * @param logic 論理演算子（AND/OR）
+         */
+		public void AddGroupStart(string logic = "")
             => Filters.Add(new FilterGroupStart(logic));
 
-        public void AddGroupEnd()
+		/**
+         * フィルタグループ終了追加メソッド
+         */
+		public void AddGroupEnd()
             => Filters.Add(new FilterGroupEnd());
 
-        // CSV用フィルタ述語生成（ANDのみ、tableName指定）
-        public Func<DataRow, bool> BuildCsvFilterPredicate(string tableName)
+		/**
+         * CSV用フィルタ述語生成
+         * @param tableName テーブル名
+         * @return フィルタ述語
+         * @note Shunting Yard AlgorithmでRPN変換し評価
+         * @see https://en.wikipedia.org/wiki/Shunting_yard_algorithm
+         */
+		public Func<DataRow, bool> BuildCsvFilterPredicate(string tableName)
         {
-            // Shunting Yard AlgorithmでRPN変換
-            var output = new List<object>();
+			// Shunting Yard AlgorithmでRPN変換
+			// RPN: Reverse Polish Notation（逆ポーランド記法）
+			// 出力キューと演算子スタック
+			var output = new List<object>();
             var ops = new Stack<string>();
             foreach (var filter in Filters)
             {
                 if (filter is FilterCondition cond && cond.Field.StartsWith(tableName + "."))
                 {
-                    output.Add(cond);
+					// フィルタ条件を出力キューに追加
+					output.Add(cond);
                 }
                 else if (filter is FilterGroupStart)
                 {
-                    ops.Push("(");
+					// グループ開始を演算子スタックに追加
+					ops.Push("(");
                 }
                 else if (filter is FilterGroupEnd)
                 {
-                    while (ops.Count > 0 && ops.Peek() != "(")
+					// グループ終了まで演算子を出力キューに移動
+					while (ops.Count > 0 && ops.Peek() != "(")
                         output.Add(ops.Pop());
                     if (ops.Count > 0) ops.Pop(); // remove "("
                 }
                 else if (filter is FilterCondition logicCond && (logicCond.Logic == "AND" || logicCond.Logic == "OR"))
                 {
-                    while (ops.Count > 0 && Precedence(ops.Peek()) >= Precedence(logicCond.Logic))
+					// 論理演算子の優先度に基づき演算子スタックから出力キューに移動
+					while (ops.Count > 0 && Precedence(ops.Peek()) >= Precedence(logicCond.Logic))
                         output.Add(ops.Pop());
                     ops.Push(logicCond.Logic);
                 }
             }
-            while (ops.Count > 0) output.Add(ops.Pop());
+			// 残りの演算子を出力キューに移動
+			while (ops.Count > 0) output.Add(ops.Pop());
 
             // RPN評価
             var stack = new Stack<Func<DataRow, bool>>();
@@ -99,7 +128,8 @@ namespace SalesAnalysisSource
             {
                 if (token is FilterCondition cond && cond.Field.StartsWith(tableName + "."))
                 {
-                    var field = cond.Field.Substring(tableName.Length + 1);
+					// フィルタ条件を述語に変換
+					var field = cond.Field.Substring(tableName.Length + 1);
                     var value = cond.Condition.Trim('=', '\'', '"');
                     stack.Push(row =>
                     {
@@ -109,7 +139,8 @@ namespace SalesAnalysisSource
                 }
                 else if (token is string op && (op == "AND" || op == "OR"))
                 {
-                    var right = stack.Pop();
+					// 論理演算子適用
+					var right = stack.Pop();
                     var left = stack.Pop();
                     if (op == "AND") stack.Push(row => left(row) && right(row));
                     else stack.Push(row => left(row) || right(row));
@@ -117,31 +148,61 @@ namespace SalesAnalysisSource
             }
             return stack.Count > 0 ? stack.Pop() : row => true;
 
-            static int Precedence(string op) => op == "AND" ? 2 : op == "OR" ? 1 : 0;
+			// 演算子の優先度
+			static int Precedence(string op) => op == "AND" ? 2 : op == "OR" ? 1 : 0;
         }
 
-        // SQL用WHERE句生成（ANDのみ、tableName指定、パラメータ化）
-        public string BuildSqlWhereClause(string tableName, out List<MySqlParameter> parameters)
+		/**
+         * SQL用WHERE句生成（tableName指定、パラメータ化）
+         * @param tableName テーブル名
+         * @out parameters パラメータリスト出力
+         * @return WHERE句文字列
+         */
+		public string BuildSqlWhereClause(string tableName, out List<MySqlParameter> parameters)
         {
-            var clauses = new List<string>();
+			// WHERE句生成
+			var clauses = new List<string>();
             parameters = [];
             int paramIndex = 0;
             foreach (var cond in Filters.OfType<FilterCondition>().Where(f => f.Field.StartsWith(tableName + ".")))
             {
-                var field = cond.Field.Substring(tableName.Length + 1);
+				// フィルタ条件をWHERE句に変換
+				var field = cond.Field.Substring(tableName.Length + 1);
                 var paramName = "@p" + paramIndex;
                 clauses.Add($"{(string.IsNullOrEmpty(cond.Logic) ? "" : cond.Logic + " ")}{tableName.Substring(0,1)}.{field} = {paramName}");
                 parameters.Add(new MySqlParameter(paramName, cond.Condition.Trim('=', '\'', '"')));
                 paramIndex++;
             }
-            return clauses.Count > 0 ? ("WHERE " + string.Join(" ", clauses)) : "";
+			return clauses.Count > 0 ? ("WHERE " + string.Join(" ", clauses)) : "";
         }
     }
 
+	/**
+     * フィルタ要素基底レコード
+     */
 	public abstract record FilterElement;
+
+	/**
+     * フィルタ条件レコード
+     * @param Logic 論理演算子（AND/OR）
+     * @param Field フィールド名（テーブル名.フィールド名形式）
+     * @param Condition 条件式（例: "='value'"）
+     * @return フィルタ条件レコード
+     */
 	public record FilterCondition(string Logic, string Field, string Condition) : FilterElement;
-	public record FilterGroupStart(string Logic = "") : FilterElement; // "("
-	public record FilterGroupEnd() : FilterElement; // ")"
+
+	/**
+     * フィルタグループ開始レコード"("
+     * @param Logic 論理演算子（AND/OR）
+     * @return フィルタグループ開始レコード
+     */
+	public record FilterGroupStart(string Logic = "") : FilterElement;
+
+	/**
+     * フィルタグループ終了レコード")"
+     * @return フィルタグループ終了レコード
+     */
+	public record FilterGroupEnd() : FilterElement;
 
 	/**
      * 1. CSVファイル結合クラス
@@ -197,33 +258,33 @@ namespace SalesAnalysisSource
                     単位 = unit.Field<string>("単位")
                 };
 
-    // DataMergerの共通フィルタ述語を利用
-    var predicate = BuildCsvFilterPredicate("sales");
-    query = query.Where(x => predicate(x.sales));
+            // DataMergerの共通フィルタ述語を利用
+            var predicate = BuildCsvFilterPredicate("sales");
+            query = query.Where(x => predicate(x.sales));
 
-    // DataTable生成
-    DataTable mergedTable = new();
-    mergedTable.Columns.Add("部門");
-    mergedTable.Columns.Add("大分類");
-    mergedTable.Columns.Add("中分類");
-    mergedTable.Columns.Add("品種");
-    mergedTable.Columns.Add("年");
-    mergedTable.Columns.Add("月");
-    mergedTable.Columns.Add("売上");
-    mergedTable.Columns.Add("平均気温(℃)");
-    mergedTable.Columns.Add("最高気温(℃)");
-    mergedTable.Columns.Add("最低気温(℃)");
-    mergedTable.Columns.Add("降水量の合計(mm)");
-    mergedTable.Columns.Add("日照時間(時間)");
-    mergedTable.Columns.Add("単位");
-
-    foreach (var row in query)
-    {
-        mergedTable.Rows.Add(row.部門, row.大分類, row.中分類, row.品種, row.年, row.月, row.売上,
-            row.平均気温, row.最高気温, row.最低気温, row.降水量合計, row.日照時間, row.単位);
-    }
-    return mergedTable;
-}
+            // DataTable生成
+            DataTable mergedTable = new();
+            mergedTable.Columns.Add("部門");
+            mergedTable.Columns.Add("大分類");
+            mergedTable.Columns.Add("中分類");
+            mergedTable.Columns.Add("品種");
+            mergedTable.Columns.Add("年");
+            mergedTable.Columns.Add("月");
+            mergedTable.Columns.Add("売上");
+            mergedTable.Columns.Add("平均気温(℃)");
+            mergedTable.Columns.Add("最高気温(℃)");
+            mergedTable.Columns.Add("最低気温(℃)");
+            mergedTable.Columns.Add("降水量の合計(mm)");
+            mergedTable.Columns.Add("日照時間(時間)");
+            mergedTable.Columns.Add("単位");
+			// 結合データをDataTableに追加
+			foreach (var row in query)
+            {
+                mergedTable.Rows.Add(row.部門, row.大分類, row.中分類, row.品種, row.年, row.月, row.売上,
+                    row.平均気温, row.最高気温, row.最低気温, row.降水量合計, row.日照時間, row.単位);
+            }
+            return mergedTable;
+        }
 	}
 
 	/**
@@ -255,8 +316,9 @@ namespace SalesAnalysisSource
                 INNER JOIN {unitsTable} u ON s.variety = u.variety
                 {whereSql}
             ";
-            using var cmd = new MySqlCommand(sql, conn);
-            foreach (var p in parameters) cmd.Parameters.Add(p);
+			// SQL実行
+			using var cmd = new MySqlCommand(sql, conn);
+			foreach (var p in parameters) cmd.Parameters.Add(p);
             using var adapter = new MySqlDataAdapter(cmd);
             DataTable table = new();
             adapter.Fill(table);
