@@ -51,7 +51,7 @@ namespace SalesAnalysisSource
             Console.WriteLine($"[DataMerger Error] {ex.Message}");
         }
 
-        public List<FilterElement> Filters { get; } = new();
+        public List<FilterElement> Filters { get; } = [];
 
         public void AddFilterCondition(string logic, string field, string condition)
             => Filters.Add(new FilterCondition(logic, field, condition));
@@ -124,7 +124,7 @@ namespace SalesAnalysisSource
         public string BuildSqlWhereClause(string tableName, out List<MySqlParameter> parameters)
         {
             var clauses = new List<string>();
-            parameters = new List<MySqlParameter>();
+            parameters = [];
             int paramIndex = 0;
             foreach (var cond in Filters.OfType<FilterCondition>().Where(f => f.Field.StartsWith(tableName + ".")))
             {

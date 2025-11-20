@@ -238,6 +238,7 @@
 			// 
 			// BtnLoadCSVAnalysisData
 			// 
+			BtnLoadCSVAnalysisData.DialogResult = DialogResult.OK;
 			BtnLoadCSVAnalysisData.Location = new Point(261, 199);
 			BtnLoadCSVAnalysisData.Name = "BtnLoadCSVAnalysisData";
 			BtnLoadCSVAnalysisData.Size = new Size(100, 23);
@@ -254,7 +255,7 @@
 			CmbTxtFilterVerietyCSV.Name = "CmbTxtFilterVerietyCSV";
 			CmbTxtFilterVerietyCSV.Size = new Size(278, 23);
 			CmbTxtFilterVerietyCSV.TabIndex = 19;
-			CmbTxtFilterVerietyCSV.DragDrop += CmbTxtFilterVerietyCSV_DragDrop;
+			CmbTxtFilterVerietyCSV.DropDown += CmbTxtFilterVerietyCSV_DropDown;
 			// 
 			// label1
 			// 
@@ -360,7 +361,6 @@
 		private Label label11;
 		private Label label5;
 		private Label label10;
-		private GroupBox groupBox2;
 		private TabControl TabControlSourceType;
 		private TabPage tabPageCSV;
 		private TabPage tabPageDataBase;

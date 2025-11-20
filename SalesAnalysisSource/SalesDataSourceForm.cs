@@ -6,7 +6,8 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms; 
+using System.Windows.Forms;
+using MySqlConnector;
 
 namespace SalesAnalysisSource
 {
@@ -17,10 +18,10 @@ namespace SalesAnalysisSource
 	{
 		// メンバー変数定義
 		/**
-		 * フィルター用の品種選択テーブル
+		 * ファイル選択ダイアログ
+		 * 使い回すことで、複数回開いたときに前回のディレクトリを覚えておける
 		 */
-		private readonly DataTable? salesVerietyCSV = null;
-		private readonly DataTable? salesVerietyDB = null;
+		private readonly OpenFileDialog selectFileDialog = new();
 
 		// コンストラクタ
 		/**
@@ -29,6 +30,14 @@ namespace SalesAnalysisSource
 		public SalesDataSourceForm()
 		{
 			InitializeComponent();
+
+			// ファイル選択ダイアログのフィルター設定
+			selectFileDialog.Filter = "CSVファイル (*.csv)|*.csv|すべてのファイル (*.*)|*.*";
+
+			// コンボボックスの選択リストをバインド（初期状態は件数:0）
+			CmbTxtFilterVerietyDB.DataSource = new DataTable();
+			// コンボボックスの選択リストをバインド（初期状態は件数:0）
+			CmbTxtFilterVerietyCSV.DataSource = new DataTable();
 		}
 
 		// プロパティ定義
@@ -55,16 +64,22 @@ namespace SalesAnalysisSource
 		 */
 		private void BtnSelectSalesCSVFile_Click(object sender, EventArgs e)
 		{
-
+			selectFileDialog.Title = "販売CSVファイルを選択してください";
+			selectFileDialog.FileName = TxtSalseCSVFileName.Text;
+			if (selectFileDialog.ShowDialog(this) == DialogResult.OK)
+				TxtSalseCSVFileName.Text = selectFileDialog.FileName;
 		}
 		/**
-		 * 天候CSVファイルを選択するボタンがクリックされたときに発生するイベント ハンドラー
+		 * 気象CSVファイルを選択するボタンがクリックされたときに発生するイベント ハンドラー
 		 * @param sender イベントの送信元
 		 * @param e イベント データ
 		 */
 		private void BtnWeatherCSVFile_Click(object sender, EventArgs e)
 		{
-
+			selectFileDialog.Title = "気象CSVファイルを選択してください";
+			selectFileDialog.FileName = TxtWeatherCSVFileName.Text;
+			if( selectFileDialog.ShowDialog(this)==DialogResult.OK )
+				TxtWeatherCSVFileName.Text = selectFileDialog.FileName;
 		}
 		/**
 		 * 単位CSVファイルを選択するボタンがクリックされたときに発生するイベント ハンドラー
@@ -73,10 +88,13 @@ namespace SalesAnalysisSource
 		 */
 		private void BtnUnitsCSVFile_Click(object sender, EventArgs e)
 		{
-
+			selectFileDialog.Title = "単位CSVファイルを選択してください";
+			selectFileDialog.FileName = TxtUnitsCSVFileName.Text;
+			if (selectFileDialog.ShowDialog(this) == DialogResult.OK)
+				TxtUnitsCSVFileName.Text = selectFileDialog.FileName;
 		}
 		/**
-		 * (DB)分析データを読み込むボタンがクリックされたときに発生するイベント ハンドラー
+		 * (DB)分析データを読み込むボタンがクリックされるときに発生するイベント ハンドラー
 		 * @param sender イベントの送信元
 		 * @param e イベント データ
 		 */
@@ -94,7 +112,8 @@ namespace SalesAnalysisSource
 					TxtUnitsTableName.Text
 					);
 				// 品種によるフィルター条件設定
-				mysqlMerger.AddFilterCondition("", "{TxtSalesTableName.Text}.variety", @"='{sourceForm.CmbTxtFilterVerietyDB.Text}'");
+					if (!string.IsNullOrEmpty(CmbTxtFilterVerietyDB.Text))
+						mysqlMerger.AddFilterCondition("", $"{TxtSalesTableName.Text}.variety", $"='{CmbTxtFilterVerietyDB.Text}'");
 				// 取得実行
 				LoadedAnalisysData = mysqlMerger.GetMergedDataTable();
 			}
@@ -122,7 +141,8 @@ namespace SalesAnalysisSource
 					TxtUnitsCSVFileName.Text
 					);
 				// 品種によるフィルター条件設定
-				csvMerger.AddFilterCondition("", "sales.品種", @"='{CmbTxtFilterVerietyCSV.Text}'");
+				if(!string.IsNullOrEmpty(CmbTxtFilterVerietyCSV.Text))
+					csvMerger.AddFilterCondition("", "sales.品種", $"='{CmbTxtFilterVerietyCSV.Text}'");
 				// 取得実行
 				LoadedAnalisysData = csvMerger.GetMergedDataTable();
 			}
@@ -134,25 +154,96 @@ namespace SalesAnalysisSource
 		}
 
 		/**
-		 * 品種フィルターリスト表示直前の初回処理にてsalesVerietyCSVを設定する
-		 */
-		private void CmbTxtFilterVerietyCSV_DragDrop(object sender, DragEventArgs e)
-		{
-			// 品種フィルターリスト表示の初回処理にてsalesVerietyCSVを設定する
-			if(salesVerietyCSV == null)
-			{
-				// TODO: salesVerietyCSVを設定する処理を実装
-			}
-		}
-		/**
 		 * 品種フィルターリスト表示直前の初回処理にてsalesVerietyDBを設定する
+		 * @param sender イベントの送信元
+		 * @param e イベント データ
 		 */
 		private void CmbTxtFilterVerietyDB_DropDown(object sender, EventArgs e)
 		{
-			// 品種フィルターリスト表示の初回処理にてsalesVerietyDBを設定する
-			if (salesVerietyDB == null)
+			Cursor.Current = Cursors.WaitCursor;
+			try
 			{
-				// TODO: salesVerietyDBを設定する処理を実装
+				if (string.IsNullOrEmpty(TxtSalesTableName.Text))
+				{
+					CmbTxtFilterVerietyDB.DataSource = new DataTable();
+					CmbTxtFilterVerietyDB.DisplayMember = null;
+					CmbTxtFilterVerietyDB.ValueMember = null;
+					return;
+				}
+
+				var dataTable = CmbTxtFilterVerietyDB.DataSource as DataTable;
+				if (dataTable == null || dataTable.Rows.Count == 0)
+				{
+					var dt = new DataTable();
+					try
+					{
+						using (var conn = new MySqlConnection(ConfigurationHelper.GetConnectionString()))
+						using (var cmd = new MySqlCommand(
+							$"SELECT DISTINCT `variety` FROM `{TxtSalesTableName.Text}` WHERE `variety` IS NOT NULL AND `variety` <> ''", conn))
+						using (var adapter = new MySqlConnector.MySqlDataAdapter(cmd))
+						{
+							conn.Open();
+							adapter.Fill(dt);
+						}
+						CmbTxtFilterVerietyDB.DataSource = new DataView(dt) { Sort = "variety ASC" };
+						CmbTxtFilterVerietyDB.DisplayMember = "variety";
+						CmbTxtFilterVerietyDB.ValueMember = "variety";
+					}
+					catch (Exception ex)
+					{
+						MessageBox.Show(this, $"データベースからの品種リストの取得に失敗しました。\n{ex.Message}", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+						return;
+					}
+				}
+			}
+			finally
+			{
+				Cursor.Current = Cursors.Default;
+			}
+		}
+
+		/**
+		 * 品種フィルターリスト表示直前の初回処理にてsalesVerietyCSVを設定する
+		 * @param sender イベントの送信元
+		 * @param e イベント データ
+		 */
+		private void CmbTxtFilterVerietyCSV_DropDown(object sender, EventArgs e)
+		{
+			Cursor.Current = Cursors.WaitCursor;
+			try
+			{
+				if (string.IsNullOrEmpty(TxtSalseCSVFileName.Text))
+				{
+					CmbTxtFilterVerietyCSV.DataSource = new DataTable();
+					CmbTxtFilterVerietyCSV.DisplayMember = null;
+					CmbTxtFilterVerietyCSV.ValueMember = null;
+					return;
+				}
+
+				var dataTable = CmbTxtFilterVerietyCSV.DataSource as DataTable;
+				if (dataTable == null || dataTable.Rows.Count == 0)
+				{
+					// CSVファイルの読み込み
+					DataTable table;
+					try
+					{
+						table = DataTableUtils.ReadCsv(TxtSalseCSVFileName.Text);
+					}
+					catch (Exception ex)
+					{
+						MessageBox.Show(this, $"販売CSVファイルの読み込みに失敗しました。\n{ex.Message}", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+						return;
+					}
+					// 品種リストを取得してコンボボックスに設定
+					var dt = DataTableUtils.GetDistinctFieldTable(table, "品種");
+					CmbTxtFilterVerietyCSV.DataSource = new DataView(dt) { Sort = "品種 ASC" };
+					CmbTxtFilterVerietyCSV.DisplayMember = "品種";
+					CmbTxtFilterVerietyCSV.ValueMember = "品種";
+				}
+			}
+			finally
+			{
+				Cursor.Current = Cursors.Default;
 			}
 		}
 	}
