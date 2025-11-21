@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SalesAnalysisSource", "Sale
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RegressionAnalysisLibrary", "RegressionAnalysisLibrary\RegressionAnalysisLibrary.csproj", "{DBBF6912-A899-4962-B638-988CDC382E8A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RegressionAnalysis.Common", "RegressionAnalysis.Common\RegressionAnalysis.Common.csproj", "{A5929662-AE74-42B2-A1D1-3A067EDB0392}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{DBBF6912-A899-4962-B638-988CDC382E8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DBBF6912-A899-4962-B638-988CDC382E8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DBBF6912-A899-4962-B638-988CDC382E8A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A5929662-AE74-42B2-A1D1-3A067EDB0392}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5929662-AE74-42B2-A1D1-3A067EDB0392}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5929662-AE74-42B2-A1D1-3A067EDB0392}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5929662-AE74-42B2-A1D1-3A067EDB0392}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

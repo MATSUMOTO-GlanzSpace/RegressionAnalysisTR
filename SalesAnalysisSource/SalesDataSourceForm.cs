@@ -8,6 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using MySqlConnector;
+using static RegressionAnalysis.Common.DataTableHelpers;
+using static RegressionAnalysis.Common.ConfigurationHelper;
 
 namespace SalesAnalysisSource
 {
@@ -106,7 +108,7 @@ namespace SalesAnalysisSource
 			{
 				// DBデータソース(MySQL)からの取得
 				var mysqlMerger = new MySqlSalesDataMerger(
-					ConfigurationHelper.GetConnectionString(),
+					GetConnectionString(),
 					TxtSalesTableName.Text,
 					TxtWeatherTableName.Text,
 					TxtUnitsTableName.Text
@@ -181,7 +183,7 @@ namespace SalesAnalysisSource
 					try
 					{
 						// MySQLデータベースから品種リストを取得
-						using (var conn = new MySqlConnection(ConfigurationHelper.GetConnectionString()))
+						using (var conn = new MySqlConnection(GetConnectionString()))
 						using (var cmd = new MySqlCommand(
 							$"SELECT DISTINCT `variety` FROM `{TxtSalesTableName.Text}` WHERE `variety` IS NOT NULL AND `variety` <> ''", conn))
 						using (var adapter = new MySqlConnector.MySqlDataAdapter(cmd))
@@ -236,7 +238,7 @@ namespace SalesAnalysisSource
 					try
 					{
 						// CSVファイルの読み込み
-						table = DataTableUtils.ReadCsv(TxtSalseCSVFileName.Text);
+						table = ReadCsv(TxtSalseCSVFileName.Text);
 					}
 					catch (Exception ex)
 					{
@@ -244,7 +246,7 @@ namespace SalesAnalysisSource
 						return;
 					}
 					// 品種リストを取得してコンボボックスにソートして設定
-					var dt = DataTableUtils.GetDistinctFieldTable(table, "品種");
+					var dt = GetDistinctFieldTable(table, "品種");
 					CmbTxtFilterVerietyCSV.DataSource = new DataView(dt) { Sort = "品種 ASC" };
 					CmbTxtFilterVerietyCSV.DisplayMember = "品種";
 					CmbTxtFilterVerietyCSV.ValueMember = "品種";

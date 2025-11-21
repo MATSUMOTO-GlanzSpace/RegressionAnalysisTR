@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Collections.Generic;
+using RegressionAnalysis.Common;
 
 namespace SalesAnalysisSource
 {
@@ -220,9 +221,9 @@ namespace SalesAnalysisSource
             DataTable salesTable, weatherTable, unitsTable;
             try
             {
-                salesTable = DataTableUtils.ReadCsv(salesCsvPath);
-                weatherTable = DataTableUtils.ReadCsv(weatherCsvPath);
-                unitsTable = DataTableUtils.ReadCsv(unitsCsvPath);
+                salesTable = DataTableHelpers.ReadCsv(salesCsvPath);
+                weatherTable = DataTableHelpers.ReadCsv(weatherCsvPath);
+                unitsTable = DataTableHelpers.ReadCsv(unitsCsvPath);
             }
             catch (Exception ex)
             {

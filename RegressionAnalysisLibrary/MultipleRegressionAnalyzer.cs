@@ -6,6 +6,7 @@ using System.Linq;
 using MathNet.Numerics.LinearRegression;
 using MathNet.Numerics.Statistics;
 using MathNet.Numerics.Distributions;
+using static RegressionAnalysis.Common.DataTableHelpers;
 
 namespace RegressionAnalysisLibrary
 {
@@ -51,24 +52,6 @@ namespace RegressionAnalysisLibrary
 						throw new ArgumentException($"{table.TableName}の{row + 1}行{table.Columns[col].ColumnName}列の値 '{value}' は数値として読み込めません。");
 				}
 			}
-		}
-
-		/// <summary>
-		/// データテーブルをジャグ配列に変換 
-		/// </summary>
-		/// <param name="table">データテーブル</param>
-		/// <returns>double[][] ジャグ配列</returns>		
-		private double[][] ToJaggedArray(DataTable table)
-		{
-			// 将来的にDataTableUtilsに移管
-			var arr = new double[table.Rows.Count][];
-			for (int i = 0; i < table.Rows.Count; i++)
-			{
-				arr[i] = new double[table.Columns.Count];
-				for (int j = 0; j < table.Columns.Count; j++)
-					arr[i][j] = Convert.ToDouble(table.Rows[i][j]);
-			}
-			return arr;
 		}
 
 		/// <summary>

@@ -2,12 +2,12 @@
 using System.Text;
 using Microsoft.VisualBasic.FileIO;
 
-namespace SalesAnalysisSource
+namespace RegressionAnalysis.Common
 {
 	/// <summary>
 	/// DataTableユーティリティクラス
 	/// </summary>
-	public static class DataTableUtils
+	public static class DataTableHelpers
 	{
 		/// <summary>
         /// CSVファイル読み込みメソッド
@@ -80,7 +80,7 @@ namespace SalesAnalysisSource
 		/// </summary>
 		/// <param name="table">DataTableオブジェクト</param>
 		/// <returns>二次元配列</returns>
-		private static double[][] ToJaggedArray(DataTable table)
+		public static double[][] ToJaggedArray(DataTable table)
 		{
 			// 二次元配列に変換
 			var arr = new double[table.Rows.Count][];

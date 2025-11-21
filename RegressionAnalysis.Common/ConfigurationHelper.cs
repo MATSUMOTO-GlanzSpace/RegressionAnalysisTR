@@ -1,11 +1,11 @@
 ﻿using Microsoft.Extensions.Configuration;
 
-namespace SalesAnalysisSource
+namespace RegressionAnalysis.Common
 {
 	/// <summary>
 	/// 構成ヘルパークラス
 	/// </summary>
-	internal static class ConfigurationHelper
+	public static class ConfigurationHelper
 	{
 		/// <summary>
         /// 接続文字列取得メソッド
@@ -30,7 +30,7 @@ namespace SalesAnalysisSource
         /// </summary>
         /// <param name="environment">環境名</param>
         /// <returns>IConfigurationRootオブジェクト</returns>
-		private static IConfigurationRoot CreateConfiguration(string environment)
+		public static IConfigurationRoot CreateConfiguration(string environment)
 		{
 
 			// 構成ビルダーでappsettings.{Environment}.jsonを読み込む
