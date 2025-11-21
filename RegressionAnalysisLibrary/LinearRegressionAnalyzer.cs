@@ -11,9 +11,10 @@ using static RegressionAnalysis.Common.DataTableHelpers;
 namespace RegressionAnalysisLibrary
 {
 	/// <summary>
-	/// 重回帰分析を行った、係数・p値・VIF・決定係数を表す結果クラス
+	/// 線形帰分析を行った、係数・p値・決定係数を表す結果クラス
+	/// 重回帰分析の場合にはVIFを含む
 	/// </summary>
-	public class MultipleRegressionResult
+	public class LinearRegressionResult
 	{
 		/// 変数ごとの統計情報（変数名・回帰係数・p値・VIF）
 		public DataTable VariableStats { get; set; } = new();
@@ -24,20 +25,20 @@ namespace RegressionAnalysisLibrary
 	}
 
 	/// <summary>
-	/// 重回帰分析を実行し、変数名・回帰係数・p値・VIF・決定係数を持つ結果インスタンスを返します。
+	/// 線形回帰分析を実行し、変数名・回帰係数・p値・VIF・決定係数を持つ結果インスタンスを返します。
 	/// </summary>
 	/// <remarks>
-	/// このクラスは、重回帰分析を用いて従属変数（目的変数）と複数の独立変数（説明変数）の関係を分析する機能を提供します。
+	/// このクラスは、回帰分析を用いて従属変数（目的変数）と複数の独立変数（説明変数）の関係を分析する機能を提供します。
 	/// 分析には、回帰係数の算出、統計的有意性（p値）、多重共線性診断（VIF）、および適合度指標（決定係数や補正決定係数）の計算が含まれます。
 	/// </remarks>
-	public class MultipleRegressionAnalyzer
+	public class LinearRegressionAnalyzer
 	{
 		/// <summary>
 		///	データテーブルの数値チェック
 		/// </summary>
 		/// <param name="table"></param>
 		/// <exception cref="ArgumentException"></exception>
-		private void CheckDataTableNumeric(DataTable table)
+		private static void CheckDataTableNumeric(DataTable table)
 		{
 			for (int col = 0; col < table.Columns.Count; col++)
 			{
@@ -59,11 +60,10 @@ namespace RegressionAnalysisLibrary
 		/// </summary>
 		/// <param name="X">説明変数ジャグ配列</param>
 		/// <param name="response">目的変数配列</param>
-		/// <param name="coefficients">回帰係数配列</param>
 		/// <param name="ssRes">残差平方和</param>
 		/// <param name="df">自由度</param>
 		/// <returns>標準誤差配列</returns>
-		private double[] CalcStandardErrors(double[][] X, double[] response, double[] coefficients, double ssRes, int df)
+		private static double[] CalcStandardErrors(double[][] X, double[] response, double ssRes, int df)
 		{
 			// X行列の作成（定数項を含む）
 			int n = response.Length;
@@ -91,14 +91,21 @@ namespace RegressionAnalysisLibrary
 		/// </summary>
 		/// <param name="predictors"></param>
 		/// <returns>VIF配列</returns>
-		private List<double> CalcVIFs(double[][] predictors)
+		private static List<double> CalcVIFs(double[][] predictors)
 		{
+			// 各説明変数を目的変数として回帰分析を行い、VIFを計算
 			var vifList = new List<double>();
 			int n = predictors.Length;
 			int k = predictors[0].Length;
 			for (int i = 0; i < k; i++)
 			{
+				// 目的変数を取得
 				var target = predictors.Select(row => row[i]).ToArray();
+				var targetTable = new DataTable();
+				targetTable.Columns.Add("Y", typeof(double));
+				for (int row = 0; row < n; row++)
+					targetTable.Rows.Add(target[row]);
+				// 他の説明変数を取得
 				var otherPredictors = Enumerable.Range(0, k)
 					.Where(idx => idx != i)
 					.Select(idx => predictors.Select(row => row[idx]).ToArray())
@@ -113,11 +120,6 @@ namespace RegressionAnalysisLibrary
 						values[col] = otherPredictors[col][row];
 					otherPredictorsTable.Rows.Add(values);
 				}
-				// targetをDataTable化
-				var targetTable = new DataTable();
-				targetTable.Columns.Add("Y", typeof(double));
-				for (int row = 0; row < n; row++)
-					targetTable.Rows.Add(target[row]);
 				// 回帰分析の実行
 				var ols = CalcRegressionCoefficients(otherPredictorsTable, targetTable);
 				// 予測値の計算
@@ -138,7 +140,7 @@ namespace RegressionAnalysisLibrary
 		/// <param name="response"></param>
 		/// <param name="yHat"></param>
 		/// <returns>決定係数</returns>
-		private double CalcRSquared(double[] response, double[] yHat)
+		private static double CalcRSquared(double[] response, double[] yHat)
 		{
 			double ssRes = response.Zip(yHat, (y, yh) => Math.Pow(y - yh, 2)).Sum();
 			double ssTot = response.Select(y => Math.Pow(y - response.Average(), 2)).Sum();
@@ -152,7 +154,7 @@ namespace RegressionAnalysisLibrary
 		/// <param name="n">データ数</param>
 		/// <param name="k">変数数</param>
 		/// <returns>補正決定係数</returns>
-		private double CalcAdjustedRSquared(double r2, int n, int k)
+		private static double CalcAdjustedRSquared(double r2, int n, int k)
 		{
 			return 1 - (1 - r2) * (n - 1) / (n - k - 1);
 		}
@@ -163,7 +165,7 @@ namespace RegressionAnalysisLibrary
 		/// <param name="predictorsJagged">説明変数ジャグ配列</param>
 		/// <param name="coefficients">回帰係数配列</param>
 		/// <returns>予測値配列</returns>
-		private double[] CalcPredictedValues(double[][] predictorsJagged, double[] coefficients)
+		private static double[] CalcPredictedValues(double[][] predictorsJagged, double[] coefficients)
 		{
 			int n = predictorsJagged.Length;
 			int k = predictorsJagged[0].Length;
@@ -183,7 +185,7 @@ namespace RegressionAnalysisLibrary
 		/// <param name="response"></param>
 		/// <param name="yHat"></param>
 		/// <returns>残差平方和</returns>
-		private double CalcResidualSumOfSquares(double[] response, double[] yHat)
+		private static double CalcResidualSumOfSquares(double[] response, double[] yHat)
 		{
 			return response.Zip(yHat, (y, yh) => Math.Pow(y - yh, 2)).Sum();
 		}
@@ -194,7 +196,7 @@ namespace RegressionAnalysisLibrary
 		/// <param name="t">t値</param>
 		/// <param name="degreesOfFreedom">自由度</param>
 		/// <returns>片側p値</returns>
-		private double CalcOneSidedPValue(double t, int degreesOfFreedom)
+		private static double CalcOneSidedPValue(double t, int degreesOfFreedom)
 		{
 			var dist = new StudentT(0, 1, degreesOfFreedom);
 			return 1 - dist.CumulativeDistribution(Math.Abs(t));
@@ -206,7 +208,7 @@ namespace RegressionAnalysisLibrary
 		/// <param name="coefficient">回帰係数</param>
 		/// <param name="standardError">標準誤差</param>
 		/// <returns>t値</returns>
-		private double CalcTValue(double coefficient, double standardError)
+		private static double CalcTValue(double coefficient, double standardError)
 		{
 			return coefficient / standardError;
 		}
@@ -217,7 +219,7 @@ namespace RegressionAnalysisLibrary
 		/// <param name="predictors">説明変数DataTable</param>
 		/// <param name="response">目的変数DataTable（1列のみ）</param>
 		/// <returns>回帰係数配列</returns>
-		private double[] CalcRegressionCoefficients(DataTable predictors, DataTable response)
+		private static double[] CalcRegressionCoefficients(DataTable predictors, DataTable response)
 		{
 			var predictorsJagged = ToJaggedArray(predictors);
 			var responseArray = response.AsEnumerable().Select(r => Convert.ToDouble(r[0])).ToArray();
@@ -225,12 +227,13 @@ namespace RegressionAnalysisLibrary
 		}
 
 		/// <summary>
-		/// 重回帰分析を実行し、変数名・回帰係数・p値・VIF・決定係数を持つ結果インスタンスを返す
+		/// 線形回帰分析を実行し、変数名・回帰係数・p値・決定係数を持つ結果インスタンスを返す
+		/// 重回帰分析の場合にはVIFを含む
 		/// </summary>
 		/// <param name="responseTable">目的変数のDataTable（1列のみ）</param>
 		/// <param name="predictorTable">説明変数のDataTable（各列が変数）</param>
-		/// <returns>MultipleRegressionResult</returns>
-		public MultipleRegressionResult Analyze(DataTable responseTable, DataTable predictorTable)
+		/// <returns>LinearRegressionResult</returns>
+		public static LinearRegressionResult Analyze(DataTable responseTable, DataTable predictorTable)
 		{
 			// データの数値チェック
 			CheckDataTableNumeric(responseTable);
@@ -268,7 +271,7 @@ namespace RegressionAnalysisLibrary
 			// VIFの計算
 			var vifList = CalcVIFs(predictorsJagged);
 			// 標準誤差の計算
-			var se = CalcStandardErrors(predictorsJagged, response, coefficients, ssRes, df);
+			var se = CalcStandardErrors(predictorsJagged, response, ssRes, df);
 
 			// 定数項のp値計算
 			double t0 = CalcTValue(coefficients[0], se[0]);
@@ -294,7 +297,7 @@ namespace RegressionAnalysisLibrary
 			}
 
 			// 結果の返却
-			return new MultipleRegressionResult
+			return new LinearRegressionResult
 			{
 				VariableStats = variableStats,
 				RSquared = r2,

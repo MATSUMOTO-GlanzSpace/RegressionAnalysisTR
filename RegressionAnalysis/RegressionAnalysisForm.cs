@@ -95,8 +95,8 @@ namespace RegressionAnalysis
 			var predictorTable = filteredTable.DefaultView.ToTable(false, predictorNames.ToArray());
 
 			// 重回帰分析実行
-			var analyzer = new MultipleRegressionAnalyzer();
-			var result = analyzer.Analyze(responseTable,predictorTable);
+			var analyzer = new LinearRegressionAnalyzer();
+			var result = LinearRegressionAnalyzer.Analyze(responseTable,predictorTable);
 
 			// 結果の利用例（DataGridView等に表示）
 			DgvAnalysisResult.DataSource = result.VariableStats;

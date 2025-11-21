@@ -28,6 +28,10 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
+			DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+			DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+			DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
+			DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
 			DgvAnalysisData = new DataGridView();
 			label1 = new Label();
 			CmbResponseVariable = new ComboBox();
@@ -49,7 +53,23 @@
 			// 
 			// DgvAnalysisData
 			// 
+			dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
+			dataGridViewCellStyle1.BackColor = SystemColors.Control;
+			dataGridViewCellStyle1.Font = new Font("Yu Gothic UI", 9F);
+			dataGridViewCellStyle1.ForeColor = SystemColors.WindowText;
+			dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
+			dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
+			dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
+			DgvAnalysisData.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
 			DgvAnalysisData.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+			dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
+			dataGridViewCellStyle2.BackColor = SystemColors.Window;
+			dataGridViewCellStyle2.Font = new Font("Yu Gothic UI", 9F);
+			dataGridViewCellStyle2.ForeColor = SystemColors.ControlText;
+			dataGridViewCellStyle2.SelectionBackColor = SystemColors.Highlight;
+			dataGridViewCellStyle2.SelectionForeColor = SystemColors.HighlightText;
+			dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
+			DgvAnalysisData.DefaultCellStyle = dataGridViewCellStyle2;
 			DgvAnalysisData.Location = new Point(42, 80);
 			DgvAnalysisData.Name = "DgvAnalysisData";
 			DgvAnalysisData.Size = new Size(414, 151);
@@ -106,7 +126,23 @@
 			// 
 			// DgvAnalysisResult
 			// 
+			dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
+			dataGridViewCellStyle3.BackColor = SystemColors.Control;
+			dataGridViewCellStyle3.Font = new Font("Yu Gothic UI", 9F);
+			dataGridViewCellStyle3.ForeColor = SystemColors.WindowText;
+			dataGridViewCellStyle3.SelectionBackColor = SystemColors.Highlight;
+			dataGridViewCellStyle3.SelectionForeColor = SystemColors.HighlightText;
+			dataGridViewCellStyle3.WrapMode = DataGridViewTriState.True;
+			DgvAnalysisResult.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
 			DgvAnalysisResult.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+			dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
+			dataGridViewCellStyle4.BackColor = SystemColors.Window;
+			dataGridViewCellStyle4.Font = new Font("Yu Gothic UI", 9F);
+			dataGridViewCellStyle4.ForeColor = SystemColors.ControlText;
+			dataGridViewCellStyle4.SelectionBackColor = SystemColors.Highlight;
+			dataGridViewCellStyle4.SelectionForeColor = SystemColors.HighlightText;
+			dataGridViewCellStyle4.WrapMode = DataGridViewTriState.False;
+			DgvAnalysisResult.DefaultCellStyle = dataGridViewCellStyle4;
 			DgvAnalysisResult.Location = new Point(543, 98);
 			DgvAnalysisResult.Name = "DgvAnalysisResult";
 			DgvAnalysisResult.Size = new Size(243, 311);
@@ -146,7 +182,7 @@
 			label9.Name = "label9";
 			label9.Size = new Size(780, 35);
 			label9.TabIndex = 13;
-			label9.Text = "重回帰分析";
+			label9.Text = "線形回帰分析";
 			// 
 			// BtnRunAnalysis
 			// 
