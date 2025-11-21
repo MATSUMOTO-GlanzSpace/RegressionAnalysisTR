@@ -44,6 +44,7 @@ namespace RegressionAnalysis
 					CmbResponseVariable.DataSource = dataTable;
 					// 説明変数チェックボックスリストにデータソースを設定
 					ClbPredictorVariable.DataSource = dataTable;
+					LblRecordCount.Text = $"レコード数: {sourceForm.LoadedAnalisysData.Rows.Count:N0}";
 				}
 			}
 		}

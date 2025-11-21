@@ -40,6 +40,7 @@
 			label9 = new Label();
 			BtnRunAnalysis = new Button();
 			BtnLoadAnalysisData = new Button();
+			LblRecordCount = new Label();
 			((System.ComponentModel.ISupportInitialize)DgvAnalysisData).BeginInit();
 			((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
 			groupBox1.SuspendLayout();
@@ -157,11 +158,21 @@
 			BtnLoadAnalysisData.UseVisualStyleBackColor = true;
 			BtnLoadAnalysisData.Click += BtnLoadAnalysisData_Click;
 			// 
+			// LblRecordCount
+			// 
+			LblRecordCount.AutoSize = true;
+			LblRecordCount.Location = new Point(105, 62);
+			LblRecordCount.Name = "LblRecordCount";
+			LblRecordCount.Size = new Size(42, 15);
+			LblRecordCount.TabIndex = 18;
+			LblRecordCount.Text = "(---件)";
+			// 
 			// RegressionAnalysisForm
 			// 
 			AutoScaleDimensions = new SizeF(7F, 15F);
 			AutoScaleMode = AutoScaleMode.Font;
 			ClientSize = new Size(809, 427);
+			Controls.Add(LblRecordCount);
 			Controls.Add(BtnLoadAnalysisData);
 			Controls.Add(BtnRunAnalysis);
 			Controls.Add(label9);
@@ -194,5 +205,6 @@
 		private Label label9;
 		private Button BtnRunAnalysis;
 		private Button BtnLoadAnalysisData;
+		private Label LblRecordCount;
 	}
 }
