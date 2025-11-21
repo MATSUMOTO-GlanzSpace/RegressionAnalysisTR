@@ -38,8 +38,12 @@ namespace RegressionAnalysis
 				ClbPredictorVariable.DataSource = null;
 				if (sourceForm.LoadedAnalisysData != null)
 				{
-					CmbResponseVariable.DataSource = sourceForm.LoadedAnalisysData.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToList();	
-					ClbPredictorVariable.DataSource = sourceForm.LoadedAnalisysData.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToList();
+					// データテーブルのカラム名リストを取得
+					var dataTable = sourceForm.LoadedAnalisysData.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToList();
+					// 目的変数コンボボックスリストにデータソースを設定
+					CmbResponseVariable.DataSource = dataTable;
+					// 説明変数チェックボックスリストにデータソースを設定
+					ClbPredictorVariable.DataSource = dataTable;
 				}
 			}
 		}
