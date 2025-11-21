@@ -71,5 +71,19 @@ namespace SalesAnalysisSource
 			}
 			return dt;
 		}
+
+		private static double[][] ToJaggedArray(DataTable table)
+		{
+			// SalesAnalysisSource.DataTableUtils.ToJaggedArray(table) を使う場合はそちらに置換
+			var arr = new double[table.Rows.Count][];
+			for (int i = 0; i < table.Rows.Count; i++)
+			{
+				arr[i] = new double[table.Columns.Count];
+				for (int j = 0; j < table.Columns.Count; j++)
+					arr[i][j] = Convert.ToDouble(table.Rows[i][j]);
+			}
+			return arr;
+		}
+
 	}
 }

@@ -34,15 +34,16 @@
 			label2 = new Label();
 			label3 = new Label();
 			ClbPredictorVariable = new CheckedListBox();
-			dataGridView1 = new DataGridView();
+			DgvAnalysisResult = new DataGridView();
 			groupBox1 = new GroupBox();
 			label8 = new Label();
 			label9 = new Label();
 			BtnRunAnalysis = new Button();
 			BtnLoadAnalysisData = new Button();
 			LblRecordCount = new Label();
+			LblRSquared = new Label();
 			((System.ComponentModel.ISupportInitialize)DgvAnalysisData).BeginInit();
-			((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
+			((System.ComponentModel.ISupportInitialize)DgvAnalysisResult).BeginInit();
 			groupBox1.SuspendLayout();
 			SuspendLayout();
 			// 
@@ -57,14 +58,16 @@
 			// label1
 			// 
 			label1.AutoSize = true;
+			label1.Font = new Font("Yu Gothic UI", 9F, FontStyle.Bold);
 			label1.Location = new Point(42, 62);
 			label1.Name = "label1";
-			label1.Size = new Size(57, 15);
+			label1.Size = new Size(58, 15);
 			label1.TabIndex = 1;
 			label1.Text = "分析データ";
 			// 
 			// CmbResponseVariable
 			// 
+			CmbResponseVariable.Font = new Font("Yu Gothic UI", 9F);
 			CmbResponseVariable.FormattingEnabled = true;
 			CmbResponseVariable.Location = new Point(20, 50);
 			CmbResponseVariable.Name = "CmbResponseVariable";
@@ -74,6 +77,7 @@
 			// label2
 			// 
 			label2.AutoSize = true;
+			label2.Font = new Font("Yu Gothic UI", 9F);
 			label2.Location = new Point(20, 29);
 			label2.Name = "label2";
 			label2.Size = new Size(55, 15);
@@ -83,6 +87,7 @@
 			// label3
 			// 
 			label3.AutoSize = true;
+			label3.Font = new Font("Yu Gothic UI", 9F);
 			label3.Location = new Point(158, 29);
 			label3.Name = "label3";
 			label3.Size = new Size(55, 15);
@@ -92,19 +97,20 @@
 			// ClbPredictorVariable
 			// 
 			ClbPredictorVariable.CheckOnClick = true;
+			ClbPredictorVariable.Font = new Font("Yu Gothic UI", 9F);
 			ClbPredictorVariable.FormattingEnabled = true;
 			ClbPredictorVariable.Location = new Point(158, 49);
 			ClbPredictorVariable.Name = "ClbPredictorVariable";
 			ClbPredictorVariable.Size = new Size(230, 94);
 			ClbPredictorVariable.TabIndex = 3;
 			// 
-			// dataGridView1
+			// DgvAnalysisResult
 			// 
-			dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-			dataGridView1.Location = new Point(543, 80);
-			dataGridView1.Name = "dataGridView1";
-			dataGridView1.Size = new Size(243, 329);
-			dataGridView1.TabIndex = 10;
+			DgvAnalysisResult.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+			DgvAnalysisResult.Location = new Point(543, 98);
+			DgvAnalysisResult.Name = "DgvAnalysisResult";
+			DgvAnalysisResult.Size = new Size(243, 311);
+			DgvAnalysisResult.TabIndex = 10;
 			// 
 			// groupBox1
 			// 
@@ -112,6 +118,7 @@
 			groupBox1.Controls.Add(label3);
 			groupBox1.Controls.Add(CmbResponseVariable);
 			groupBox1.Controls.Add(ClbPredictorVariable);
+			groupBox1.Font = new Font("Yu Gothic UI", 9F, FontStyle.Bold);
 			groupBox1.Location = new Point(42, 247);
 			groupBox1.Name = "groupBox1";
 			groupBox1.Size = new Size(414, 162);
@@ -121,10 +128,12 @@
 			// 
 			// label8
 			// 
-			label8.AutoSize = true;
-			label8.Location = new Point(554, 55);
+			label8.BackColor = Color.BurlyWood;
+			label8.BorderStyle = BorderStyle.Fixed3D;
+			label8.Font = new Font("Yu Gothic UI", 9F, FontStyle.Bold);
+			label8.Location = new Point(543, 58);
 			label8.Name = "label8";
-			label8.Size = new Size(55, 15);
+			label8.Size = new Size(243, 19);
 			label8.TabIndex = 12;
 			label8.Text = "分析結果";
 			// 
@@ -132,7 +141,7 @@
 			// 
 			label9.BackColor = Color.OldLace;
 			label9.BorderStyle = BorderStyle.Fixed3D;
-			label9.Font = new Font("Yu Gothic UI", 18F);
+			label9.Font = new Font("Yu Gothic UI", 18F, FontStyle.Bold);
 			label9.Location = new Point(12, 9);
 			label9.Name = "label9";
 			label9.Size = new Size(780, 35);
@@ -147,6 +156,7 @@
 			BtnRunAnalysis.TabIndex = 16;
 			BtnRunAnalysis.Text = "分析実行";
 			BtnRunAnalysis.UseVisualStyleBackColor = true;
+			BtnRunAnalysis.Click += BtnRunAnalysis_Click;
 			// 
 			// BtnLoadAnalysisData
 			// 
@@ -167,24 +177,35 @@
 			LblRecordCount.TabIndex = 18;
 			LblRecordCount.Text = "(---件)";
 			// 
+			// LblRSquared
+			// 
+			LblRSquared.AutoSize = true;
+			LblRSquared.Location = new Point(554, 80);
+			LblRSquared.Name = "LblRSquared";
+			LblRSquared.Size = new Size(79, 15);
+			LblRSquared.TabIndex = 19;
+			LblRSquared.Text = "重決定係数：";
+			// 
 			// RegressionAnalysisForm
 			// 
 			AutoScaleDimensions = new SizeF(7F, 15F);
 			AutoScaleMode = AutoScaleMode.Font;
 			ClientSize = new Size(809, 427);
+			Controls.Add(LblRSquared);
 			Controls.Add(LblRecordCount);
 			Controls.Add(BtnLoadAnalysisData);
 			Controls.Add(BtnRunAnalysis);
 			Controls.Add(label9);
 			Controls.Add(label8);
-			Controls.Add(dataGridView1);
+			Controls.Add(DgvAnalysisResult);
 			Controls.Add(label1);
 			Controls.Add(DgvAnalysisData);
 			Controls.Add(groupBox1);
+			Font = new Font("Yu Gothic UI", 9F);
 			Name = "RegressionAnalysisForm";
 			Text = "RegressionAnalysisForm";
 			((System.ComponentModel.ISupportInitialize)DgvAnalysisData).EndInit();
-			((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
+			((System.ComponentModel.ISupportInitialize)DgvAnalysisResult).EndInit();
 			groupBox1.ResumeLayout(false);
 			groupBox1.PerformLayout();
 			ResumeLayout(false);
@@ -199,12 +220,13 @@
 		private Label label2;
 		private Label label3;
 		private CheckedListBox ClbPredictorVariable;
-		private DataGridView dataGridView1;
+		private DataGridView DgvAnalysisResult;
 		private GroupBox groupBox1;
 		private Label label8;
 		private Label label9;
 		private Button BtnRunAnalysis;
 		private Button BtnLoadAnalysisData;
 		private Label LblRecordCount;
+		private Label LblRSquared;
 	}
 }

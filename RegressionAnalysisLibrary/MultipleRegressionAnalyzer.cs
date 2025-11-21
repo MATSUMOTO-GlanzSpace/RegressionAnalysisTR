@@ -1,0 +1,305 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics;
+using System.Linq;
+using MathNet.Numerics.LinearRegression;
+using MathNet.Numerics.Statistics;
+using MathNet.Numerics.Distributions;
+
+namespace RegressionAnalysisLibrary
+{
+	/// <summary>
+	/// 重回帰分析を行った、係数・p値・VIF・決定係数を表す結果クラス
+	/// </summary>
+	public class MultipleRegressionResult
+	{
+		/// 変数ごとの統計情報（変数名・回帰係数・p値・VIF）
+		public DataTable VariableStats { get; set; } = new();
+		/// 決定係数
+		public double RSquared { get; set; }
+		/// 補正決定係数
+		public double AdjustedRSquared { get; set; }
+	}
+
+	/// <summary>
+	/// 重回帰分析を実行し、変数名・回帰係数・p値・VIF・決定係数を持つ結果インスタンスを返します。
+	/// </summary>
+	/// <remarks>
+	/// このクラスは、重回帰分析を用いて従属変数（目的変数）と複数の独立変数（説明変数）の関係を分析する機能を提供します。
+	/// 分析には、回帰係数の算出、統計的有意性（p値）、多重共線性診断（VIF）、および適合度指標（決定係数や補正決定係数）の計算が含まれます。
+	/// </remarks>
+	public class MultipleRegressionAnalyzer
+	{
+		/// <summary>
+		///	データテーブルの数値チェック
+		/// </summary>
+		/// <param name="table"></param>
+		/// <exception cref="ArgumentException"></exception>
+		private void CheckDataTableNumeric(DataTable table)
+		{
+			for (int col = 0; col < table.Columns.Count; col++)
+			{
+				for (int row = 0; row < table.Rows.Count; row++)
+				{
+					// 欠損値のチェック
+					if (table.Rows[row].IsNull(col) || string.IsNullOrWhiteSpace(table.Rows[row][col]?.ToString()))
+						throw new ArgumentException($"{table.TableName}の{row + 1}行{table.Columns[col].ColumnName}列に欠損値（nullまたは空文字）が含まれています。");
+					var value = table.Rows[row][col]?.ToString();
+					// 数値のチェック
+					if (!double.TryParse(value, out _))
+						throw new ArgumentException($"{table.TableName}の{row + 1}行{table.Columns[col].ColumnName}列の値 '{value}' は数値として読み込めません。");
+				}
+			}
+		}
+
+		/// <summary>
+		/// データテーブルをジャグ配列に変換 
+		/// </summary>
+		/// <param name="table">データテーブル</param>
+		/// <returns>double[][] ジャグ配列</returns>		
+		private double[][] ToJaggedArray(DataTable table)
+		{
+			// 将来的にDataTableUtilsに移管
+			var arr = new double[table.Rows.Count][];
+			for (int i = 0; i < table.Rows.Count; i++)
+			{
+				arr[i] = new double[table.Columns.Count];
+				for (int j = 0; j < table.Columns.Count; j++)
+					arr[i][j] = Convert.ToDouble(table.Rows[i][j]);
+			}
+			return arr;
+		}
+
+		/// <summary>
+		/// 標準誤差の計算
+		/// </summary>
+		/// <param name="X">説明変数ジャグ配列</param>
+		/// <param name="response">目的変数配列</param>
+		/// <param name="coefficients">回帰係数配列</param>
+		/// <param name="ssRes">残差平方和</param>
+		/// <param name="df">自由度</param>
+		/// <returns>標準誤差配列</returns>
+		private double[] CalcStandardErrors(double[][] X, double[] response, double[] coefficients, double ssRes, int df)
+		{
+			// X行列の作成（定数項を含む）
+			int n = response.Length;
+			int k = X[0].Length;
+			var Xarr = new double[n, k + 1];
+			for (int i = 0; i < n; i++)
+			{
+				Xarr[i, 0] = 1.0;
+				for (int j = 0; j < k; j++)
+					Xarr[i, j + 1] = X[i][j];
+			}
+			// (X'X)^-1 の計算
+			var Xmat = MathNet.Numerics.LinearAlgebra.Double.DenseMatrix.OfArray(Xarr);
+			var XXinv = Xmat.TransposeThisAndMultiply(Xmat).Inverse();
+			// 標準誤差の計算
+			double mse = ssRes / df;
+			var se = new double[k + 1];
+			for (int i = 0; i < k + 1; i++)
+				se[i] = Math.Sqrt(mse * XXinv[i, i]);
+			return se;
+		}
+
+		/// <summary>
+		/// VIFの計算
+		/// </summary>
+		/// <param name="predictors"></param>
+		/// <returns>VIF配列</returns>
+		private List<double> CalcVIFs(double[][] predictors)
+		{
+			var vifList = new List<double>();
+			int n = predictors.Length;
+			int k = predictors[0].Length;
+			for (int i = 0; i < k; i++)
+			{
+				var target = predictors.Select(row => row[i]).ToArray();
+				var otherPredictors = Enumerable.Range(0, k)
+					.Where(idx => idx != i)
+					.Select(idx => predictors.Select(row => row[idx]).ToArray())
+					.ToArray();
+				var otherPredictorsJagged = new double[n][];
+				for (int row = 0; row < n; row++)
+				{
+					otherPredictorsJagged[row] = new double[otherPredictors.Length];
+					for (int col = 0; col < otherPredictors.Length; col++)
+						otherPredictorsJagged[row][col] = otherPredictors[col][row];
+				}
+				var ols = MultipleRegression.QR(otherPredictorsJagged, target, intercept: true);
+				var yHatVif = new double[n];
+				for (int j = 0; j < n; j++)
+				{
+					yHatVif[j] = ols[0];
+					for (int m = 0; m < otherPredictors.Length; m++)
+						yHatVif[j] += ols[m + 1] * otherPredictors[m][j];
+				}
+				double ssResVif = target.Zip(yHatVif, (y, yh) => Math.Pow(y - yh, 2)).Sum();
+				double ssTotVif = target.Select(y => Math.Pow(y - target.Average(), 2)).Sum();
+				double r2Vif = 1 - ssResVif / ssTotVif;
+				double vif = 1.0 / (1.0 - r2Vif);
+				vifList.Add(vif);
+			}
+			return vifList;
+		}
+
+		/// <summary>
+		/// 決定係数の計算
+		/// </summary>
+		/// <param name="response"></param>
+		/// <param name="yHat"></param>
+		/// <returns>決定係数</returns>
+		private double CalcRSquared(double[] response, double[] yHat)
+		{
+			double ssRes = response.Zip(yHat, (y, yh) => Math.Pow(y - yh, 2)).Sum();
+			double ssTot = response.Select(y => Math.Pow(y - response.Average(), 2)).Sum();
+			return 1 - ssRes / ssTot;
+		}
+
+		/// <summary>
+		/// 補正決定係数の計算
+		/// </summary>
+		/// <param name="r2">決定係数</param>
+		/// <param name="n">データ数</param>
+		/// <param name="k">変数数</param>
+		/// <returns>補正決定係数</returns>
+		private double CalcAdjustedRSquared(double r2, int n, int k)
+		{
+			return 1 - (1 - r2) * (n - 1) / (n - k - 1);
+		}
+
+		/// <summary>
+		/// 予測値の計算
+		/// </summary>
+		/// <param name="predictorsJagged">説明変数ジャグ配列</param>
+		/// <param name="coefficients">回帰係数配列</param>
+		/// <returns>予測値配列</returns>
+		private double[] CalcPredictedValues(double[][] predictorsJagged, double[] coefficients)
+		{
+			int n = predictorsJagged.Length;
+			int k = predictorsJagged[0].Length;
+			var yHat = new double[n];
+			for (int i = 0; i < n; i++)
+			{
+				yHat[i] = coefficients[0];
+				for (int j = 0; j < k; j++)
+					yHat[i] += coefficients[j + 1] * predictorsJagged[i][j];
+			}
+			return yHat;
+		}
+
+		/// <summary>
+		/// 残差平方和の計算
+		/// </summary>
+		/// <param name="response"></param>
+		/// <param name="yHat"></param>
+		/// <returns>残差平方和</returns>
+		private double CalcResidualSumOfSquares(double[] response, double[] yHat)
+		{
+			return response.Zip(yHat, (y, yh) => Math.Pow(y - yh, 2)).Sum();
+		}
+
+		/// <summary>
+		/// 片側p値の計算
+		/// </summary>
+		/// <param name="t">t値</param>
+		/// <param name="degreesOfFreedom">自由度</param>
+		/// <returns>片側p値</returns>
+		private double CalcOneSidedPValue(double t, int degreesOfFreedom)
+		{
+			var dist = new StudentT(0, 1, degreesOfFreedom);
+			return 1 - dist.CumulativeDistribution(Math.Abs(t));
+		}
+
+		/// <summary>
+		/// t値の計算
+		/// </summary>
+		/// <param name="coefficient">回帰係数</param>
+		/// <param name="standardError">標準誤差</param>
+		/// <returns>t値</returns>
+		private double CalcTValue(double coefficient, double standardError)
+		{
+			return coefficient / standardError;
+		}
+
+		/// <summary>
+		/// 重回帰分析を実行し、変数名・回帰係数・p値・VIF・決定係数を持つ結果インスタンスを返す
+		/// </summary>
+		/// <param name="responseTable">目的変数のDataTable（1列のみ）</param>
+		/// <param name="predictorTable">説明変数のDataTable（各列が変数）</param>
+		/// <returns>MultipleRegressionResult</returns>
+		public MultipleRegressionResult Analyze(DataTable responseTable, DataTable predictorTable)
+		{
+			// データの数値チェック
+			CheckDataTableNumeric(responseTable);
+			CheckDataTableNumeric(predictorTable);
+
+			// 説明変数をジャグ配列に変換
+			var predictorsJagged = ToJaggedArray(predictorTable);
+			// 目的変数配列の作成
+			var response = responseTable.AsEnumerable().Select(r => Convert.ToDouble(r[0])).ToArray();
+
+			// データ数と変数数の取得
+			int n = predictorsJagged.Length;
+			int k = predictorsJagged[0].Length;
+			// 自由度の計算
+			int df = n - k - 1;
+			// 回帰係数の計算			
+			var coefficients = MultipleRegression.QR(predictorsJagged, response, intercept: true);
+
+			// 予測値の計算
+			var yHat = CalcPredictedValues(predictorsJagged, coefficients);
+			// 残渣平方和の計算
+			double ssRes = CalcResidualSumOfSquares(response, yHat);
+
+			// 決定係数と補正決定係数の計算
+			var r2 = CalcRSquared(response, yHat);
+			var adjR2 = CalcAdjustedRSquared(r2, n, k);
+
+			// 変数ごとの統計情報の作成
+			var variableStats = new DataTable();
+			variableStats.Columns.Add("変数名", typeof(string));
+			variableStats.Columns.Add("回帰係数", typeof(double));
+			variableStats.Columns.Add("VIF", typeof(double));
+			variableStats.Columns.Add("片側p値", typeof(double));
+			variableStats.Columns.Add("両側p値", typeof(double));
+
+			// VIFの計算
+			var vifList = CalcVIFs(predictorsJagged);
+			// 標準誤差の計算
+			var se = CalcStandardErrors(predictorsJagged, response, coefficients, ssRes, df);
+
+			// 定数項のp値計算
+			double t0 = CalcTValue(coefficients[0], se[0]);
+			double pOneSided0 = CalcOneSidedPValue(t0, df);
+			double pTwoSided0 = 2 * pOneSided0;
+			variableStats.Rows.Add("定数項", coefficients[0], double.NaN, pOneSided0, pTwoSided0.ToString("E3"));
+
+			// 各説明変数のp値計算
+			for (int i = 0; i < k; i++)
+			{
+				// p値の計算
+				double t = CalcTValue(coefficients[i + 1], se[i + 1]);
+				double pOneSided = CalcOneSidedPValue(t, df);
+				double pTwoSided = 2 * pOneSided;
+				// 結果テーブルに追加
+				variableStats.Rows.Add(
+					predictorTable.Columns[i].ColumnName,
+					coefficients[i + 1],
+					vifList[i],
+					pOneSided.ToString("E3"),
+					pTwoSided.ToString("E3")
+				);
+			}
+
+			// 結果の返却
+			return new MultipleRegressionResult
+			{
+				VariableStats = variableStats,
+				RSquared = r2,
+				AdjustedRSquared = adjR2
+			};
+		}
+	}
+}
