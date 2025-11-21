@@ -11,6 +11,16 @@ using MySqlConnector;
 using static RegressionAnalysis.Common.DataTableHelpers;
 using static RegressionAnalysis.Common.ConfigurationHelper;
 
+// TODO: エラーハンドリングを強化することを検討してください
+// TODO: DBコネクション等をカプセル化したヘルパークラスを作成することを検討してください
+//			MySQLDataadapter 抽象化クラスなど
+// TODO: テーブル名のバリデーションを追加することを検討してください
+// TODO: SQLインジェクション対策が必要かも？
+// 注意: テーブル名を直接SQLに埋め込むのはセキュリティリスクがあるため、信頼できる入力のみを使用してください。
+// ここでは簡略化のために直接埋め込んでいますが、実際のアプリケーションでは注意が必要です。
+// 注意: プレースホルダーはテーブル名には使用できません。
+
+
 namespace SalesAnalysisSource
 {
 	/// <summary>
