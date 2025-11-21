@@ -5,24 +5,24 @@ using RegressionAnalysisLibrary;
 
 namespace RegressionAnalysis
 {
-	/**
-	 * 回帰分析フォームクラス
-	 */
+	/// <summary>
+	/// 回帰分析フォームクラス
+	/// </summary>
 	public partial class RegressionAnalysisForm : Form
 	{
-		/**
-		 * RegressionAnalysisForm クラスの新しいインスタンスを初期化します
-		 */
+		/// <summary>
+		/// RegressionAnalysisForm クラスの新しいインスタンスを初期化します
+		/// </summary>
 		public RegressionAnalysisForm()
 		{
 			InitializeComponent();
 		}
 
-		/**
-		 * 分析データを読み込むボタンがクリックされたときに発生するイベント ハンドラー
-		 * @param sender イベントの送信元
-		 * @param e イベント データ
-		 */
+		/// <summary>
+		/// 分析データを読み込むボタンがクリックされたときに発生するイベント ハンドラー
+		/// </summary>
+		/// <param name="sender">イベントの送信元</param>
+		/// <param name="e">イベント データ</param>
 		private void BtnLoadAnalysisData_Click(object sender, EventArgs e)
 		{
 			// 既存のデータソースをクリア
@@ -49,11 +49,11 @@ namespace RegressionAnalysis
 			}
 		}
 
-		/**
-		 * 分析実行ボタンがクリックされたときに発生するイベント ハンドラー
-		 * @param sender イベントの送信元
-		 * @param e イベント データ
-		 */
+		/// <summary>
+		/// 分析実行ボタンがクリックされたときに発生するイベント ハンドラー
+		/// </summary>
+		/// <param name="sender">イベントの送信元</param>
+		/// <param name="e">イベント データ</param>
 		private void BtnRunAnalysis_Click(object sender, EventArgs e)
 		{
 			// DataTable取得
@@ -94,25 +94,13 @@ namespace RegressionAnalysis
 			// 説明変数テーブル（複数列）
 			var predictorTable = filteredTable.DefaultView.ToTable(false, predictorNames.ToArray());
 
-			// デバッグ用情報出力（行数確認）
-			Debug.WriteLine($"filteredTable.Rows.Count = {filteredTable.Rows.Count}");
-			Debug.WriteLine($"responseTable.Rows.Count = {responseTable.Rows.Count}");
-			Debug.WriteLine($"predictorTable.Rows.Count = {predictorTable.Rows.Count}");
-
-			// predictorNames（説明変数名リスト）の出力
-			Debug.WriteLine("predictorNames: " + string.Join(", ", predictorNames));
-
-			// predictorTableの実際の列名リストの出力
-			var actualPredictorTableColumns = predictorTable.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToList();
-			Debug.WriteLine("predictorTable.Columns: " + string.Join(", ", actualPredictorTableColumns));
-
 			// 重回帰分析実行
 			var analyzer = new MultipleRegressionAnalyzer();
 			var result = analyzer.Analyze(responseTable,predictorTable);
 
 			// 結果の利用例（DataGridView等に表示）
 			DgvAnalysisResult.DataSource = result.VariableStats;
-			LblRSquared.Text = $"重決定係数：R²: {result.RSquared:F4} (補正R²: {result.AdjustedRSquared:F4})";
+			LblRSquared.Text = $"重決定係数＝ R²: {result.RSquared:F4} (補正R²＝ {result.AdjustedRSquared:F4})";
 		}
 	}
 }

@@ -11,22 +11,22 @@ using MySqlConnector;
 
 namespace SalesAnalysisSource
 {
-	/**
-	 * 販売分析データソース選択フォームクラス
-	 */
+	/// <summary>
+	/// 販売分析データソース選択フォームクラス
+	/// </summary>
 	public partial class SalesDataSourceForm : Form
 	{
 		// メンバー変数定義
-		/**
-		 * ファイル選択ダイアログ
-		 * 使い回すことで、複数回開いたときに前回のディレクトリを覚えておける
-		 */
+		/// <summary>
+		/// ファイル選択ダイアログ
+		/// 使い回すことで、複数回開いたときに前回のディレクトリを覚えておける
+		/// </summary>
 		private readonly OpenFileDialog selectFileDialog = new();
 
 		// コンストラクタ
-		/**
-		 * SalesDataSourceForm クラスの新しいインスタンスを初期化します
-		 */
+		/// <summary>
+		/// SalesDataSourceForm クラスの新しいインスタンスを初期化します
+		/// </summary>
 		public SalesDataSourceForm()
 		{
 			InitializeComponent();
@@ -41,27 +41,27 @@ namespace SalesAnalysisSource
 		}
 
 		// プロパティ定義
-		/**
-		 * CSVソースが選択されているかどうか
-		 */
+		/// <summary>
+		/// CSVソースが選択されているかどうか
+		/// </summary>
 		public bool IsSelectCSVSource => TabControlSourceType.SelectedTab == tabPageCSV;
 
-		/**
-		 * DBソースが選択されているかどうか 
-		 */
+		/// <summary>
+		/// DBソースが選択されているかどうか
+		/// </summary>
 		public bool IsSelectDBSource => TabControlSourceType.SelectedTab == tabPageDataBase;
 
-		/**
-		 * 読み込まれた分析データ
-		 */
+		/// <summary>
+		/// 読み込まれた分析データ
+		/// </summary>
 		public DataTable? LoadedAnalisysData { get; private set; }
 
 		// イベントハンドラー定義
-		/**
-		 * 販売CSVファイルを選択するボタンがクリックされたときに発生するイベント ハンドラー
-		 * @param sender イベントの送信元
-		 * @param e イベント データ
-		 */
+		/// <summary>
+		/// 販売CSVファイルを選択するボタンがクリックされたときに発生するイベント ハンドラー
+		/// </summary>
+		/// <param name="sender">イベントの送信元</param>
+		/// <param name="e">イベント データ</param>
 		private void BtnSelectSalesCSVFile_Click(object sender, EventArgs e)
 		{
 			selectFileDialog.Title = "販売CSVファイルを選択してください";
@@ -69,11 +69,11 @@ namespace SalesAnalysisSource
 			if (selectFileDialog.ShowDialog(this) == DialogResult.OK)
 				TxtSalseCSVFileName.Text = selectFileDialog.FileName;
 		}
-		/**
-		 * 気象CSVファイルを選択するボタンがクリックされたときに発生するイベント ハンドラー
-		 * @param sender イベントの送信元
-		 * @param e イベント データ
-		 */
+		/// <summary>
+		/// 気象CSVファイルを選択するボタンがクリックされたときに発生するイベント ハンドラー
+		/// </summary>
+		/// <param name="sender">イベントの送信元</param>
+		/// <param name="e">イベント データ</param>
 		private void BtnWeatherCSVFile_Click(object sender, EventArgs e)
 		{
 			selectFileDialog.Title = "気象CSVファイルを選択してください";
@@ -81,11 +81,11 @@ namespace SalesAnalysisSource
 			if( selectFileDialog.ShowDialog(this)==DialogResult.OK )
 				TxtWeatherCSVFileName.Text = selectFileDialog.FileName;
 		}
-		/**
-		 * 単位CSVファイルを選択するボタンがクリックされたときに発生するイベント ハンドラー
-		 * @param sender イベントの送信元
-		 * @param e イベント データ
-		 */
+		/// <summary>
+		/// 単位CSVファイルを選択するボタンがクリックされたときに発生するイベント ハンドラー
+		/// </summary>
+		/// <param name="sender">イベントの送信元</param>
+		/// <param name="e">イベント データ</param>
 		private void BtnUnitsCSVFile_Click(object sender, EventArgs e)
 		{
 			selectFileDialog.Title = "単位CSVファイルを選択してください";
@@ -93,11 +93,11 @@ namespace SalesAnalysisSource
 			if (selectFileDialog.ShowDialog(this) == DialogResult.OK)
 				TxtUnitsCSVFileName.Text = selectFileDialog.FileName;
 		}
-		/**
-		 * (DB)分析データを読み込むボタンがクリックされるときに発生するイベント ハンドラー
-		 * @param sender イベントの送信元
-		 * @param e イベント データ
-		 */
+		/// <summary>
+		/// (DB)分析データを読み込むボタンがクリックされるときに発生するイベント ハンドラー
+		/// </summary>
+		/// <param name="sender">イベントの送信元</param>
+		/// <param name="e">イベント データ</param>
 		private void BtnLoadDBAnalysisData_Click(object sender, EventArgs e)
 		{
 			// 処理中カーソルに変更
@@ -112,8 +112,8 @@ namespace SalesAnalysisSource
 					TxtUnitsTableName.Text
 					);
 				// 品種によるフィルター条件設定
-					if (!string.IsNullOrEmpty(CmbTxtFilterVerietyDB.Text))
-						mysqlMerger.AddFilterCondition("", $"{TxtSalesTableName.Text}.variety", $"='{CmbTxtFilterVerietyDB.Text}'");
+				if (!string.IsNullOrEmpty(CmbTxtFilterVerietyDB.Text))
+					mysqlMerger.AddFilterCondition("", $"{TxtSalesTableName.Text}.variety", $"='{CmbTxtFilterVerietyDB.Text}'");
 				// 取得実行
 				LoadedAnalisysData = mysqlMerger.GetMergedDataTable();
 			}
@@ -123,11 +123,11 @@ namespace SalesAnalysisSource
 				Cursor.Current = Cursors.Default;
 			}
 		}
-		/**
-		 * (CSV)分析データを読み込むボタンがクリックされたときに発生するイベント ハンドラー
-		 * @param sender イベントの送信元
-		 * @param e イベント データ
-		 */
+		/// <summary>
+		/// (CSV)分析データを読み込むボタンがクリックされたときに発生するイベント ハンドラー
+		/// </summary>
+		/// <param name="sender">イベントの送信元</param>
+		/// <param name="e">イベント データ</param>
 		private void BtnLoadCSVAnalysisData_Click(object sender, EventArgs e)
 		{
 			// 処理中カーソルに変更
@@ -153,16 +153,18 @@ namespace SalesAnalysisSource
 			}
 		}
 
-		/**
-		 * 品種フィルターリスト表示直前の初回処理にてsalesVerietyDBを設定する
-		 * @param sender イベントの送信元
-		 * @param e イベント データ
-		 */
+		/// <summary>
+		/// 品種フィルターリスト表示直前の初回処理にてsalesVerietyDBを設定する
+		/// </summary>
+		/// <param name="sender">イベントの送信元</param>
+		/// <param name="e">イベント データ</param>
 		private void CmbTxtFilterVerietyDB_DropDown(object sender, EventArgs e)
 		{
+			// 処理中カーソルに変更
 			Cursor.Current = Cursors.WaitCursor;
 			try
 			{
+				// 販売テーブル名が未設定の場合は空のリストを設定して終了
 				if (string.IsNullOrEmpty(TxtSalesTableName.Text))
 				{
 					CmbTxtFilterVerietyDB.DataSource = new DataTable();
@@ -170,13 +172,15 @@ namespace SalesAnalysisSource
 					CmbTxtFilterVerietyDB.ValueMember = null;
 					return;
 				}
-
+				// 既にデータソースが設定されている場合は処理しない
 				var dataTable = CmbTxtFilterVerietyDB.DataSource as DataTable;
 				if (dataTable == null || dataTable.Rows.Count == 0)
 				{
+					// データベースから品種リストを取得してコンボボックスに設定
 					var dt = new DataTable();
 					try
 					{
+						// MySQLデータベースから品種リストを取得
 						using (var conn = new MySqlConnection(ConfigurationHelper.GetConnectionString()))
 						using (var cmd = new MySqlCommand(
 							$"SELECT DISTINCT `variety` FROM `{TxtSalesTableName.Text}` WHERE `variety` IS NOT NULL AND `variety` <> ''", conn))
@@ -185,12 +189,14 @@ namespace SalesAnalysisSource
 							conn.Open();
 							adapter.Fill(dt);
 						}
+						// コンボボックスに品種をソートして設定
 						CmbTxtFilterVerietyDB.DataSource = new DataView(dt) { Sort = "variety ASC" };
 						CmbTxtFilterVerietyDB.DisplayMember = "variety";
 						CmbTxtFilterVerietyDB.ValueMember = "variety";
 					}
 					catch (Exception ex)
 					{
+						// エラー表示
 						MessageBox.Show(this, $"データベースからの品種リストの取得に失敗しました。\n{ex.Message}", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
 						return;
 					}
@@ -198,35 +204,38 @@ namespace SalesAnalysisSource
 			}
 			finally
 			{
+				// 元のカーソルに戻す
 				Cursor.Current = Cursors.Default;
 			}
 		}
 
-		/**
-		 * 品種フィルターリスト表示直前の初回処理にてsalesVerietyCSVを設定する
-		 * @param sender イベントの送信元
-		 * @param e イベント データ
-		 */
+		/// <summary>
+		/// 品種フィルターリスト表示直前の初回処理にてsalesVerietyCSVを設定する
+		/// </summary>
+		/// <param name="sender">イベントの送信元</param>
+		/// <param name="e">イベント データ</param>
 		private void CmbTxtFilterVerietyCSV_DropDown(object sender, EventArgs e)
 		{
+			// 処理中カーソルに変更
 			Cursor.Current = Cursors.WaitCursor;
 			try
 			{
 				if (string.IsNullOrEmpty(TxtSalseCSVFileName.Text))
 				{
+					// 販売CSVファイル名が未設定の場合は空のリストを設定して終了
 					CmbTxtFilterVerietyCSV.DataSource = new DataTable();
 					CmbTxtFilterVerietyCSV.DisplayMember = null;
 					CmbTxtFilterVerietyCSV.ValueMember = null;
 					return;
 				}
-
+				// 既にデータソースが設定されている場合は処理しない
 				var dataTable = CmbTxtFilterVerietyCSV.DataSource as DataTable;
 				if (dataTable == null || dataTable.Rows.Count == 0)
 				{
-					// CSVファイルの読み込み
 					DataTable table;
 					try
 					{
+						// CSVファイルの読み込み
 						table = DataTableUtils.ReadCsv(TxtSalseCSVFileName.Text);
 					}
 					catch (Exception ex)
@@ -234,7 +243,7 @@ namespace SalesAnalysisSource
 						MessageBox.Show(this, $"販売CSVファイルの読み込みに失敗しました。\n{ex.Message}", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
 						return;
 					}
-					// 品種リストを取得してコンボボックスに設定
+					// 品種リストを取得してコンボボックスにソートして設定
 					var dt = DataTableUtils.GetDistinctFieldTable(table, "品種");
 					CmbTxtFilterVerietyCSV.DataSource = new DataView(dt) { Sort = "品種 ASC" };
 					CmbTxtFilterVerietyCSV.DisplayMember = "品種";
@@ -243,6 +252,7 @@ namespace SalesAnalysisSource
 			}
 			finally
 			{
+				// 元のカーソルに戻す
 				Cursor.Current = Cursors.Default;
 			}
 		}

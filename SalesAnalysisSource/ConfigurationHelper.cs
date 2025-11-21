@@ -2,16 +2,16 @@
 
 namespace SalesAnalysisSource
 {
-	/**
-	 * 構成ヘルパークラス
-	 */
+	/// <summary>
+	/// 構成ヘルパークラス
+	/// </summary>
 	internal static class ConfigurationHelper
 	{
-		/**
-         * 接続文字列取得メソッド
-         * @param key 接続文字列キー（デフォルト: MyDbConnection）
-         * @return 接続文字列
-         */
+		/// <summary>
+        /// 接続文字列取得メソッド
+        /// </summary>
+        /// <param name="key">接続文字列キー（デフォルト: MyDbConnection）</param>
+        /// <returns>接続文字列</returns>
 		public static string GetConnectionString(string key = "MyDbConnection")
 		{
 			// 実行環境名取得（例: Development, Production, Staging）
@@ -25,11 +25,11 @@ namespace SalesAnalysisSource
 			return connStr;
 		}
 
-		/**
-         * 構成作成メソッド
-         * @param environment 環境名
-         * @return IConfigurationRootオブジェクト
-         */
+		/// <summary>
+        /// 構成作成メソッド
+        /// </summary>
+        /// <param name="environment">環境名</param>
+        /// <returns>IConfigurationRootオブジェクト</returns>
 		private static IConfigurationRoot CreateConfiguration(string environment)
 		{
 

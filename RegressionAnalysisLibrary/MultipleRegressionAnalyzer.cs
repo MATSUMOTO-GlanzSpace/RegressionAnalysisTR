@@ -120,25 +120,30 @@ namespace RegressionAnalysisLibrary
 					.Where(idx => idx != i)
 					.Select(idx => predictors.Select(row => row[idx]).ToArray())
 					.ToArray();
-				var otherPredictorsJagged = new double[n][];
+				var otherPredictorsTable = new DataTable();
+				for (int col = 0; col < otherPredictors.Length; col++)
+					otherPredictorsTable.Columns.Add($"X{col}", typeof(double));
 				for (int row = 0; row < n; row++)
 				{
-					otherPredictorsJagged[row] = new double[otherPredictors.Length];
+					var values = new object[otherPredictors.Length];
 					for (int col = 0; col < otherPredictors.Length; col++)
-						otherPredictorsJagged[row][col] = otherPredictors[col][row];
+						values[col] = otherPredictors[col][row];
+					otherPredictorsTable.Rows.Add(values);
 				}
-				var ols = MultipleRegression.QR(otherPredictorsJagged, target, intercept: true);
-				var yHatVif = new double[n];
-				for (int j = 0; j < n; j++)
-				{
-					yHatVif[j] = ols[0];
-					for (int m = 0; m < otherPredictors.Length; m++)
-						yHatVif[j] += ols[m + 1] * otherPredictors[m][j];
-				}
-				double ssResVif = target.Zip(yHatVif, (y, yh) => Math.Pow(y - yh, 2)).Sum();
-				double ssTotVif = target.Select(y => Math.Pow(y - target.Average(), 2)).Sum();
-				double r2Vif = 1 - ssResVif / ssTotVif;
+				// targetをDataTable化
+				var targetTable = new DataTable();
+				targetTable.Columns.Add("Y", typeof(double));
+				for (int row = 0; row < n; row++)
+					targetTable.Rows.Add(target[row]);
+				// 回帰分析の実行
+				var ols = CalcRegressionCoefficients(otherPredictorsTable, targetTable);
+				// 予測値の計算
+				var otherPredictorsJagged = ToJaggedArray(otherPredictorsTable);
+				var yHatVif = CalcPredictedValues(otherPredictorsJagged, ols);
+				// 決定係数の計算
+				double r2Vif = CalcRSquared(target, yHatVif);
 				double vif = 1.0 / (1.0 - r2Vif);
+				// VIFの計算
 				vifList.Add(vif);
 			}
 			return vifList;
@@ -224,6 +229,19 @@ namespace RegressionAnalysisLibrary
 		}
 
 		/// <summary>
+		/// 指定した説明変数DataTableと目的変数DataTableから回帰係数を計算する
+		/// </summary>
+		/// <param name="predictors">説明変数DataTable</param>
+		/// <param name="response">目的変数DataTable（1列のみ）</param>
+		/// <returns>回帰係数配列</returns>
+		private double[] CalcRegressionCoefficients(DataTable predictors, DataTable response)
+		{
+			var predictorsJagged = ToJaggedArray(predictors);
+			var responseArray = response.AsEnumerable().Select(r => Convert.ToDouble(r[0])).ToArray();
+			return MultipleRegression.QR(predictorsJagged, responseArray, intercept: true);
+		}
+
+		/// <summary>
 		/// 重回帰分析を実行し、変数名・回帰係数・p値・VIF・決定係数を持つ結果インスタンスを返す
 		/// </summary>
 		/// <param name="responseTable">目的変数のDataTable（1列のみ）</param>
@@ -235,18 +253,17 @@ namespace RegressionAnalysisLibrary
 			CheckDataTableNumeric(responseTable);
 			CheckDataTableNumeric(predictorTable);
 
-			// 説明変数をジャグ配列に変換
-			var predictorsJagged = ToJaggedArray(predictorTable);
-			// 目的変数配列の作成
-			var response = responseTable.AsEnumerable().Select(r => Convert.ToDouble(r[0])).ToArray();
-
 			// データ数と変数数の取得
-			int n = predictorsJagged.Length;
-			int k = predictorsJagged[0].Length;
+			int n = responseTable.Rows.Count;
+			int k = predictorTable.Columns.Count;
 			// 自由度の計算
 			int df = n - k - 1;
-			// 回帰係数の計算			
-			var coefficients = MultipleRegression.QR(predictorsJagged, response, intercept: true);
+			// 回帰係数の計算
+			var coefficients = CalcRegressionCoefficients(predictorTable, responseTable);
+
+			// ジャグ配列変換
+			var predictorsJagged = ToJaggedArray(predictorTable);
+			var response = responseTable.AsEnumerable().Select(r => Convert.ToDouble(r[0])).ToArray();
 
 			// 予測値の計算
 			var yHat = CalcPredictedValues(predictorsJagged, coefficients);

@@ -10,15 +10,15 @@ using System.Collections.Generic;
 
 namespace SalesAnalysisSource
 {
-	/**
-     * データ結合基底クラス
-     */
+	/// <summary>
+    /// データ結合基底クラス
+    /// </summary>
 	public abstract class DataMerger
     {
-		/**
-         * 結合データテーブル取得メソッド
-         * @return 結合データテーブル
-         */
+		/// <summary>
+        /// 結合データテーブル取得メソッド
+        /// </summary>
+        /// <returns>結合データテーブル</returns>
 		public DataTable GetMergedDataTable()
         {
             try
@@ -35,56 +35,56 @@ namespace SalesAnalysisSource
             }
         }
 
-		/**
-         * 派生クラスで実装する結合ロジック
-         * @return 結合データテーブル
-         */
+		/// <summary>
+        /// 派生クラスで実装する結合ロジック
+        /// </summary>
+        /// <returns>結合データテーブル</returns>
 		protected abstract DataTable GetMergedDataTableCore();
 
-		/**
-         * エラーログ出力メソッド
-         * @param ex 例外オブジェクト
-         */
+		/// <summary>
+        /// エラーログ出力メソッド
+        /// </summary>
+        /// <param name="ex">例外オブジェクト</param>
 		protected virtual void LogError(Exception ex)
         {
             // 標準出力にエラーログ
             Console.WriteLine($"[DataMerger Error] {ex.Message}");
         }
 
-		/**
-         * フィルタ条件リスト
-         */
+		/// <summary>
+        /// フィルタ条件リスト
+        /// </summary>
 		public List<FilterElement> Filters { get; } = [];
 
-		/**
-         * フィルタ条件追加メソッド
-         * @param logic 論理演算子（AND/OR）
-         * @param field フィールド名（テーブル名.フィールド名形式）
-         * @param condition 条件式（例: "='value'"）
-         */
+		/// <summary>
+        /// フィルタ条件追加メソッド
+        /// </summary>
+        /// <param name="logic">論理演算子（AND/OR）</param>
+        /// <param name="field">フィールド名（テーブル名.フィールド名形式）</param>
+        /// <param name="condition">条件式（例: "='value'"）</param>
 		public void AddFilterCondition(string logic, string field, string condition)
             => Filters.Add(new FilterCondition(logic, field, condition));
 
-		/**
-         * フィルタグループ開始追加メソッド
-         * @param logic 論理演算子（AND/OR）
-         */
+		/// <summary>
+        /// フィルタグループ開始追加メソッド
+        /// </summary>
+        /// <param name="logic">論理演算子（AND/OR）</param>
 		public void AddGroupStart(string logic = "")
             => Filters.Add(new FilterGroupStart(logic));
 
-		/**
-         * フィルタグループ終了追加メソッド
-         */
+		/// <summary>
+        /// フィルタグループ終了追加メソッド
+        /// </summary>
 		public void AddGroupEnd()
             => Filters.Add(new FilterGroupEnd());
 
-		/**
-         * CSV用フィルタ述語生成
-         * @param tableName テーブル名
-         * @return フィルタ述語
-         * @note Shunting Yard AlgorithmでRPN変換し評価
-         * @see https://en.wikipedia.org/wiki/Shunting_yard_algorithm
-         */
+		/// <summary>
+        /// CSV用フィルタ述語生成
+        /// </summary>
+        /// <param name="tableName">テーブル名</param>
+        /// <returns>フィルタ述語</returns>
+        /// <remarks>Shunting Yard AlgorithmでRPN変換し評価</remarks>
+        /// <see href="https://en.wikipedia.org/wiki/Shunting_yard_algorithm" />
 		public Func<DataRow, bool> BuildCsvFilterPredicate(string tableName)
         {
 			// Shunting Yard AlgorithmでRPN変換
@@ -152,12 +152,12 @@ namespace SalesAnalysisSource
 			static int Precedence(string op) => op == "AND" ? 2 : op == "OR" ? 1 : 0;
         }
 
-		/**
-         * SQL用WHERE句生成（tableName指定、パラメータ化）
-         * @param tableName テーブル名
-         * @out parameters パラメータリスト出力
-         * @return WHERE句文字列
-         */
+		/// <summary>
+        /// SQL用WHERE句生成（tableName指定、パラメータ化）
+        /// </summary>
+        /// <param name="tableName">テーブル名</param>
+        /// <param name="parameters">パラメータリスト出力</param>
+        /// <returns>WHERE句文字列</returns>
 		public string BuildSqlWhereClause(string tableName, out List<MySqlParameter> parameters)
         {
 			// WHERE句生成
@@ -177,46 +177,43 @@ namespace SalesAnalysisSource
         }
     }
 
-	/**
-     * フィルタ要素基底レコード
-     */
+	/// <summary>
+    /// フィルタ要素基底レコード
+    /// </summary>
 	public abstract record FilterElement;
 
-	/**
-     * フィルタ条件レコード
-     * @param Logic 論理演算子（AND/OR）
-     * @param Field フィールド名（テーブル名.フィールド名形式）
-     * @param Condition 条件式（例: "='value'"）
-     * @return フィルタ条件レコード
-     */
+	/// <summary>
+    /// フィルタ条件レコード
+    /// </summary>
+    /// <param name="Logic">論理演算子（AND/OR）</param>
+    /// <param name="Field">フィールド名（テーブル名.フィールド名形式）</param>
+    /// <param name="Condition">条件式（例: "='value'"）</param>
 	public record FilterCondition(string Logic, string Field, string Condition) : FilterElement;
 
-	/**
-     * フィルタグループ開始レコード"("
-     * @param Logic 論理演算子（AND/OR）
-     * @return フィルタグループ開始レコード
-     */
+	/// <summary>
+    /// フィルタグループ開始レコード"("
+    /// </summary>
+    /// <param name="Logic">論理演算子（AND/OR）</param>
 	public record FilterGroupStart(string Logic = "") : FilterElement;
 
-	/**
-     * フィルタグループ終了レコード")"
-     * @return フィルタグループ終了レコード
-     */
+	/// <summary>
+    /// フィルタグループ終了レコード")"
+    /// </summary>
 	public record FilterGroupEnd() : FilterElement;
 
-	/**
-     * 1. CSVファイル結合クラス
-     * @param salesCsvPath 売上CSVファイルパス
-     * @param weatherCsvPath 天気CSVファイルパス
-     * @param unitsCsvPath 単位CSVファイルパス
-     */
+	/// <summary>
+    /// 1. CSVファイル結合クラス
+    /// </summary>
+    /// <param name="salesCsvPath">売上CSVファイルパス</param>
+    /// <param name="weatherCsvPath">天気CSVファイルパス</param>
+    /// <param name="unitsCsvPath">単位CSVファイルパス</param>
 	public class CsvSalesDataMerger(string salesCsvPath, string weatherCsvPath, string unitsCsvPath) : DataMerger
     {
 
-		/**
-         * CSVファイル結合ロジック実装
-         * @return 結合データテーブル
-         */
+		/// <summary>
+        /// CSVファイル結合ロジック実装
+        /// </summary>
+        /// <returns>結合データテーブル</returns>
 		protected override DataTable GetMergedDataTableCore()
         {
             // CSV読み込み
@@ -287,20 +284,20 @@ namespace SalesAnalysisSource
         }
 	}
 
-	/**
-     * 2. MySQLテーブル結合クラス
-     * @param connectionString MySQL接続文字列
-     * @param salesTable 売上テーブル名
-     * @param weatherTable 天気テーブル名
-     * @param unitsTable 単位テーブル名
-     */
+	/// <summary>
+    /// 2. MySQLテーブル結合クラス
+    /// </summary>
+    /// <param name="connectionString">MySQL接続文字列</param>
+    /// <param name="salesTable">売上テーブル名</param>
+    /// <param name="weatherTable">天気テーブル名</param>
+    /// <param name="unitsTable">単位テーブル名</param>
 	public class MySqlSalesDataMerger(string connectionString, string salesTable, string weatherTable, string unitsTable) : DataMerger
     {
 
-		/**
-         * MySQLテーブル結合ロジック実装
-         * @return 結合データテーブル
-         */
+		/// <summary>
+        /// MySQLテーブル結合ロジック実装
+        /// </summary>
+        /// <returns>結合データテーブル</returns>
 		protected override DataTable GetMergedDataTableCore()
         {
 			using var conn = new MySqlConnection(connectionString);
