@@ -136,7 +136,7 @@
 			label9.Name = "label9";
 			label9.Size = new Size(780, 35);
 			label9.TabIndex = 13;
-			label9.Text = "重回帰分析(Sales-Weather)";
+			label9.Text = "重回帰分析";
 			// 
 			// BtnRunAnalysis
 			// 
