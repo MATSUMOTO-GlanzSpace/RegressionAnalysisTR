@@ -1,7 +1,7 @@
 ﻿using System.Data;
 using System.Diagnostics; // ファイル先頭に追加
 using SalesAnalysisSource;
-using RegressionAnalysisLibrary;
+using RegressionAnalysis.Common;
 
 namespace RegressionAnalysis
 {

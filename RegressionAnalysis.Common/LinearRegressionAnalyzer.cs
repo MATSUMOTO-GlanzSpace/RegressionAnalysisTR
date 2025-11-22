@@ -8,7 +8,7 @@ using MathNet.Numerics.Statistics;
 using MathNet.Numerics.Distributions;
 using static RegressionAnalysis.Common.DataTableHelpers;
 
-namespace RegressionAnalysisLibrary
+namespace RegressionAnalysis.Common
 {
 	/// <summary>
 	/// 線形帰分析を行った、係数・p値・決定係数を表す結果クラス
