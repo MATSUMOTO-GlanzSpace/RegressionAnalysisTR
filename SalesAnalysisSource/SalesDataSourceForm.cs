@@ -196,7 +196,7 @@ namespace SalesAnalysisSource
 						using (var conn = new MySqlConnection(GetConnectionString()))
 						using (var cmd = new MySqlCommand(
 							$"SELECT DISTINCT `variety` FROM `{TxtSalesTableName.Text}` WHERE `variety` IS NOT NULL AND `variety` <> ''", conn))
-						using (var adapter = new MySqlConnector.MySqlDataAdapter(cmd))
+						using (var adapter = new MySqlDataAdapter(cmd))
 						{
 							conn.Open();
 							adapter.Fill(dt);
