@@ -110,8 +110,7 @@ namespace SalesAnalysisSource
         /// <returns>結合データテーブル</returns>
 		protected override DataTable GetMergedDataTableCore()
         {
-			using var conn = new MySqlConnection(connectionString);
-            conn.Open();
+			using var conn = MySqlConnectionFactory.CreateOpenConnection();
             // DataMergerの共通SQLフィルタ生成を利用
             var whereSql = BuildSqlWhereClause("sales", out var parameters);
             string sql = $@"
