@@ -97,11 +97,10 @@ namespace SalesAnalysisSource
 	/// <summary>
     /// 2. MySQLテーブル結合クラス
     /// </summary>
-    /// <param name="connectionString">MySQL接続文字列</param>
     /// <param name="salesTable">売上テーブル名</param>
     /// <param name="weatherTable">天気テーブル名</param>
     /// <param name="unitsTable">単位テーブル名</param>
-	public class MySqlSalesDataMerger(string connectionString, string salesTable, string weatherTable, string unitsTable) : DataMerger
+	public class MySqlSalesDataMerger(string salesTable, string weatherTable, string unitsTable) : DataMerger
     {
 
 		/// <summary>

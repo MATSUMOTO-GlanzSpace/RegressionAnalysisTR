@@ -117,7 +117,6 @@ namespace SalesAnalysisSource
 			{
 				// DBデータソース(MySQL)からの取得
 				var mysqlMerger = new MySqlSalesDataMerger(
-					GetConnectionString(),
 					TxtSalesTableName.Text,
 					TxtWeatherTableName.Text,
 					TxtUnitsTableName.Text
