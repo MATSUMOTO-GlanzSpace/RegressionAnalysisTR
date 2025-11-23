@@ -72,22 +72,13 @@ namespace RegressionAnalysis
 				return;
 			}
 
-			// フィルタリング: 有効な行
-			var validRows = allData.AsEnumerable()
-				.Where(row =>
-					// 目的変数に値があるか
-					!row.IsNull(responseName) &&
-					!string.IsNullOrWhiteSpace(row[responseName]?.ToString()) &&
-					// 説明変数すべてに値があるか
-					predictorNames.All(name =>
-						!row.IsNull(name) &&
-						!string.IsNullOrWhiteSpace(row[name]?.ToString())
-					)
-				).ToList();
-
-			// validRowsから新しいDataTableを作成
-			var filteredTable = validRows.Count > 0 ? validRows.CopyToDataTable() : allData.Clone();
-
+			// DataMergerの静的メソッドで有効な行のみ抽出
+			var filteredTable = DataMerger.FilterValidRows(allData, responseName, predictorNames);
+			if(filteredTable==null || filteredTable.Rows.Count==0)
+			{
+				MessageBox.Show("有効なデータが存在しません。選択を修正してください。", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				return;
+			}
 			// 目的変数テーブル（1列のみ）
 			var responseTable = filteredTable.DefaultView.ToTable(false, responseName);
 

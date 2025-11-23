@@ -148,6 +148,28 @@ namespace RegressionAnalysis.Common
 			// 演算子の優先度
 			static int Precedence(string op) => op == "AND" ? 2 : op == "OR" ? 1 : 0;
 		}
+
+		/// <summary>
+		/// 指定した目的変数・説明変数の有効な行のみを抽出したDataTableを返す
+		/// </summary>
+		/// <param name="source">元のDataTable</param>
+		/// <param name="responseName">目的変数名</param>
+		/// <param name="predictorNames">説明変数名リスト</param>
+		/// <returns>有効な行のみのDataTable</returns>
+		public static DataTable? FilterValidRows(DataTable source, string responseName, List<string> predictorNames)
+		{
+			if (source == null) return null;
+			var validRows = source.AsEnumerable()
+				.Where(row =>
+					!row.IsNull(responseName) &&
+					!string.IsNullOrWhiteSpace(row[responseName]?.ToString()) &&
+					predictorNames.All(name =>
+						!row.IsNull(name) &&
+						!string.IsNullOrWhiteSpace(row[name]?.ToString())
+					)
+				).ToList();
+			return validRows.Count > 0 ? validRows.CopyToDataTable() : source.Clone();
+		}
 	}
 
 	/// <summary>
