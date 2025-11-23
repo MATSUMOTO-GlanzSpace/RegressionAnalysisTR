@@ -10,10 +10,9 @@ using System.Windows.Forms;
 using MySqlConnector;
 using static RegressionAnalysis.Common.DataTableHelpers;
 using static RegressionAnalysis.Common.ConfigurationHelper;
+using SalesAnalysisSource; // 追加
 
 // TODO: エラーハンドリングを強化することを検討してください
-// TODO: DBコネクション等をカプセル化したヘルパークラスを作成することを検討してください
-//			MySQLDataadapter 抽象化クラスなど
 // TODO: テーブル名のバリデーションを追加することを検討してください
 // TODO: SQLインジェクション対策が必要かも？
 // 注意: テーブル名を直接SQLに埋め込むのはセキュリティリスクがあるため、信頼できる入力のみを使用してください。
@@ -193,12 +192,11 @@ namespace SalesAnalysisSource
 					try
 					{
 						// MySQLデータベースから品種リストを取得
-						using (var conn = new MySqlConnection(GetConnectionString()))
+						using (var conn = MySqlConnectionFactory.CreateOpenConnection())
 						using (var cmd = new MySqlCommand(
 							$"SELECT DISTINCT `variety` FROM `{TxtSalesTableName.Text}` WHERE `variety` IS NOT NULL AND `variety` <> ''", conn))
 						using (var adapter = new MySqlDataAdapter(cmd))
 						{
-							conn.Open();
 							adapter.Fill(dt);
 						}
 						// コンボボックスに品種をソートして設定
