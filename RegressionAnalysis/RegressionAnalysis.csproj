@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SalesAnalysisSource\SalesAnalysisSource.csproj" />
+    <ProjectReference Include="..\SalesDataForm\SalesDataForm.csproj" />
   </ItemGroup>
 
   <ItemGroup>
