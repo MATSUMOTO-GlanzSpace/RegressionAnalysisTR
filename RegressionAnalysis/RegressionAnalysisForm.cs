@@ -86,7 +86,6 @@ namespace RegressionAnalysis
 			var predictorTable = filteredTable.DefaultView.ToTable(false, predictorNames.ToArray());
 
 			// 線形帰分析実行
-			var analyzer = new LinearRegressionAnalyzer();
 			var result = LinearRegressionAnalyzer.Analyze(responseTable,predictorTable);
 
 			// 結果の利用例（DataGridView等に表示）
