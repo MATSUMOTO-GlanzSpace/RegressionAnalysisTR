@@ -34,6 +34,24 @@ namespace RegressionAnalysis.Common
 	public class LinearRegressionAnalyzer
 	{
 		/// <summary>
+		/// 数値カラム用書式属性
+		/// </summary>
+		public class NumericColumnFormat
+		{
+			// 回帰係数書式
+			public string? RegressionCoefficient { get; set; } = "E4";
+			// VIF書式
+			public string? Vif { get; set; } = "E4";
+			// 片側p値書式
+			public string? PValueOneSided { get; set; } = "E4";
+			// 両側p値書式
+			public string? PValueTwoSided { get; set; } = "E4";
+		}
+
+		// 数値カラム用書式属性
+		public static NumericColumnFormat NumericFormat { get; set; } = new();
+
+		/// <summary>
 		///	データテーブルの数値チェック
 		/// </summary>
 		/// <param name="table"></param>
@@ -262,11 +280,12 @@ namespace RegressionAnalysis.Common
 
 			// 変数ごとの統計情報の作成
 			var variableStats = new DataTable();
+			// カラム型を動的に決定
 			variableStats.Columns.Add("変数名", typeof(string));
-			variableStats.Columns.Add("回帰係数", typeof(double));
-			variableStats.Columns.Add("VIF", typeof(double));
-			variableStats.Columns.Add("片側p値", typeof(double));
-			variableStats.Columns.Add("両側p値", typeof(double));
+			variableStats.Columns.Add("回帰係数", NumericFormat.RegressionCoefficient != null ? typeof(string) : typeof(double));
+			variableStats.Columns.Add("VIF", NumericFormat.Vif != null ? typeof(string) : typeof(double));
+			variableStats.Columns.Add("片側p値", NumericFormat.PValueOneSided != null ? typeof(string) : typeof(double));
+			variableStats.Columns.Add("両側p値", NumericFormat.PValueTwoSided != null ? typeof(string) : typeof(double));
 
 			// VIFの計算
 			var vifList = CalcVIFs(predictorsJagged);
@@ -277,22 +296,27 @@ namespace RegressionAnalysis.Common
 			double t0 = CalcTValue(coefficients[0], se[0]);
 			double pOneSided0 = CalcOneSidedPValue(t0, df);
 			double pTwoSided0 = 2 * pOneSided0;
-			variableStats.Rows.Add("定数項", coefficients[0], double.NaN, pOneSided0, pTwoSided0.ToString("E3"));
+			// 値の格納時に書式を適用
+			variableStats.Rows.Add(
+				"定数項",
+				NumericFormat.RegressionCoefficient != null ? coefficients[0].ToString(NumericFormat.RegressionCoefficient) : coefficients[0],
+				NumericFormat.Vif != null ? double.NaN.ToString(NumericFormat.Vif) : double.NaN,
+				NumericFormat.PValueOneSided != null ? pOneSided0.ToString(NumericFormat.PValueOneSided) : pOneSided0,
+				NumericFormat.PValueTwoSided != null ? pTwoSided0.ToString(NumericFormat.PValueTwoSided) : pTwoSided0
+			);
 
 			// 各説明変数のp値計算
 			for (int i = 0; i < k; i++)
 			{
-				// p値の計算
 				double t = CalcTValue(coefficients[i + 1], se[i + 1]);
 				double pOneSided = CalcOneSidedPValue(t, df);
 				double pTwoSided = 2 * pOneSided;
-				// 結果テーブルに追加
 				variableStats.Rows.Add(
 					predictorTable.Columns[i].ColumnName,
-					coefficients[i + 1],
-					vifList[i],
-					pOneSided.ToString("E3"),
-					pTwoSided.ToString("E3")
+					NumericFormat.RegressionCoefficient != null ? coefficients[i + 1].ToString(NumericFormat.RegressionCoefficient) : coefficients[i + 1],
+					NumericFormat.Vif != null ? vifList[i].ToString(NumericFormat.Vif) : vifList[i],
+					NumericFormat.PValueOneSided != null ? pOneSided.ToString(NumericFormat.PValueOneSided) : pOneSided,
+					NumericFormat.PValueTwoSided != null ? pTwoSided.ToString(NumericFormat.PValueTwoSided) : pTwoSided
 				);
 			}
 

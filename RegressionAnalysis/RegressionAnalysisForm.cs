@@ -74,7 +74,7 @@ namespace RegressionAnalysis
 
 			// DataMergerの静的メソッドで有効な行のみ抽出
 			var filteredTable = DataMerger.FilterValidRows(allData, responseName, predictorNames);
-			if(filteredTable==null || filteredTable.Rows.Count==0)
+			if (filteredTable == null || filteredTable.Rows.Count == 0)
 			{
 				MessageBox.Show("有効なデータが存在しません。選択を修正してください。", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return;
@@ -86,11 +86,11 @@ namespace RegressionAnalysis
 			var predictorTable = filteredTable.DefaultView.ToTable(false, predictorNames.ToArray());
 
 			// 線形帰分析実行
-			var result = LinearRegressionAnalyzer.Analyze(responseTable,predictorTable);
+			var result = LinearRegressionAnalyzer.Analyze(responseTable, predictorTable);
 
 			// 結果の利用例（DataGridView等に表示）
 			DgvAnalysisResult.DataSource = result.VariableStats;
-			LblRSquared.Text = $"重決定係数＝ R²: {result.RSquared:F4} (補正R²＝ {result.AdjustedRSquared:F4})";
+			LblRSquared.Text = $"R²= {result.RSquared:F4} (補正R²= {result.AdjustedRSquared:F4})";
 		}
 	}
 }
