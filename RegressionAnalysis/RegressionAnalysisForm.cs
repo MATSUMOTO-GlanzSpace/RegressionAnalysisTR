@@ -41,9 +41,9 @@ namespace RegressionAnalysis
 				if (sourceForm.LoadedAnalisysData != null)
 				{
 					// 目的変数コンボボックスリストにデータソースを設定
-					CmbResponseVariable.DataSource = sourceForm.LoadedAnalisysData.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToList(); ;
+					CmbResponseVariable.DataSource = sourceForm.LoadedAnalisysData.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToList();
 					// 説明変数チェックボックスリストにデータソースを設定
-					ClbPredictorVariable.DataSource = sourceForm.LoadedAnalisysData.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToList(); ;
+					ClbPredictorVariable.DataSource = sourceForm.LoadedAnalisysData.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToList();
 					LblRecordCount.Text = $"レコード数: {sourceForm.LoadedAnalisysData.Rows.Count:N0}";
 				}
 			}
@@ -85,7 +85,7 @@ namespace RegressionAnalysis
 			// 説明変数テーブル（複数列）
 			var predictorTable = filteredTable.DefaultView.ToTable(false, predictorNames.ToArray());
 
-			// 重回帰分析実行
+			// 線形帰分析実行
 			var analyzer = new LinearRegressionAnalyzer();
 			var result = LinearRegressionAnalyzer.Analyze(responseTable,predictorTable);
 

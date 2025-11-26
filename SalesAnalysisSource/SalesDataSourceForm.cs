@@ -190,10 +190,11 @@ namespace SalesAnalysisSource
 					var dt = new DataTable();
 					try
 					{
-						// MySQLデータベースから品種リストを取得
+						// MySQLデータベースから品種リストを重複なく取得
 						using (var conn = MySqlConnectionFactory.CreateOpenConnection())
 						using (var cmd = new MySqlCommand(
-							$"SELECT DISTINCT `variety` FROM `{TxtSalesTableName.Text}` WHERE `variety` IS NOT NULL AND `variety` <> ''", conn))
+							$"SELECT DISTINCT `variety` FROM `{TxtSalesTableName.Text}` WHERE `variety` IS NOT NULL AND `variety` <> ''",
+							conn))
 						using (var adapter = new MySqlDataAdapter(cmd))
 						{
 							adapter.Fill(dt);
@@ -206,7 +207,8 @@ namespace SalesAnalysisSource
 					catch (Exception ex)
 					{
 						// エラー表示
-						MessageBox.Show(this, $"データベースからの品種リストの取得に失敗しました。\n{ex.Message}", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+						MessageBox.Show(this, $"データベースからの品種リストの取得に失敗しました。\n{ex.Message}",
+							"エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
 						return;
 					}
 				}
@@ -241,22 +243,25 @@ namespace SalesAnalysisSource
 				var dataTable = CmbTxtFilterVerietyCSV.DataSource as DataTable;
 				if (dataTable == null || dataTable.Rows.Count == 0)
 				{
+					// 読込んだテーブルから品種リストを取得してコンボボックスに設定
 					DataTable table;
 					try
 					{
 						// CSVファイルの読み込み
 						table = ReadCsv(TxtSalseCSVFileName.Text);
+						// 品種リストから重複なく品種を取得
+						var dt = GetDistinctFieldTable(table, "品種");
+						// 品種をコンボボックスにソートして設定
+						CmbTxtFilterVerietyCSV.DataSource = new DataView(dt) { Sort = "品種 ASC" };
+						CmbTxtFilterVerietyCSV.DisplayMember = "品種";
+						CmbTxtFilterVerietyCSV.ValueMember = "品種";
 					}
 					catch (Exception ex)
 					{
-						MessageBox.Show(this, $"販売CSVファイルの読み込みに失敗しました。\n{ex.Message}", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+						MessageBox.Show(this, $"販売CSVファイルの読み込みに失敗しました。\n{ex.Message}",
+							"エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
 						return;
 					}
-					// 品種リストを取得してコンボボックスにソートして設定
-					var dt = GetDistinctFieldTable(table, "品種");
-					CmbTxtFilterVerietyCSV.DataSource = new DataView(dt) { Sort = "品種 ASC" };
-					CmbTxtFilterVerietyCSV.DisplayMember = "品種";
-					CmbTxtFilterVerietyCSV.ValueMember = "品種";
 				}
 			}
 			finally
