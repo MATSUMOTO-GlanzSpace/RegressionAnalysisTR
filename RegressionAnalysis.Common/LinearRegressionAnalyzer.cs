@@ -16,12 +16,70 @@ namespace RegressionAnalysis.Common
 	/// </summary>
 	public class LinearRegressionResult
 	{
-		/// 変数ごとの統計情報（変数名・回帰係数・p値・VIF）
-		public DataTable VariableStats { get; set; } = new();
-		/// 決定係数
+		public class ColumnInfo
+		{
+			public string Name { get; set; }
+			public bool IsNumeric { get; set; }
+
+			private string? _format;
+			public string? Format
+			{
+				get => _format;
+				set
+				{
+					_format = value;
+					// IsNumericの場合、FormatがあればDataType=string、なければdouble
+					_dataType = IsNumeric && !string.IsNullOrEmpty(_format) ? typeof(string)
+							  : IsNumeric ? typeof(double) : typeof(string);
+				}
+			}
+
+			private Type _dataType;
+			public Type DataType
+			{
+				get => _dataType;
+				set
+				{
+					_dataType = value;
+					// DataTypeがstring以外ならFormatをnullに
+					if (IsNumeric && _dataType != typeof(string)) _format = null;
+				}
+			}
+
+			public ColumnInfo(string name, bool isNumeric, string? format = null)
+			{
+				Name = name;
+				IsNumeric = isNumeric;
+				Format = format;
+				_dataType = (IsNumeric && !string.IsNullOrEmpty(format)) ? typeof(string)
+						  : (IsNumeric ? typeof(double) : typeof(string));
+			}
+		}
+
+		public List<ColumnInfo> Columns { get; } = new()
+		{
+			new ColumnInfo("変数名", false),
+			new ColumnInfo("回帰係数", true, "E4"),
+			new ColumnInfo("VIF", true, "E4"),
+			new ColumnInfo("片側p値", true, "E4"),
+			new ColumnInfo("両側p値", true, "E4")
+		};
+
+		public DataTable VariableStats { get; set; }
 		public double RSquared { get; set; }
-		/// 補正決定係数
 		public double AdjustedRSquared { get; set; }
+
+		public LinearRegressionResult()
+		{
+			VariableStats = new DataTable();
+			foreach (var col in Columns)
+				VariableStats.Columns.Add(col.Name, col.DataType);
+		}
+
+		public ColumnInfo? GetColumnInfo(string columnName)
+		{
+			return Columns.FirstOrDefault(c => c.Name == columnName);
+		}
 	}
 
 	/// <summary>
@@ -260,73 +318,54 @@ namespace RegressionAnalysis.Common
 			// データ数と変数数の取得
 			int n = responseTable.Rows.Count;
 			int k = predictorTable.Columns.Count;
-			// 自由度の計算
 			int df = n - k - 1;
-			// 回帰係数の計算
 			var coefficients = CalcRegressionCoefficients(predictorTable, responseTable);
-
-			// ジャグ配列変換
 			var predictorsJagged = ToJaggedArray(predictorTable);
 			var response = responseTable.AsEnumerable().Select(r => Convert.ToDouble(r[0])).ToArray();
-
-			// 予測値の計算
 			var yHat = CalcPredictedValues(predictorsJagged, coefficients);
-			// 残渣平方和の計算
 			double ssRes = CalcResidualSumOfSquares(response, yHat);
-
-			// 決定係数と補正決定係数の計算
 			var r2 = CalcRSquared(response, yHat);
 			var adjR2 = CalcAdjustedRSquared(r2, n, k);
 
-			// 変数ごとの統計情報の作成
-			var variableStats = new DataTable();
-			// カラム型を動的に決定
-			variableStats.Columns.Add("変数名", typeof(string));
-			variableStats.Columns.Add("回帰係数", NumericFormat.RegressionCoefficient != null ? typeof(string) : typeof(double));
-			variableStats.Columns.Add("VIF", NumericFormat.Vif != null ? typeof(string) : typeof(double));
-			variableStats.Columns.Add("片側p値", NumericFormat.PValueOneSided != null ? typeof(string) : typeof(double));
-			variableStats.Columns.Add("両側p値", NumericFormat.PValueTwoSided != null ? typeof(string) : typeof(double));
+			var result = new LinearRegressionResult();
+			var variableStats = result.VariableStats;
+			var cols = result.Columns;
 
-			// VIFの計算
 			var vifList = CalcVIFs(predictorsJagged);
-			// 標準誤差の計算
 			var se = CalcStandardErrors(predictorsJagged, response, ssRes, df);
 
 			// 定数項のp値計算
 			double t0 = CalcTValue(coefficients[0], se[0]);
 			double pOneSided0 = CalcOneSidedPValue(t0, df);
 			double pTwoSided0 = 2 * pOneSided0;
-			// 値の格納時に書式を適用
-			variableStats.Rows.Add(
-				"定数項",
-				NumericFormat.RegressionCoefficient != null ? coefficients[0].ToString(NumericFormat.RegressionCoefficient) : coefficients[0],
-				NumericFormat.Vif != null ? double.NaN.ToString(NumericFormat.Vif) : double.NaN,
-				NumericFormat.PValueOneSided != null ? pOneSided0.ToString(NumericFormat.PValueOneSided) : pOneSided0,
-				NumericFormat.PValueTwoSided != null ? pTwoSided0.ToString(NumericFormat.PValueTwoSided) : pTwoSided0
-			);
 
-			// 各説明変数のp値計算
+			// 例: LinearRegressionResult.Analyzeメソッド内での定数項の追加
+			var row = variableStats.NewRow();
+			row["変数名"] = "定数項";
+			row["回帰係数"] = cols[1].Format != null ? coefficients[0].ToString(cols[1].Format) : coefficients[0];
+			row["VIF"] = cols[2].Format != null ? double.NaN.ToString(cols[2].Format) : double.NaN;
+			row["片側p値"] = cols[3].Format != null ? pOneSided0.ToString(cols[3].Format) : pOneSided0;
+			row["両側p値"] = cols[4].Format != null ? pTwoSided0.ToString(cols[4].Format) : pTwoSided0;
+			variableStats.Rows.Add(row);
+
+			// 各説明変数も同様に
 			for (int i = 0; i < k; i++)
 			{
 				double t = CalcTValue(coefficients[i + 1], se[i + 1]);
 				double pOneSided = CalcOneSidedPValue(t, df);
 				double pTwoSided = 2 * pOneSided;
-				variableStats.Rows.Add(
-					predictorTable.Columns[i].ColumnName,
-					NumericFormat.RegressionCoefficient != null ? coefficients[i + 1].ToString(NumericFormat.RegressionCoefficient) : coefficients[i + 1],
-					NumericFormat.Vif != null ? vifList[i].ToString(NumericFormat.Vif) : vifList[i],
-					NumericFormat.PValueOneSided != null ? pOneSided.ToString(NumericFormat.PValueOneSided) : pOneSided,
-					NumericFormat.PValueTwoSided != null ? pTwoSided.ToString(NumericFormat.PValueTwoSided) : pTwoSided
-				);
+				var vrow = variableStats.NewRow();
+				vrow["変数名"] = predictorTable.Columns[i].ColumnName;
+				vrow["回帰係数"] = cols[1].Format != null ? coefficients[i + 1].ToString(cols[1].Format) : coefficients[i + 1];
+				vrow["VIF"] = cols[2].Format != null ? vifList[i].ToString(cols[2].Format) : vifList[i];
+				vrow["片側p値"] = cols[3].Format != null ? pOneSided.ToString(cols[3].Format) : pOneSided;
+				vrow["両側p値"] = cols[4].Format != null ? pTwoSided.ToString(cols[4].Format) : pTwoSided;
+				variableStats.Rows.Add(vrow);
 			}
 
-			// 結果の返却
-			return new LinearRegressionResult
-			{
-				VariableStats = variableStats,
-				RSquared = r2,
-				AdjustedRSquared = adjR2
-			};
+			result.RSquared = r2;
+			result.AdjustedRSquared = adjR2;
+			return result;
 		}
 	}
 }

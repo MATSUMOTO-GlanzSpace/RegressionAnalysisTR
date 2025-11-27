@@ -85,11 +85,14 @@ namespace RegressionAnalysis
 			// 説明変数テーブル（複数列）
 			var predictorTable = filteredTable.DefaultView.ToTable(false, predictorNames.ToArray());
 
-			// 線形帰分析実行
+			// 線形回帰分析実行
 			var result = LinearRegressionAnalyzer.Analyze(responseTable, predictorTable);
 
-			// 結果の利用例（DataGridView等に表示）
+			// 分析結果の利用（DataGridView等に表示）
+			// 定数項と説明変数の係数表示
 			DgvAnalysisResult.DataSource = result.VariableStats;
+			DgvAnalysisResult.Refresh(); // DataGridViewの内容を明示的に再描画（列情報が変わってる可能性考慮）
+			// 重決定経緯数(R²)、補正(R²)表示
 			LblRSquared.Text = $"R²= {result.RSquared:F4} (補正R²= {result.AdjustedRSquared:F4})";
 		}
 	}
