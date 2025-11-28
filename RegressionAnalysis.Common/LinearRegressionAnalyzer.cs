@@ -371,22 +371,26 @@ namespace RegressionAnalysis.Common
 			};
 
 			// VariableStatリストを作成
-			var stats = new List<VariableStat>();
-			// 定数項
-			stats.Add(new VariableStat
+			var stats = new List<VariableStat>
 			{
-				VariableName = "定数項",
-				Coefficient = coefficients[0],
-				Vif = double.NaN,
-				PValueOneSided = CalcOneSidedPValue(CalcTValue(coefficients[0], se[0]), df),
-				PValueTwoSided = 2 * CalcOneSidedPValue(CalcTValue(coefficients[0], se[0]), df)
-			});
+				// 定数項（切片）
+				new() {
+					VariableName = "定数項",
+					Coefficient = coefficients[0],
+					Vif = double.NaN,	// 定数項のVIFはNaN
+					PValueOneSided = CalcOneSidedPValue(CalcTValue(coefficients[0], se[0]), df),
+					PValueTwoSided = 2 * CalcOneSidedPValue(CalcTValue(coefficients[0], se[0]), df)
+				}
+			};
 			// 各説明変数
 			for (int i = 0; i < predictorTable.Columns.Count; i++)
 			{
+				// インデックス調整（coefficientsとseは定数項分ずれている）
 				int idx = i + 1;
+				// t値・p値の計算
 				double t = CalcTValue(coefficients[idx], se[idx]);
 				double pOneSided = CalcOneSidedPValue(t, df);
+				// VariableStatインスタンスを追加
 				stats.Add(new VariableStat
 				{
 					VariableName = predictorTable.Columns[i].ColumnName,
@@ -444,11 +448,9 @@ namespace RegressionAnalysis.Common
 		/// <summary>
 		/// 変数統計情報のDataTableに行を追加します。
 		/// </summary>
-		/// <param name="variableStats">行が追加される変数統計情報のDataTable</param>
+		/// <param name="variableStats">行が追加される変数統計情報</param>
 		/// <param name="stats">変数ごとの統計情報リスト</param>
-		/// <param name="colInfo">
-		/// 変数統計情報のカラム情報
-		/// </param>
+		/// <param name="colInfo">変数統計情報のカラム情報</param>
 		private static void AddVariableStatsRows(
 			DataTable variableStats,
 			IEnumerable<VariableStat> stats,
