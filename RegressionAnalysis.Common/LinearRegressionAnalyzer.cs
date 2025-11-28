@@ -18,9 +18,7 @@ namespace RegressionAnalysis.Common
 	{
 		public class ColumnInfo
 		{
-			public string Name { get; set; }
 			public bool IsNumeric { get; set; }
-
 			private string? _format;
 			public string? Format
 			{
@@ -28,7 +26,6 @@ namespace RegressionAnalysis.Common
 				set
 				{
 					_format = value;
-					// IsNumericの場合、FormatがあればDataType=string、なければdouble
 					_dataType = IsNumeric && !string.IsNullOrEmpty(_format) ? typeof(string)
 							  : IsNumeric ? typeof(double) : typeof(string);
 				}
@@ -46,9 +43,8 @@ namespace RegressionAnalysis.Common
 				}
 			}
 
-			public ColumnInfo(string name, bool isNumeric, string? format = null)
+			public ColumnInfo(bool isNumeric, string? format = null)
 			{
-				Name = name;
 				IsNumeric = isNumeric;
 				Format = format;
 				_dataType = (IsNumeric && !string.IsNullOrEmpty(format)) ? typeof(string)
@@ -56,13 +52,14 @@ namespace RegressionAnalysis.Common
 			}
 		}
 
-		public List<ColumnInfo> Columns { get; } = new()
+		// カラム名をキーとする連想配列
+		public Dictionary<string, ColumnInfo> Columns { get; } = new()
 		{
-			new ColumnInfo("変数名", false),
-			new ColumnInfo("回帰係数", true, "E4"),
-			new ColumnInfo("VIF", true, "E4"),
-			new ColumnInfo("片側p値", true, "E4"),
-			new ColumnInfo("両側p値", true, "E4")
+			{ "変数名", new ColumnInfo(false) },
+			{ "回帰係数", new ColumnInfo(true, "E4") },
+			{ "VIF", new ColumnInfo(true, "E4") },
+			{ "片側p値", new ColumnInfo(true, "E4") },
+			{ "両側p値", new ColumnInfo(true, "E4") }
 		};
 
 		public DataTable VariableStats { get; set; }
@@ -72,22 +69,28 @@ namespace RegressionAnalysis.Common
 		public LinearRegressionResult()
 		{
 			VariableStats = new DataTable();
-			foreach (var col in Columns)
-				VariableStats.Columns.Add(col.Name, col.DataType);
+			foreach (var kv in Columns)
+				VariableStats.Columns.Add(kv.Key, kv.Value.DataType);
 		}
 
 		public ColumnInfo? GetColumnInfo(string columnName)
-		{
-			return Columns.FirstOrDefault(c => c.Name == columnName);
-		}
+			=> Columns.TryGetValue(columnName, out var info) ? info : null;
 	}
 
 	/// <summary>
 	/// 線形回帰分析を実行し、変数名・回帰係数・p値・VIF・決定係数を持つ結果インスタンスを返します。
 	/// </summary>
+	/// <param name="responseTable">目的変数（従属変数）のDataTable（1列のみ）</param>
+	/// <param name="predictorTable">説明変数（独立変数）のDataTable（各列が変数）</param>
+	/// <returns>回帰係数・VIF・p値・決定係数などを含む LinearRegressionResult インスタンス</returns>
 	/// <remarks>
-	/// このクラスは、回帰分析を用いて従属変数（目的変数）と複数の独立変数（説明変数）の関係を分析する機能を提供します。
-	/// 分析には、回帰係数の算出、統計的有意性（p値）、多重共線性診断（VIF）、および適合度指標（決定係数や補正決定係数）の計算が含まれます。
+	/// このメソッドは、与えられたデータテーブルから線形回帰分析を行い、
+	/// ・定数項および各説明変数の回帰係数
+	/// ・各変数のVIF（定数項はNaN）
+	/// ・各変数の片側/両側p値
+	/// ・決定係数および補正決定係数
+	/// を含む結果を返します。
+	/// 欠損値や非数値データが含まれる場合は例外をスローします。
 	/// </remarks>
 	public class LinearRegressionAnalyzer
 	{
@@ -303,69 +306,168 @@ namespace RegressionAnalysis.Common
 		}
 
 		/// <summary>
-		/// 線形回帰分析を実行し、変数名・回帰係数・p値・決定係数を持つ結果インスタンスを返す
-		/// 重回帰分析の場合にはVIFを含む
+		/// 線形回帰分析を実行し、変数名・回帰係数・p値・VIF・決定係数を持つ結果インスタンスを返します。
 		/// </summary>
-		/// <param name="responseTable">目的変数のDataTable（1列のみ）</param>
-		/// <param name="predictorTable">説明変数のDataTable（各列が変数）</param>
-		/// <returns>LinearRegressionResult</returns>
+		/// <param name="responseTable">目的変数（従属変数）のDataTable（1列のみ）</param>
+		/// <param name="predictorTable">説明変数（独立変数）のDataTable（各列が変数）</param>
+		/// <returns>回帰係数・VIF・p値・決定係数などを含む LinearRegressionResult インスタンス</returns>
+		/// <remarks>
+		/// このメソッドは、与えられたデータテーブルから線形回帰分析を行い、
+		/// ・定数項および各説明変数の回帰係数
+		/// ・各変数のVIF（定数項はNaN）
+		/// ・各変数の片側/両側p値
+		/// ・決定係数および補正決定係数
+		/// を含む結果を返します。
+		/// 欠損値や非数値データが含まれる場合は例外をスローします。
+		/// </remarks>
 		public static LinearRegressionResult Analyze(DataTable responseTable, DataTable predictorTable)
 		{
-			// データの数値チェック
+			// 入力データの数値チェック（欠損値・非数値があれば例外）
 			CheckDataTableNumeric(responseTable);
 			CheckDataTableNumeric(predictorTable);
 
-			// データ数と変数数の取得
+			// データ数・変数数・自由度の取得
 			int n = responseTable.Rows.Count;
 			int k = predictorTable.Columns.Count;
 			int df = n - k - 1;
+
+			// 回帰係数の計算
 			var coefficients = CalcRegressionCoefficients(predictorTable, responseTable);
+
+			// 説明変数のジャグ配列化
 			var predictorsJagged = ToJaggedArray(predictorTable);
+
+			// 目的変数の配列取得
 			var response = responseTable.AsEnumerable().Select(r => Convert.ToDouble(r[0])).ToArray();
+
+			// 予測値の計算
 			var yHat = CalcPredictedValues(predictorsJagged, coefficients);
+
+			// 残差平方和の計算
 			double ssRes = CalcResidualSumOfSquares(response, yHat);
+
+			// 決定係数・補正決定係数の計算
 			var r2 = CalcRSquared(response, yHat);
 			var adjR2 = CalcAdjustedRSquared(r2, n, k);
 
+			// 結果格納用インスタンスの生成
 			var result = new LinearRegressionResult();
 			var variableStats = result.VariableStats;
 			var cols = result.Columns;
 
+			// VIF（分散拡大係数）の計算
 			var vifList = CalcVIFs(predictorsJagged);
+
+			// 標準誤差の計算
 			var se = CalcStandardErrors(predictorsJagged, response, ssRes, df);
 
-			// 定数項のp値計算
-			double t0 = CalcTValue(coefficients[0], se[0]);
-			double pOneSided0 = CalcOneSidedPValue(t0, df);
-			double pTwoSided0 = 2 * pOneSided0;
-
-			// 例: LinearRegressionResult.Analyzeメソッド内での定数項の追加
-			var row = variableStats.NewRow();
-			row["変数名"] = "定数項";
-			row["回帰係数"] = cols[1].Format != null ? coefficients[0].ToString(cols[1].Format) : coefficients[0];
-			row["VIF"] = cols[2].Format != null ? double.NaN.ToString(cols[2].Format) : double.NaN;
-			row["片側p値"] = cols[3].Format != null ? pOneSided0.ToString(cols[3].Format) : pOneSided0;
-			row["両側p値"] = cols[4].Format != null ? pTwoSided0.ToString(cols[4].Format) : pTwoSided0;
-			variableStats.Rows.Add(row);
-
-			// 各説明変数も同様に
-			for (int i = 0; i < k; i++)
+			// 必須カラム情報の取得（なければ例外）
+			var colInfo = new VariableStatColumnInfo
 			{
-				double t = CalcTValue(coefficients[i + 1], se[i + 1]);
-				double pOneSided = CalcOneSidedPValue(t, df);
-				double pTwoSided = 2 * pOneSided;
-				var vrow = variableStats.NewRow();
-				vrow["変数名"] = predictorTable.Columns[i].ColumnName;
-				vrow["回帰係数"] = cols[1].Format != null ? coefficients[i + 1].ToString(cols[1].Format) : coefficients[i + 1];
-				vrow["VIF"] = cols[2].Format != null ? vifList[i].ToString(cols[2].Format) : vifList[i];
-				vrow["片側p値"] = cols[3].Format != null ? pOneSided.ToString(cols[3].Format) : pOneSided;
-				vrow["両側p値"] = cols[4].Format != null ? pTwoSided.ToString(cols[4].Format) : pTwoSided;
-				variableStats.Rows.Add(vrow);
-			}
+				Coefficient = result.GetColumnInfo("回帰係数") ?? throw new InvalidOperationException("回帰係数カラム情報が見つかりません。"),
+				Vif = result.GetColumnInfo("VIF") ?? throw new InvalidOperationException("VIFカラム情報が見つかりません。"),
+				PValueOneSided = result.GetColumnInfo("片側p値") ?? throw new InvalidOperationException("片側p値カラム情報が見つかりません。"),
+				PValueTwoSided = result.GetColumnInfo("両側p値") ?? throw new InvalidOperationException("両側p値カラム情報が見つかりません。")
+			};
 
+			// VariableStatリストを作成
+			var stats = new List<VariableStat>();
+			// 定数項
+			stats.Add(new VariableStat
+			{
+				VariableName = "定数項",
+				Coefficient = coefficients[0],
+				Vif = double.NaN,
+				PValueOneSided = CalcOneSidedPValue(CalcTValue(coefficients[0], se[0]), df),
+				PValueTwoSided = 2 * CalcOneSidedPValue(CalcTValue(coefficients[0], se[0]), df)
+			});
+			// 各説明変数
+			for (int i = 0; i < predictorTable.Columns.Count; i++)
+			{
+				int idx = i + 1;
+				double t = CalcTValue(coefficients[idx], se[idx]);
+				double pOneSided = CalcOneSidedPValue(t, df);
+				stats.Add(new VariableStat
+				{
+					VariableName = predictorTable.Columns[i].ColumnName,
+					Coefficient = coefficients[idx],
+					Vif = vifList[i],
+					PValueOneSided = pOneSided,
+					PValueTwoSided = 2 * pOneSided
+				});
+			}
+			// 一括でDataTableに追加
+			AddVariableStatsRows(variableStats, stats, colInfo);
+
+			// 決定係数・補正決定係数を結果に格納
 			result.RSquared = r2;
 			result.AdjustedRSquared = adjR2;
+
+			// 結果を返す
 			return result;
+		}
+
+		/// <summary>
+		/// 変数ごとの統計情報を表すクラス
+		/// </summary>
+		/// <remarks>
+		/// このクラスは、各変数の名前、回帰係数、VIF、片側p値、および両側p値を保持します。
+		/// </remarks>
+		public class VariableStat
+		{
+			// 変数名
+			public string VariableName { get; set; } = string.Empty;
+			// 回帰係数 
+			public double Coefficient { get; set; }
+			// VIF
+			public double Vif { get; set; }
+			// 片側p値
+			public double PValueOneSided { get; set; }
+			// 両側p値
+			public double PValueTwoSided { get; set; }
+		}
+
+		/// <summary>
+		/// 変数統計情報のカラム情報を表すクラス
+		/// </summary>
+		/// <remarks>
+		/// このクラスは、変数統計情報の各カラムに対応する LinearRegressionResult.ColumnInfo インスタンスを保持します。
+		/// </remarks>
+		public class VariableStatColumnInfo
+		{
+			public LinearRegressionResult.ColumnInfo Coefficient { get; set; } = null!;
+			public LinearRegressionResult.ColumnInfo Vif { get; set; } = null!;
+			public LinearRegressionResult.ColumnInfo PValueOneSided { get; set; } = null!;
+			public LinearRegressionResult.ColumnInfo PValueTwoSided { get; set; } = null!;
+		}
+
+		/// <summary>
+		/// 変数統計情報のDataTableに行を追加します。
+		/// </summary>
+		/// <param name="variableStats">行が追加される変数統計情報のDataTable</param>
+		/// <param name="stats">変数ごとの統計情報リスト</param>
+		/// <param name="colInfo">
+		/// 変数統計情報のカラム情報
+		/// </param>
+		private static void AddVariableStatsRows(
+			DataTable variableStats,
+			IEnumerable<VariableStat> stats,
+			VariableStatColumnInfo colInfo)
+		{
+			// 各変数統計情報をDataTableに追加
+			foreach (var stat in stats)
+			{
+				// 新しい行を作成
+				var row = variableStats.NewRow();
+				// 各カラムに値を設定
+				row["変数名"] = stat.VariableName;
+				row["回帰係数"] = colInfo.Coefficient?.Format != null ? stat.Coefficient.ToString(colInfo.Coefficient.Format) : stat.Coefficient;
+				row["VIF"] = colInfo.Vif?.Format != null ? stat.Vif.ToString(colInfo.Vif.Format) : stat.Vif;
+				row["片側p値"] = colInfo.PValueOneSided?.Format != null ? stat.PValueOneSided.ToString(colInfo.PValueOneSided.Format) : stat.PValueOneSided;
+				row["両側p値"] = colInfo.PValueTwoSided?.Format != null ? stat.PValueTwoSided.ToString(colInfo.PValueTwoSided.Format) : stat.PValueTwoSided;
+				// 行をDataTableに追加
+				variableStats.Rows.Add(row);
+			}
 		}
 	}
 }
