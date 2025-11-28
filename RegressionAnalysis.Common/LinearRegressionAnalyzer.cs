@@ -16,22 +16,31 @@ namespace RegressionAnalysis.Common
 	/// </summary>
 	public class LinearRegressionResult
 	{
+		/// <summary>
+		/// カラム情報クラス
+		/// </summary>
 		public class ColumnInfo
 		{
+			// 数値カラムかどうか
 			public bool IsNumeric { get; set; }
+
+			// 書式文字列
 			private string? _format;
+			// 書式文字列プロパティ
 			public string? Format
 			{
 				get => _format;
 				set
 				{
 					_format = value;
+					// 書式が設定されている場合、DataTypeはstringにする
 					_dataType = IsNumeric && !string.IsNullOrEmpty(_format) ? typeof(string)
 							  : IsNumeric ? typeof(double) : typeof(string);
 				}
 			}
-
+			// データ型
 			private Type _dataType;
+			// データ型プロパティ
 			public Type DataType
 			{
 				get => _dataType;
@@ -43,6 +52,11 @@ namespace RegressionAnalysis.Common
 				}
 			}
 
+			/// <summary>
+			/// ColumnInfo クラスの新しいインスタンスを初期化します。
+			/// </summary>
+			/// <param name="isNumeric">数値カラムかどうか</param>
+			/// <param name="format">数値カラムの場合の書式文字列（例: "E4"、"F2" など）</param>
 			public ColumnInfo(bool isNumeric, string? format = null)
 			{
 				IsNumeric = isNumeric;
@@ -52,7 +66,7 @@ namespace RegressionAnalysis.Common
 			}
 		}
 
-		// カラム名をキーとする連想配列
+		// カラム名をキーとする連想配列でカラム情報を保持
 		public Dictionary<string, ColumnInfo> Columns { get; } = new()
 		{
 			{ "変数名", new ColumnInfo(false) },
@@ -62,10 +76,16 @@ namespace RegressionAnalysis.Common
 			{ "両側p値", new ColumnInfo(true, "E4") }
 		};
 
+		// 変数ごとの統計情報を保持するDataTable
 		public DataTable VariableStats { get; set; }
+		// 決定係数
 		public double RSquared { get; set; }
+		// 補正決定係数
 		public double AdjustedRSquared { get; set; }
 
+		/// <summary>
+		/// LinearRegressionResult クラスの新しいインスタンスを初期化します。
+		/// </summary>
 		public LinearRegressionResult()
 		{
 			VariableStats = new DataTable();
@@ -73,6 +93,10 @@ namespace RegressionAnalysis.Common
 				VariableStats.Columns.Add(kv.Key, kv.Value.DataType);
 		}
 
+		/// <summary>
+		/// 指定したカラム名に対応するカラム情報を取得します。
+		/// </summary>
+		/// <param name="columnName">カラム名</param>
 		public ColumnInfo? GetColumnInfo(string columnName)
 			=> Columns.TryGetValue(columnName, out var info) ? info : null;
 	}
@@ -119,8 +143,10 @@ namespace RegressionAnalysis.Common
 		/// <exception cref="ArgumentException"></exception>
 		private static void CheckDataTableNumeric(DataTable table)
 		{
+			// 各セルをチェック
 			for (int col = 0; col < table.Columns.Count; col++)
 			{
+				// 各行をチェック
 				for (int row = 0; row < table.Rows.Count; row++)
 				{
 					// 欠損値のチェック
@@ -168,7 +194,7 @@ namespace RegressionAnalysis.Common
 		/// <summary>
 		/// VIFの計算
 		/// </summary>
-		/// <param name="predictors"></param>
+		/// <param name="predictors">説明変数ジャグ配列</param>
 		/// <returns>VIF配列</returns>
 		private static List<double> CalcVIFs(double[][] predictors)
 		{
@@ -190,13 +216,17 @@ namespace RegressionAnalysis.Common
 					.Select(idx => predictors.Select(row => row[idx]).ToArray())
 					.ToArray();
 				var otherPredictorsTable = new DataTable();
+				// 他の説明変数カラムを追加
 				for (int col = 0; col < otherPredictors.Length; col++)
 					otherPredictorsTable.Columns.Add($"X{col}", typeof(double));
+				// 他の説明変数データを追加
 				for (int row = 0; row < n; row++)
 				{
 					var values = new object[otherPredictors.Length];
+					// 各カラムの値を設定
 					for (int col = 0; col < otherPredictors.Length; col++)
 						values[col] = otherPredictors[col][row];
+					// 行を追加
 					otherPredictorsTable.Rows.Add(values);
 				}
 				// 回帰分析の実行
@@ -216,8 +246,8 @@ namespace RegressionAnalysis.Common
 		/// <summary>
 		/// 決定係数の計算
 		/// </summary>
-		/// <param name="response"></param>
-		/// <param name="yHat"></param>
+		/// <param name="response">目的変数配列</param>
+		/// <param name="yHat">予測値配列</param>
 		/// <returns>決定係数</returns>
 		private static double CalcRSquared(double[] response, double[] yHat)
 		{
@@ -261,8 +291,8 @@ namespace RegressionAnalysis.Common
 		/// <summary>
 		/// 残差平方和の計算
 		/// </summary>
-		/// <param name="response"></param>
-		/// <param name="yHat"></param>
+		/// <param name="response">目的変数配列</param>
+		/// <param name="yHat">予測値配列</param>
 		/// <returns>残差平方和</returns>
 		private static double CalcResidualSumOfSquares(double[] response, double[] yHat)
 		{
@@ -352,8 +382,6 @@ namespace RegressionAnalysis.Common
 
 			// 結果格納用インスタンスの生成
 			var result = new LinearRegressionResult();
-			var variableStats = result.VariableStats;
-			var cols = result.Columns;
 
 			// VIF（分散拡大係数）の計算
 			var vifList = CalcVIFs(predictorsJagged);
@@ -401,7 +429,7 @@ namespace RegressionAnalysis.Common
 				});
 			}
 			// 一括でDataTableに追加
-			AddVariableStatsRows(variableStats, stats, colInfo);
+			AddVariableStatsRows(result.VariableStats, stats, colInfo);
 
 			// 決定係数・補正決定係数を結果に格納
 			result.RSquared = r2;
@@ -439,9 +467,13 @@ namespace RegressionAnalysis.Common
 		/// </remarks>
 		public class VariableStatColumnInfo
 		{
+			// 回帰係数カラム情報
 			public LinearRegressionResult.ColumnInfo Coefficient { get; set; } = null!;
+			// VIFカラム情報
 			public LinearRegressionResult.ColumnInfo Vif { get; set; } = null!;
+			// 片側p値カラム情報
 			public LinearRegressionResult.ColumnInfo PValueOneSided { get; set; } = null!;
+			// 両側p値カラム情報
 			public LinearRegressionResult.ColumnInfo PValueTwoSided { get; set; } = null!;
 		}
 
