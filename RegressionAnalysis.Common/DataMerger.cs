@@ -168,6 +168,8 @@ namespace RegressionAnalysis.Common
 						!string.IsNullOrWhiteSpace(row[name]?.ToString())
 					)
 				).ToList();
+			// 有効な行のみのDataTableを返す
+			// 行がない場合はデータが空の（カラム情報は設定された）DataTableを返す
 			return validRows.Count > 0 ? validRows.CopyToDataTable() : source.Clone();
 		}
 	}
