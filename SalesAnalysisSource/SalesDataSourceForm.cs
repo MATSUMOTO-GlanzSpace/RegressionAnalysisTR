@@ -65,7 +65,7 @@ namespace SalesAnalysisSource
 		/// <summary>
 		/// 読み込まれた分析データ
 		/// </summary>
-		public DataTable? LoadedAnalisysData { get; private set; }
+		public DataTable? LoadedAnalysisData { get; private set; }
 
 		// イベントハンドラー定義
 		/// <summary>
@@ -125,7 +125,7 @@ namespace SalesAnalysisSource
 				if (!string.IsNullOrEmpty(CmbTxtFilterVerietyDB.Text))
 					mysqlMerger.AddFilterCondition("", $"{TxtSalesTableName.Text}.variety", $"='{CmbTxtFilterVerietyDB.Text}'");
 				// 取得実行
-				LoadedAnalisysData = mysqlMerger.GetMergedDataTable();
+				LoadedAnalysisData = mysqlMerger.GetMergedDataTable();
 			}
 			finally
 			{
@@ -154,7 +154,7 @@ namespace SalesAnalysisSource
 				if(!string.IsNullOrEmpty(CmbTxtFilterVerietyCSV.Text))
 					csvMerger.AddFilterCondition("", "sales.品種", $"='{CmbTxtFilterVerietyCSV.Text}'");
 				// 取得実行
-				LoadedAnalisysData = csvMerger.GetMergedDataTable();
+				LoadedAnalysisData = csvMerger.GetMergedDataTable();
 			}
 			finally
 			{

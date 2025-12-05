@@ -34,17 +34,17 @@ namespace RegressionAnalysis
 			if (sourceForm.DialogResult == DialogResult.OK)
 			{
 				// 取得結果を表示
-				DgvAnalysisData.DataSource = sourceForm.LoadedAnalisysData;
+				DgvAnalysisData.DataSource = sourceForm.LoadedAnalysisData;
 				// 目的変数コンボボックス、説明変数チェックボックスリストにフィールド名を表示設定
 				CmbResponseVariable.DataSource = null;
 				ClbPredictorVariable.DataSource = null;
-				if (sourceForm.LoadedAnalisysData != null)
+				if (sourceForm.LoadedAnalysisData != null)
 				{
 					// 目的変数コンボボックスリストにデータソースを設定
-					CmbResponseVariable.DataSource = sourceForm.LoadedAnalisysData.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToList();
+					CmbResponseVariable.DataSource = sourceForm.LoadedAnalysisData.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToList();
 					// 説明変数チェックボックスリストにデータソースを設定
-					ClbPredictorVariable.DataSource = sourceForm.LoadedAnalisysData.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToList();
-					LblRecordCount.Text = $"レコード数: {sourceForm.LoadedAnalisysData.Rows.Count:N0}";
+					ClbPredictorVariable.DataSource = sourceForm.LoadedAnalysisData.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToList();
+					LblRecordCount.Text = $"レコード数: {sourceForm.LoadedAnalysisData.Rows.Count:N0}";
 				}
 			}
 		}
