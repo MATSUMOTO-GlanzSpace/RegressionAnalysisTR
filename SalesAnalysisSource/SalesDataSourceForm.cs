@@ -85,11 +85,11 @@ namespace SalesAnalysisSource
 		/// </summary>
 		/// <param name="sender">イベントの送信元</param>
 		/// <param name="e">イベント データ</param>
-		private void BtnWeatherCSVFile_Click(object sender, EventArgs e)
+		private void BtnSelectWeatherCSVFile_Click(object sender, EventArgs e)
 		{
 			selectFileDialog.Title = "気象CSVファイルを選択してください";
 			selectFileDialog.FileName = TxtWeatherCSVFileName.Text;
-			if( selectFileDialog.ShowDialog(this)==DialogResult.OK )
+			if (selectFileDialog.ShowDialog(this) == DialogResult.OK)
 				TxtWeatherCSVFileName.Text = selectFileDialog.FileName;
 		}
 		/// <summary>
@@ -97,7 +97,7 @@ namespace SalesAnalysisSource
 		/// </summary>
 		/// <param name="sender">イベントの送信元</param>
 		/// <param name="e">イベント データ</param>
-		private void BtnUnitsCSVFile_Click(object sender, EventArgs e)
+		private void BtnSelectUnitsCSVFile_Click(object sender, EventArgs e)
 		{
 			selectFileDialog.Title = "単位CSVファイルを選択してください";
 			selectFileDialog.FileName = TxtUnitsCSVFileName.Text;
@@ -151,7 +151,7 @@ namespace SalesAnalysisSource
 					TxtUnitsCSVFileName.Text
 					);
 				// 品種によるフィルター条件設定
-				if(!string.IsNullOrEmpty(CmbTxtFilterVerietyCSV.Text))
+				if (!string.IsNullOrEmpty(CmbTxtFilterVerietyCSV.Text))
 					csvMerger.AddFilterCondition("", "sales.品種", $"='{CmbTxtFilterVerietyCSV.Text}'");
 				// 取得実行
 				LoadedAnalysisData = csvMerger.GetMergedDataTable();

@@ -29,11 +29,11 @@
 		private void InitializeComponent()
 		{
 			BtnLoadDBAnalysisData = new Button();
-			BtnUnitsCSVFile = new Button();
+			BtnSelectUnitsCSVFile = new Button();
 			TxtSalesTableName = new TextBox();
 			BtnSelectSalesCSVFile = new Button();
 			TxtWeatherTableName = new TextBox();
-			BtnWeatherCSVFile = new Button();
+			BtnSelectWeatherCSVFile = new Button();
 			TxtUnitsCSVFileName = new TextBox();
 			TxtSalseCSVFileName = new TextBox();
 			TxtWeatherCSVFileName = new TextBox();
@@ -71,15 +71,15 @@
 			BtnLoadDBAnalysisData.UseVisualStyleBackColor = true;
 			BtnLoadDBAnalysisData.Click += BtnLoadDBAnalysisData_Click;
 			// 
-			// BtnUnitsCSVFile
+			// BtnSelectUnitsCSVFile
 			// 
-			BtnUnitsCSVFile.Location = new Point(329, 98);
-			BtnUnitsCSVFile.Name = "BtnUnitsCSVFile";
-			BtnUnitsCSVFile.Size = new Size(32, 23);
-			BtnUnitsCSVFile.TabIndex = 5;
-			BtnUnitsCSVFile.Text = "...";
-			BtnUnitsCSVFile.UseVisualStyleBackColor = true;
-			BtnUnitsCSVFile.Click += BtnUnitsCSVFile_Click;
+			BtnSelectUnitsCSVFile.Location = new Point(329, 98);
+			BtnSelectUnitsCSVFile.Name = "BtnSelectUnitsCSVFile";
+			BtnSelectUnitsCSVFile.Size = new Size(32, 23);
+			BtnSelectUnitsCSVFile.TabIndex = 5;
+			BtnSelectUnitsCSVFile.Text = "...";
+			BtnSelectUnitsCSVFile.UseVisualStyleBackColor = true;
+			BtnSelectUnitsCSVFile.Click += BtnSelectUnitsCSVFile_Click;
 			// 
 			// TxtSalesTableName
 			// 
@@ -107,15 +107,15 @@
 			TxtWeatherTableName.TabIndex = 6;
 			TxtWeatherTableName.Text = "weather";
 			// 
-			// BtnWeatherCSVFile
+			// BtnSelectWeatherCSVFile
 			// 
-			BtnWeatherCSVFile.Location = new Point(329, 69);
-			BtnWeatherCSVFile.Name = "BtnWeatherCSVFile";
-			BtnWeatherCSVFile.Size = new Size(32, 23);
-			BtnWeatherCSVFile.TabIndex = 5;
-			BtnWeatherCSVFile.Text = "...";
-			BtnWeatherCSVFile.UseVisualStyleBackColor = true;
-			BtnWeatherCSVFile.Click += BtnWeatherCSVFile_Click;
+			BtnSelectWeatherCSVFile.Location = new Point(329, 69);
+			BtnSelectWeatherCSVFile.Name = "BtnSelectWeatherCSVFile";
+			BtnSelectWeatherCSVFile.Size = new Size(32, 23);
+			BtnSelectWeatherCSVFile.TabIndex = 5;
+			BtnSelectWeatherCSVFile.Text = "...";
+			BtnSelectWeatherCSVFile.UseVisualStyleBackColor = true;
+			BtnSelectWeatherCSVFile.Click += BtnSelectWeatherCSVFile_Click;
 			// 
 			// TxtUnitsCSVFileName
 			// 
@@ -222,12 +222,12 @@
 			tabPageCSV.Controls.Add(TxtSalseCSVFileName);
 			tabPageCSV.Controls.Add(TxtUnitsCSVFileName);
 			tabPageCSV.Controls.Add(label5);
-			tabPageCSV.Controls.Add(BtnWeatherCSVFile);
+			tabPageCSV.Controls.Add(BtnSelectWeatherCSVFile);
 			tabPageCSV.Controls.Add(TxtWeatherCSVFileName);
 			tabPageCSV.Controls.Add(label11);
 			tabPageCSV.Controls.Add(BtnSelectSalesCSVFile);
 			tabPageCSV.Controls.Add(label4);
-			tabPageCSV.Controls.Add(BtnUnitsCSVFile);
+			tabPageCSV.Controls.Add(BtnSelectUnitsCSVFile);
 			tabPageCSV.Location = new Point(4, 24);
 			tabPageCSV.Name = "tabPageCSV";
 			tabPageCSV.Padding = new Padding(3);
@@ -352,9 +352,9 @@
 		#endregion
 
 		private Button BtnLoadDBAnalysisData;
-		private Button BtnUnitsCSVFile;
+		private Button BtnSelectUnitsCSVFile;
 		private Button BtnSelectSalesCSVFile;
-		private Button BtnWeatherCSVFile;
+		private Button BtnSelectWeatherCSVFile;
 		private Label label7;
 		private Label label6;
 		private Label label4;
