@@ -47,11 +47,11 @@
 			TabControlSourceType = new TabControl();
 			tabPageCSV = new TabPage();
 			BtnLoadCSVAnalysisData = new Button();
-			CmbTxtFilterVerietyCSV = new ComboBox();
+			CmbTxtFilterVarietyCSV = new ComboBox();
 			label1 = new Label();
 			label3 = new Label();
 			tabPageDataBase = new TabPage();
-			CmbTxtFilterVerietyDB = new ComboBox();
+			CmbTxtFilterVarietyDB = new ComboBox();
 			label8 = new Label();
 			label2 = new Label();
 			BtnCancel = new Button();
@@ -216,7 +216,7 @@
 			// tabPageCSV
 			// 
 			tabPageCSV.Controls.Add(BtnLoadCSVAnalysisData);
-			tabPageCSV.Controls.Add(CmbTxtFilterVerietyCSV);
+			tabPageCSV.Controls.Add(CmbTxtFilterVarietyCSV);
 			tabPageCSV.Controls.Add(label1);
 			tabPageCSV.Controls.Add(label3);
 			tabPageCSV.Controls.Add(TxtSalseCSVFileName);
@@ -247,15 +247,15 @@
 			BtnLoadCSVAnalysisData.UseVisualStyleBackColor = true;
 			BtnLoadCSVAnalysisData.Click += BtnLoadCSVAnalysisData_Click;
 			// 
-			// CmbTxtFilterVerietyCSV
+			// CmbTxtFilterVarietyCSV
 			// 
-			CmbTxtFilterVerietyCSV.FormattingEnabled = true;
-			CmbTxtFilterVerietyCSV.ImeMode = ImeMode.On;
-			CmbTxtFilterVerietyCSV.Location = new Point(83, 150);
-			CmbTxtFilterVerietyCSV.Name = "CmbTxtFilterVerietyCSV";
-			CmbTxtFilterVerietyCSV.Size = new Size(278, 23);
-			CmbTxtFilterVerietyCSV.TabIndex = 19;
-			CmbTxtFilterVerietyCSV.DropDown += CmbTxtFilterVerietyCSV_DropDown;
+			CmbTxtFilterVarietyCSV.FormattingEnabled = true;
+			CmbTxtFilterVarietyCSV.ImeMode = ImeMode.On;
+			CmbTxtFilterVarietyCSV.Location = new Point(83, 150);
+			CmbTxtFilterVarietyCSV.Name = "CmbTxtFilterVarietyCSV";
+			CmbTxtFilterVarietyCSV.Size = new Size(278, 23);
+			CmbTxtFilterVarietyCSV.TabIndex = 19;
+			CmbTxtFilterVarietyCSV.DropDown += CmbTxtFilterVarietyCSV_DropDown;
 			// 
 			// label1
 			// 
@@ -277,7 +277,7 @@
 			// 
 			// tabPageDataBase
 			// 
-			tabPageDataBase.Controls.Add(CmbTxtFilterVerietyDB);
+			tabPageDataBase.Controls.Add(CmbTxtFilterVarietyDB);
 			tabPageDataBase.Controls.Add(BtnLoadDBAnalysisData);
 			tabPageDataBase.Controls.Add(label8);
 			tabPageDataBase.Controls.Add(label2);
@@ -295,14 +295,14 @@
 			tabPageDataBase.Text = "DataBase形式";
 			tabPageDataBase.UseVisualStyleBackColor = true;
 			// 
-			// CmbTxtFilterVerietyDB
+			// CmbTxtFilterVarietyDB
 			// 
-			CmbTxtFilterVerietyDB.FormattingEnabled = true;
-			CmbTxtFilterVerietyDB.Location = new Point(75, 150);
-			CmbTxtFilterVerietyDB.Name = "CmbTxtFilterVerietyDB";
-			CmbTxtFilterVerietyDB.Size = new Size(261, 23);
-			CmbTxtFilterVerietyDB.TabIndex = 21;
-			CmbTxtFilterVerietyDB.DropDown += CmbTxtFilterVerietyDB_DropDown;
+			CmbTxtFilterVarietyDB.FormattingEnabled = true;
+			CmbTxtFilterVarietyDB.Location = new Point(75, 150);
+			CmbTxtFilterVarietyDB.Name = "CmbTxtFilterVarietyDB";
+			CmbTxtFilterVarietyDB.Size = new Size(261, 23);
+			CmbTxtFilterVarietyDB.TabIndex = 21;
+			CmbTxtFilterVarietyDB.DropDown += CmbTxtFilterVarietyDB_DropDown;
 			// 
 			// label8
 			// 
@@ -375,8 +375,8 @@
 		public TextBox TxtSalseCSVFileName;
 		public TextBox TxtWeatherCSVFileName;
 		public TextBox TxtUnitsTableName;
-		public ComboBox CmbTxtFilterVerietyCSV;
-		public ComboBox CmbTxtFilterVerietyDB;
+		public ComboBox CmbTxtFilterVarietyCSV;
+		public ComboBox CmbTxtFilterVarietyDB;
 		private Button BtnCancel;
 	}
 }

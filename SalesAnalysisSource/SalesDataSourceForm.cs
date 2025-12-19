@@ -46,9 +46,9 @@ namespace SalesAnalysisSource
 			selectFileDialog.Filter = "CSVファイル (*.csv)|*.csv|すべてのファイル (*.*)|*.*";
 
 			// コンボボックスの選択リストをバインド（初期状態は件数:0）
-			CmbTxtFilterVerietyDB.DataSource = new DataTable();
+			CmbTxtFilterVarietyDB.DataSource = new DataTable();
 			// コンボボックスの選択リストをバインド（初期状態は件数:0）
-			CmbTxtFilterVerietyCSV.DataSource = new DataTable();
+			CmbTxtFilterVarietyCSV.DataSource = new DataTable();
 		}
 
 		// プロパティ定義
@@ -122,8 +122,8 @@ namespace SalesAnalysisSource
 					TxtUnitsTableName.Text
 					);
 				// 品種によるフィルター条件設定
-				if (!string.IsNullOrEmpty(CmbTxtFilterVerietyDB.Text))
-					mysqlMerger.AddFilterCondition("", $"{TxtSalesTableName.Text}.variety", $"='{CmbTxtFilterVerietyDB.Text}'");
+				if (!string.IsNullOrEmpty(CmbTxtFilterVarietyDB.Text))
+					mysqlMerger.AddFilterCondition("", $"{TxtSalesTableName.Text}.variety", $"='{CmbTxtFilterVarietyDB.Text}'");
 				// 取得実行
 				LoadedAnalysisData = mysqlMerger.GetMergedDataTable();
 			}
@@ -151,8 +151,8 @@ namespace SalesAnalysisSource
 					TxtUnitsCSVFileName.Text
 					);
 				// 品種によるフィルター条件設定
-				if (!string.IsNullOrEmpty(CmbTxtFilterVerietyCSV.Text))
-					csvMerger.AddFilterCondition("", "sales.品種", $"='{CmbTxtFilterVerietyCSV.Text}'");
+				if (!string.IsNullOrEmpty(CmbTxtFilterVarietyCSV.Text))
+					csvMerger.AddFilterCondition("", "sales.品種", $"='{CmbTxtFilterVarietyCSV.Text}'");
 				// 取得実行
 				LoadedAnalysisData = csvMerger.GetMergedDataTable();
 			}
@@ -164,11 +164,11 @@ namespace SalesAnalysisSource
 		}
 
 		/// <summary>
-		/// 品種フィルターリスト表示直前の初回処理にてsalesVerietyDBを設定する
+		/// 品種フィルターリスト表示直前の初回処理にてsalesVarietyDBを設定する
 		/// </summary>
 		/// <param name="sender">イベントの送信元</param>
 		/// <param name="e">イベント データ</param>
-		private void CmbTxtFilterVerietyDB_DropDown(object sender, EventArgs e)
+		private void CmbTxtFilterVarietyDB_DropDown(object sender, EventArgs e)
 		{
 			// 処理中カーソルに変更
 			Cursor.Current = Cursors.WaitCursor;
@@ -177,13 +177,13 @@ namespace SalesAnalysisSource
 				// 販売テーブル名が未設定の場合は空のリストを設定して終了
 				if (string.IsNullOrEmpty(TxtSalesTableName.Text))
 				{
-					CmbTxtFilterVerietyDB.DataSource = new DataTable();
-					CmbTxtFilterVerietyDB.DisplayMember = null;
-					CmbTxtFilterVerietyDB.ValueMember = null;
+					CmbTxtFilterVarietyDB.DataSource = new DataTable();
+					CmbTxtFilterVarietyDB.DisplayMember = null;
+					CmbTxtFilterVarietyDB.ValueMember = null;
 					return;
 				}
 				// 既にデータソースが設定されている場合は処理しない
-				var dataTable = CmbTxtFilterVerietyDB.DataSource as DataTable;
+				var dataTable = CmbTxtFilterVarietyDB.DataSource as DataTable;
 				if (dataTable == null || dataTable.Rows.Count == 0)
 				{
 					// データベースから品種リストを取得してコンボボックスに設定
@@ -200,9 +200,9 @@ namespace SalesAnalysisSource
 							adapter.Fill(dt);
 						}
 						// コンボボックスに品種をソートして設定
-						CmbTxtFilterVerietyDB.DataSource = new DataView(dt) { Sort = "variety ASC" };
-						CmbTxtFilterVerietyDB.DisplayMember = "variety";
-						CmbTxtFilterVerietyDB.ValueMember = "variety";
+						CmbTxtFilterVarietyDB.DataSource = new DataView(dt) { Sort = "variety ASC" };
+						CmbTxtFilterVarietyDB.DisplayMember = "variety";
+						CmbTxtFilterVarietyDB.ValueMember = "variety";
 					}
 					catch (Exception ex)
 					{
@@ -221,11 +221,11 @@ namespace SalesAnalysisSource
 		}
 
 		/// <summary>
-		/// 品種フィルターリスト表示直前の初回処理にてsalesVerietyCSVを設定する
+		/// 品種フィルターリスト表示直前の初回処理にてsalesVarietyCSVを設定する
 		/// </summary>
 		/// <param name="sender">イベントの送信元</param>
 		/// <param name="e">イベント データ</param>
-		private void CmbTxtFilterVerietyCSV_DropDown(object sender, EventArgs e)
+		private void CmbTxtFilterVarietyCSV_DropDown(object sender, EventArgs e)
 		{
 			// 処理中カーソルに変更
 			Cursor.Current = Cursors.WaitCursor;
@@ -234,13 +234,13 @@ namespace SalesAnalysisSource
 				if (string.IsNullOrEmpty(TxtSalseCSVFileName.Text))
 				{
 					// 販売CSVファイル名が未設定の場合は空のリストを設定して終了
-					CmbTxtFilterVerietyCSV.DataSource = new DataTable();
-					CmbTxtFilterVerietyCSV.DisplayMember = null;
-					CmbTxtFilterVerietyCSV.ValueMember = null;
+					CmbTxtFilterVarietyCSV.DataSource = new DataTable();
+					CmbTxtFilterVarietyCSV.DisplayMember = null;
+					CmbTxtFilterVarietyCSV.ValueMember = null;
 					return;
 				}
 				// 既にデータソースが設定されている場合は処理しない
-				var dataTable = CmbTxtFilterVerietyCSV.DataSource as DataTable;
+				var dataTable = CmbTxtFilterVarietyCSV.DataSource as DataTable;
 				if (dataTable == null || dataTable.Rows.Count == 0)
 				{
 					// 読込んだテーブルから品種リストを取得してコンボボックスに設定
@@ -252,9 +252,9 @@ namespace SalesAnalysisSource
 						// 品種リストから重複なく品種を取得
 						var dt = GetDistinctFieldTable(table, "品種");
 						// 品種をコンボボックスにソートして設定
-						CmbTxtFilterVerietyCSV.DataSource = new DataView(dt) { Sort = "品種 ASC" };
-						CmbTxtFilterVerietyCSV.DisplayMember = "品種";
-						CmbTxtFilterVerietyCSV.ValueMember = "品種";
+						CmbTxtFilterVarietyCSV.DataSource = new DataView(dt) { Sort = "品種 ASC" };
+						CmbTxtFilterVarietyCSV.DisplayMember = "品種";
+						CmbTxtFilterVarietyCSV.ValueMember = "品種";
 					}
 					catch (Exception ex)
 					{
