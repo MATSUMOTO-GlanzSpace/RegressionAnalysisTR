@@ -1,7 +1,8 @@
-﻿using System.Data;
-using System.Diagnostics; // ファイル先頭に追加
+﻿using RegressionAnalysis.Common;
 using SalesAnalysisSource;
-using RegressionAnalysis.Common;
+using System.Data;
+using System.Diagnostics; // ファイル先頭に追加
+using System.Text;
 
 namespace RegressionAnalysis
 {
@@ -57,8 +58,7 @@ namespace RegressionAnalysis
 		private void BtnRunAnalysis_Click(object sender, EventArgs e)
 		{
 			// DataTable取得
-			var allData = DgvAnalysisData.DataSource as DataTable;
-			if (allData == null) return;
+			if (DgvAnalysisData.DataSource is not DataTable allData) return;
 
 			// 説明変数名リスト（チェックされた項目のみ）
 			var predictorNames = ClbPredictorVariable.CheckedItems.Cast<string>().ToList();
@@ -92,8 +92,98 @@ namespace RegressionAnalysis
 			// 定数項と説明変数の係数表示
 			DgvAnalysisResult.DataSource = result.VariableStats;
 			DgvAnalysisResult.Refresh(); // DataGridViewの内容を明示的に再描画（列情報が変わってる可能性考慮）
-			// 重決定経緯数(R²)、補正(R²)表示
+										 // 重決定経緯数(R²)、補正(R²)表示
 			LblRSquared.Text = $"R²= {result.RSquared:F4} (補正R²= {result.AdjustedRSquared:F4})";
+		}
+
+		/// <summary>
+		/// DataGridViewの分析結果（DataTable）をCSVファイルに出力する
+		/// </summary>
+		/// <param name="dt">出力する分析結果のDataTable</param>
+		/// <param name="exportCSVFilePath">出力先のCSVファイルパス</param>
+		/// <returns>なし</returns>
+		/// <remarks>
+		/// DataTableの内容をCSV形式で指定されたファイルに保存します。
+		/// ヘッダー行も含めて出力します。
+		/// エスケープ処理も行います。
+		/// </remarks>
+		private static void ExportAnalysisResultToCsv(DataTable dt, string exportCSVFilePath)
+		{
+			// CSV出力処理
+			try
+			{
+				// UTF-8 BOMなしで書き込み
+				using var writer = new StreamWriter(exportCSVFilePath, false, Encoding.UTF8);
+				// 列情報取得
+				var columns = dt.Columns.Cast<DataColumn>().ToList();
+				// ヘッダー出力
+				writer.WriteLine(string.Join(",", columns.Select(c => EscapeCsv(c.ColumnName))));
+				// データ出力
+				foreach (DataRow row in dt.Rows)
+				{
+					// 各フィールドをCSVエスケープして結合
+					var fields = columns.Select(c => EscapeCsv(row[c]?.ToString() ?? ""));
+					writer.WriteLine(string.Join(",", fields));
+				}
+				// 完了メッセージ
+				MessageBox.Show("CSVファイルに出力しました。", "完了", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			}
+			catch (Exception ex)
+			{
+				// エラーメッセージ
+				MessageBox.Show($"CSV出力中にエラーが発生しました。\n{ex.Message}", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+
+			/// <summary>
+			/// CSVエスケープ処理
+			/// </summary>
+			/// <param name="s">エスケープ対象の文字列</param>
+			/// <returns>エスケープ後の文字列</returns>
+			/// <remarks>
+			/// 文字列にカンマ、改行、ダブルクォーテーションが含まれる場合、
+			/// ダブルクォーテーションで囲み、ダブルクォーテーション自体は2つに置換します。
+			/// </remarks>
+			static string EscapeCsv(string s)
+			{
+				// カンマ、改行、ダブルクォーテーションが含まれる場合はエスケープ処理
+				if (s.Contains('"') || s.Contains(',') || s.Contains('\n') || s.Contains('\r'))
+					return $"\"{s.Replace("\"", "\"\"")}\"";
+				return s;
+			}
+		}
+
+		/// <summary>
+		/// 分析結果をCSV出力するボタンがクリックされたときに発生するイベント ハンドラー
+		/// </summary>
+		/// <param name="sender">イベントの送信元</param>
+		/// <param name="e">イベント データ</param>
+		/// <remarks>
+		/// DataGridViewのDataSourceがDataTableであり、かつ行数が0より大きい場合
+		/// にCSV出力ダイアログを表示し、選択されたファイルパスにCSV出力を行います。
+		/// エラー時にはメッセージボックスで通知します。
+		/// </remarks>
+		/// <returns>なし</returns>
+		/// 
+		private void BtnExportResultCSV_Click(object sender, EventArgs e)
+		{
+			// DataGridViewのDataSourceがDataTableであり、行数が0より大きいか確認
+			if (DgvAnalysisResult.DataSource is not DataTable dt || dt.Rows.Count == 0)
+			{
+				MessageBox.Show("出力する分析結果がありません。", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				return;
+			}
+			// 保存先ファイルダイアログ表示
+			using var sfd = new SaveFileDialog
+			{
+				Title = "分析結果のCSV出力先を選択してください",
+				Filter = "CSVファイル (*.csv)|*.csv|すべてのファイル (*.*)|*.*",
+				FileName = "AnalysisResult.csv"
+			};
+			// ダイアログでOKが選択された場合、CSV出力処理を実行
+			if (sfd.ShowDialog(this) == DialogResult.OK)
+			{
+				ExportAnalysisResultToCsv(dt,sfd.FileName);
+			}
 		}
 	}
 }

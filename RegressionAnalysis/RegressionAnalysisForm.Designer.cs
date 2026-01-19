@@ -45,9 +45,10 @@
 			BtnLoadAnalysisData = new Button();
 			LblRecordCount = new Label();
 			panel1 = new Panel();
-			LblRSquared = new Label();
 			label4 = new Label();
 			label5 = new Label();
+			LblRSquared = new Label();
+			BtnExportResultCSV = new Button();
 			((System.ComponentModel.ISupportInitialize)DgvAnalysisData).BeginInit();
 			((System.ComponentModel.ISupportInitialize)DgvAnalysisResult).BeginInit();
 			groupBox1.SuspendLayout();
@@ -208,6 +209,7 @@
 			// panel1
 			// 
 			panel1.BorderStyle = BorderStyle.Fixed3D;
+			panel1.Controls.Add(BtnExportResultCSV);
 			panel1.Controls.Add(label4);
 			panel1.Controls.Add(label5);
 			panel1.Controls.Add(LblRSquared);
@@ -217,22 +219,13 @@
 			panel1.Size = new Size(493, 191);
 			panel1.TabIndex = 21;
 			// 
-			// LblRSquared
-			// 
-			LblRSquared.AutoSize = true;
-			LblRSquared.Location = new Point(122, 36);
-			LblRSquared.Name = "LblRSquared";
-			LblRSquared.Size = new Size(31, 15);
-			LblRSquared.TabIndex = 19;
-			LblRSquared.Text = "NaN";
-			// 
 			// label4
 			// 
 			label4.BackColor = Color.SeaShell;
 			label4.BorderStyle = BorderStyle.Fixed3D;
 			label4.Location = new Point(6, 5);
 			label4.Name = "label4";
-			label4.Size = new Size(477, 21);
+			label4.Size = new Size(353, 21);
 			label4.TabIndex = 20;
 			label4.Text = "分析結果";
 			// 
@@ -244,6 +237,25 @@
 			label5.Size = new Size(79, 15);
 			label5.TabIndex = 19;
 			label5.Text = "重決定係数：";
+			// 
+			// LblRSquared
+			// 
+			LblRSquared.AutoSize = true;
+			LblRSquared.Location = new Point(122, 36);
+			LblRSquared.Name = "LblRSquared";
+			LblRSquared.Size = new Size(31, 15);
+			LblRSquared.TabIndex = 19;
+			LblRSquared.Text = "NaN";
+			// 
+			// BtnExportResultCSV
+			// 
+			BtnExportResultCSV.Location = new Point(365, 3);
+			BtnExportResultCSV.Name = "BtnExportResultCSV";
+			BtnExportResultCSV.Size = new Size(118, 23);
+			BtnExportResultCSV.TabIndex = 21;
+			BtnExportResultCSV.Text = "CSV出力...";
+			BtnExportResultCSV.UseVisualStyleBackColor = true;
+			BtnExportResultCSV.Click += BtnExportResultCSV_Click;
 			// 
 			// RegressionAnalysisForm
 			// 
@@ -289,5 +301,6 @@
 		private Label LblRSquared;
 		private Label label4;
 		private Label label5;
+		private Button BtnExportResultCSV;
 	}
 }
