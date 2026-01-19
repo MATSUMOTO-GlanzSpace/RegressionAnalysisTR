@@ -184,8 +184,7 @@ namespace SalesAnalysisSource
 					return;
 				}
 				// 既にデータソースが設定されている場合は処理しない
-				var dataTable = CmbTxtFilterVarietyDB.DataSource as DataTable;
-				if (dataTable == null || dataTable.Rows.Count == 0)
+				if (CmbTxtFilterVarietyDB.DataSource is not DataTable dataTable || dataTable.Rows.Count == 0)
 				{
 					// データベースから品種リストを取得してコンボボックスに設定
 					var dt = new DataTable();
@@ -241,8 +240,7 @@ namespace SalesAnalysisSource
 					return;
 				}
 				// 既にデータソースが設定されている場合は処理しない
-				var dataTable = CmbTxtFilterVarietyCSV.DataSource as DataTable;
-				if (dataTable == null || dataTable.Rows.Count == 0)
+				if (CmbTxtFilterVarietyCSV.DataSource is not DataTable dataTable || dataTable.Rows.Count == 0)
 				{
 					// 読込んだテーブルから品種リストを取得してコンボボックスに設定
 					DataTable table;
