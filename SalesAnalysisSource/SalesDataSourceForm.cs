@@ -10,11 +10,10 @@ using System.Windows.Forms;
 using MySqlConnector;
 using static RegressionAnalysis.Common.DataTableHelpers;
 using static RegressionAnalysis.Common.ConfigurationHelper;
-using SalesAnalysisSource; // 追加
+using SalesAnalysisSource;
 
 // TODO: エラーハンドリングを強化することを検討してください
 // TODO: テーブル名のバリデーションを追加することを検討してください
-// TODO: SQLインジェクション対策が必要かも？
 // TODO: テーブル名、カラム名のエスケープ処理を追加する、囲み文字のＤＢＭＳ方言の吸収することを検討してください
 // 注意: テーブル名を直接SQLに埋め込むのはセキュリティリスクがあるため、信頼できる入力のみを使用してください。
 // ここでは簡略化のために直接埋め込んでいますが、実際のアプリケーションでは注意が必要です。
@@ -190,13 +189,27 @@ namespace SalesAnalysisSource
 					var dt = new DataTable();
 					try
 					{
-						// MySQLデータベースから品種リストを重複なく取得
 						using (var conn = MySqlConnectionFactory.CreateOpenConnection())
-						using (var cmd = new MySqlCommand(
-							$"SELECT DISTINCT `variety` FROM `{TxtSalesTableName.Text}` WHERE `variety` IS NOT NULL AND `variety` <> ''",
-							conn))
-						using (var adapter = new MySqlDataAdapter(cmd))
 						{
+							// 1. テーブル名ホワイトリスト取得
+							var tableWhitelist = DbSchemaHelper.GetTableWhitelist_MySql(conn);
+
+							// 2. 入力テーブル名の検証
+							string tableName = TxtSalesTableName.Text;
+							if (!tableWhitelist.Contains(tableName))
+							{
+								MessageBox.Show(this, "不正なテーブル名です。", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+								return;
+							}
+
+							// 3. SQL生成（テーブル名のみ埋め込み、値はパラメータ化）
+							string sql = $"SELECT DISTINCT `variety` FROM `{tableName}` WHERE `variety` IS NOT NULL AND `variety` <> @empty";
+
+							// 4. SQL実行
+							using var cmd = new MySqlCommand(sql, conn);
+							cmd.Parameters.AddWithValue("@empty", "");
+							// データ取得
+							using var adapter = new MySqlDataAdapter(cmd);
 							adapter.Fill(dt);
 						}
 						// コンボボックスに品種をソートして設定
@@ -268,6 +281,27 @@ namespace SalesAnalysisSource
 				// 元のカーソルに戻す
 				Cursor.Current = Cursors.Default;
 			}
+		}
+
+		/// <summary>
+		/// 指定した接続からテーブル名のホワイトリストを取得（MySQL用）
+		/// </summary>
+		/// <param name="conn">MySQL接続オブジェクト</param>
+		/// <returns>テーブル名のホワイトリスト</returns>
+		/// <remarks>
+		/// この関数はテスト的に実装されたものであり、
+		/// 実際は、SalesAnalysisSource.DbSchemaHelper.GetTableWhitelist_MySqlを使用することを推奨します。
+		/// </remarks>
+		private static HashSet<string> GetTableWhitelist(MySqlConnection conn)
+		{
+			var whitelist = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+			using var cmd = new MySqlCommand("SHOW TABLES FROM salesdb", conn);
+			using var reader = cmd.ExecuteReader();
+			while (reader.Read())
+			{
+				whitelist.Add(reader.GetString(0));
+			}
+			return whitelist;
 		}
 	}
 }
