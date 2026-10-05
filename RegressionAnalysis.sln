@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36705.20
+# Visual Studio Version 18
+VisualStudioVersion = 18.9.12128.139 oobstable
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RegressionAnalysis", "RegressionAnalysis\RegressionAnalysis.csproj", "{941D16A1-3359-46F0-A5BC-C3AF8431CA9A}"
 EndProject
@@ -10,6 +10,11 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RegressionAnalysis.Common", "RegressionAnalysis.Common\RegressionAnalysis.Common.csproj", "{A5929662-AE74-42B2-A1D1-3A067EDB0392}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SalesDataForm", "SalesDataForm\SalesDataForm.csproj", "{4CCA2897-1F62-41C5-84A8-995A8636AEA1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ソリューション項目", "ソリューション項目", "{DECC75C7-FE3E-4A85-9609-DA1221BF6585}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

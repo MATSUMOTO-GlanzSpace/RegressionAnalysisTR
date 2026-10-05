@@ -141,15 +141,25 @@ namespace SalesAnalysisSource
 		{
 			// WHERE句生成
 			var clauses = new List<string>();
-			parameters = [];
+            parameters = [];
 			int paramIndex = 0;
 			foreach (var cond in Filters.OfType<FilterCondition>().Where(f => f.Field.StartsWith(tableName + ".")))
 			{
 				// フィルタ条件をWHERE句に変換
 				var field = cond.Field.Substring(tableName.Length + 1);
 				var paramName = "@p" + paramIndex;
-				clauses.Add($"{(string.IsNullOrEmpty(cond.Logic) ? "" : cond.Logic + " ")}{tableName.Substring(0, 1)}.{field} = {paramName}");
-				parameters.Add(new MySqlParameter(paramName, cond.Condition.Trim('=', '\'', '"')));
+                var condTrim = cond.Condition.Trim();
+                if (condTrim.StartsWith("LIKE", StringComparison.OrdinalIgnoreCase))
+                {
+                    clauses.Add($"{(string.IsNullOrEmpty(cond.Logic) ? "" : cond.Logic + " ")}{tableName.Substring(0, 1)}.{field} LIKE {paramName}");
+                    var pattern = condTrim.Substring(4).Trim().Trim('\'', '"');
+                    parameters.Add(new MySqlParameter(paramName, pattern));
+                }
+                else
+                {
+                    clauses.Add($"{(string.IsNullOrEmpty(cond.Logic) ? "" : cond.Logic + " ")}{tableName.Substring(0, 1)}.{field} = {paramName}");
+                    parameters.Add(new MySqlParameter(paramName, condTrim.Trim('=', '\'', '"')));
+                }
 				paramIndex++;
 			}
 			return clauses.Count > 0 ? ("WHERE " + string.Join(" ", clauses)) : "";

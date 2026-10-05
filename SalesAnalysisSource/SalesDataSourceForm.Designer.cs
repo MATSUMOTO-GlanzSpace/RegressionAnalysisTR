@@ -47,12 +47,8 @@
 			TabControlSourceType = new TabControl();
 			tabPageCSV = new TabPage();
 			BtnLoadCSVAnalysisData = new Button();
-			CmbTxtFilterVarietyCSV = new ComboBox();
 			label1 = new Label();
-			label3 = new Label();
 			tabPageDataBase = new TabPage();
-			CmbTxtFilterVarietyDB = new ComboBox();
-			label8 = new Label();
 			label2 = new Label();
 			BtnCancel = new Button();
 			TabControlSourceType.SuspendLayout();
@@ -216,9 +212,7 @@
 			// tabPageCSV
 			// 
 			tabPageCSV.Controls.Add(BtnLoadCSVAnalysisData);
-			tabPageCSV.Controls.Add(CmbTxtFilterVarietyCSV);
 			tabPageCSV.Controls.Add(label1);
-			tabPageCSV.Controls.Add(label3);
 			tabPageCSV.Controls.Add(TxtSalseCSVFileName);
 			tabPageCSV.Controls.Add(TxtUnitsCSVFileName);
 			tabPageCSV.Controls.Add(label5);
@@ -247,17 +241,7 @@
 			BtnLoadCSVAnalysisData.UseVisualStyleBackColor = true;
 			BtnLoadCSVAnalysisData.Click += BtnLoadCSVAnalysisData_Click;
 			// 
-			// CmbTxtFilterVarietyCSV
-			// 
-			CmbTxtFilterVarietyCSV.FormattingEnabled = true;
-			CmbTxtFilterVarietyCSV.ImeMode = ImeMode.On;
-			CmbTxtFilterVarietyCSV.Location = new Point(83, 150);
-			CmbTxtFilterVarietyCSV.Name = "CmbTxtFilterVarietyCSV";
-			CmbTxtFilterVarietyCSV.Size = new Size(278, 23);
-			CmbTxtFilterVarietyCSV.TabIndex = 19;
-			CmbTxtFilterVarietyCSV.DropDown += CmbTxtFilterVarietyCSV_DropDown;
-			// 
-			// label1
+			// 			// label1
 			// 
 			label1.AutoSize = true;
 			label1.Location = new Point(23, 13);
@@ -266,20 +250,9 @@
 			label1.TabIndex = 9;
 			label1.Text = "CSVファイルパス";
 			// 
-			// label3
-			// 
-			label3.AutoSize = true;
-			label3.Location = new Point(39, 153);
-			label3.Name = "label3";
-			label3.Size = new Size(43, 15);
-			label3.TabIndex = 18;
-			label3.Text = "品種：";
-			// 
 			// tabPageDataBase
 			// 
-			tabPageDataBase.Controls.Add(CmbTxtFilterVarietyDB);
 			tabPageDataBase.Controls.Add(BtnLoadDBAnalysisData);
-			tabPageDataBase.Controls.Add(label8);
 			tabPageDataBase.Controls.Add(label2);
 			tabPageDataBase.Controls.Add(label10);
 			tabPageDataBase.Controls.Add(TxtSalesTableName);
@@ -295,23 +268,7 @@
 			tabPageDataBase.Text = "DataBase形式";
 			tabPageDataBase.UseVisualStyleBackColor = true;
 			// 
-			// CmbTxtFilterVarietyDB
-			// 
-			CmbTxtFilterVarietyDB.FormattingEnabled = true;
-			CmbTxtFilterVarietyDB.Location = new Point(75, 150);
-			CmbTxtFilterVarietyDB.Name = "CmbTxtFilterVarietyDB";
-			CmbTxtFilterVarietyDB.Size = new Size(261, 23);
-			CmbTxtFilterVarietyDB.TabIndex = 21;
-			CmbTxtFilterVarietyDB.DropDown += CmbTxtFilterVarietyDB_DropDown;
-			// 
-			// label8
-			// 
-			label8.AutoSize = true;
-			label8.Location = new Point(31, 153);
-			label8.Name = "label8";
-			label8.Size = new Size(43, 15);
-			label8.TabIndex = 20;
-			label8.Text = "品種：";
+
 			// 
 			// label2
 			// 
@@ -364,10 +321,8 @@
 		private TabControl TabControlSourceType;
 		private TabPage tabPageCSV;
 		private TabPage tabPageDataBase;
-		private Label label1;
-		private Label label2;
-		private Label label3;
-		private Label label8;
+			private Label label1;
+			private Label label2;
 		private Button BtnLoadCSVAnalysisData;
 		public TextBox TxtSalesTableName;
 		public TextBox TxtWeatherTableName;
@@ -375,8 +330,7 @@
 		public TextBox TxtSalseCSVFileName;
 		public TextBox TxtWeatherCSVFileName;
 		public TextBox TxtUnitsTableName;
-		public ComboBox CmbTxtFilterVarietyCSV;
-		public ComboBox CmbTxtFilterVarietyDB;
+
 		private Button BtnCancel;
 	}
 }

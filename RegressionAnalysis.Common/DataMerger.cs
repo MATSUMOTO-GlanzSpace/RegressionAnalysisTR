@@ -127,12 +127,34 @@ namespace RegressionAnalysis.Common
 				{
 					// フィルタ条件を述語に変換
 					var field = cond.Field.Substring(tableName.Length + 1);
-					var value = cond.Condition.Trim('=', '\'', '"');
-					stack.Push(row =>
+					var condTrim = cond.Condition.Trim();
+					// LIKE 演算子に対応
+					if (condTrim.StartsWith("LIKE", StringComparison.OrdinalIgnoreCase))
 					{
-						if (!row.Table.Columns.Contains(field)) return false;
-						return row.Field<string>(field) == value;
-					});
+						var pattern = condTrim.Substring(4).Trim().Trim('\'', '"');
+						var startsWithWildcard = pattern.StartsWith("%");
+						var endsWithWildcard = pattern.EndsWith("%");
+						var core = pattern.Trim('%');
+						stack.Push(row =>
+						{
+							if (!row.Table.Columns.Contains(field)) return false;
+							var val = row.Field<string>(field);
+							if (val == null) return false;
+							if (startsWithWildcard && endsWithWildcard) return val.Contains(core);
+							if (startsWithWildcard) return val.EndsWith(core);
+							if (endsWithWildcard) return val.StartsWith(core);
+							return val == core;
+						});
+					}
+					else
+					{
+						var value = condTrim.Trim('=', '\'', '"');
+						stack.Push(row =>
+						{
+							if (!row.Table.Columns.Contains(field)) return false;
+							return row.Field<string>(field) == value;
+						});
+					}
 				}
 				else if (token is string op && (op == "AND" || op == "OR"))
 				{

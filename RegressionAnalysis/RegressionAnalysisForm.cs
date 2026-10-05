@@ -11,6 +11,12 @@ namespace RegressionAnalysis
 	/// </summary>
 	public partial class RegressionAnalysisForm : Form
 	{
+		// マージャー保持（SalesDataSourceForm から移譲して保持する）
+		public DataMerger? DataMerger { get; private set; }
+		// 現在選択されたソース種別キー（"CSV" または "DB"）
+		private string currentSourceKey = string.Empty;
+		// DB テーブル名保持（DB ソース時に使用）
+		private string salesTableName = string.Empty;
 		/// <summary>
 		/// RegressionAnalysisForm クラスの新しいインスタンスを初期化します
 		/// </summary>
@@ -34,19 +40,25 @@ namespace RegressionAnalysis
 			sourceForm.ShowDialog(this);
 			if (sourceForm.DialogResult == DialogResult.OK)
 			{
-				// 取得結果を表示
-				DgvAnalysisData.DataSource = sourceForm.LoadedAnalysisData;
-				// 目的変数コンボボックス、説明変数チェックボックスリストにフィールド名を表示設定
-				CmbResponseVariable.DataSource = null;
-				ClbPredictorVariable.DataSource = null;
-				if (sourceForm.LoadedAnalysisData != null)
+				// SalesDataSourceForm から DataMerger を移譲して保持
+				this.DataMerger = sourceForm.DataMerger;
+				// ソース種別キーとテーブル名を保持（UI 上の列名表示に利用）
+				if (sourceForm.SalesDataColumns != null && sourceForm.SalesDataColumns.Count > 0)
 				{
-					// 目的変数コンボボックスリストにデータソースを設定
-					CmbResponseVariable.DataSource = sourceForm.LoadedAnalysisData.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToList();
-					// 説明変数チェックボックスリストにデータソースを設定
-					ClbPredictorVariable.DataSource = sourceForm.LoadedAnalysisData.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToList();
-					LblRecordCount.Text = $"レコード数: {sourceForm.LoadedAnalysisData.Rows.Count:N0}";
+					currentSourceKey = sourceForm.SalesDataColumns.Keys.First();
+					var cols = sourceForm.SalesDataColumns.Values.First().ToList();
+					CmbResponseVariable.DataSource = cols;
+					ClbPredictorVariable.DataSource = cols;
+					CmbFilterColumn.DataSource = cols;
+					LblRecordCount.Text = "レコード数: (未生成)";
 				}
+				// DB の場合はテーブル名保持
+				if (sourceForm.IsSelectDBSource)
+				{
+					salesTableName = sourceForm.TxtSalesTableName.Text ?? string.Empty;
+				}
+				// グリッドはまだ未生成のためクリア
+				DgvAnalysisData.DataSource = null;
 			}
 		}
 
@@ -182,8 +194,51 @@ namespace RegressionAnalysis
 			// ダイアログでOKが選択された場合、CSV出力処理を実行
 			if (sfd.ShowDialog(this) == DialogResult.OK)
 			{
-				ExportAnalysisResultToCsv(dt,sfd.FileName);
+				ExportAnalysisResultToCsv(dt, sfd.FileName);
 			}
+		}
+
+		private void BtnSetAnalisysData_Click(object sender, EventArgs e)
+		{
+			// DataMerger が存在することを確認
+			if (DataMerger == null)
+			{
+				MessageBox.Show("データソースが設定されていません。データを読み込んでください。", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				return;
+			}
+
+			// 前回のフィルタをクリア
+			DataMerger.Filters.Clear();
+
+			// フィルタ条件取得
+			var column = CmbFilterColumn.Text?.Trim();
+			var filter = TxtFilterString.Text?.Trim();
+			if (!string.IsNullOrEmpty(column) && !string.IsNullOrEmpty(filter))
+			{
+				// 部分一致（LIKE '%value%') を常に適用する
+				var esc = filter.Replace("'", "''");
+				var condition = $"LIKE '%{esc}%'";
+				// フィールド名はソースによりプレフィックスを付与
+				if (currentSourceKey == "CSV")
+				{
+					// CSV マージ時のテーブル名は "sales" を想定
+					DataMerger.AddFilterCondition("", $"sales.{column}", condition);
+				}
+				else if (currentSourceKey == "DB")
+				{
+					var tbl = string.IsNullOrEmpty(salesTableName) ? "sales" : salesTableName;
+					DataMerger.AddFilterCondition("", $"{tbl}.{column}", condition);
+				}
+			}
+
+			// 実データ生成（マージ）
+			var merged = DataMerger.GetMergedDataTable();
+			DgvAnalysisData.DataSource = merged;
+
+			// コンボボックス/チェックリストを更新
+			CmbResponseVariable.DataSource = merged.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToList();
+			ClbPredictorVariable.DataSource = merged.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToList();
+			LblRecordCount.Text = $"レコード数: {merged.Rows.Count:N0}";
 		}
 	}
 }
