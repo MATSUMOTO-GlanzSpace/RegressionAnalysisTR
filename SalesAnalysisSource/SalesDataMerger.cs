@@ -11,13 +11,33 @@ using RegressionAnalysis.Common;
 
 namespace SalesAnalysisSource
 {
+    /// <summary>
+    /// 売上データ結合クラス基底
+    /// </summary>
+    public abstract class SalesDataMerger : DataMerger
+    {
+        private static readonly string[] UnifiedMergedColumnNames =
+        {
+            "部門","大分類","中分類","品種","年","月","売上",
+            "平均気温","最高気温","最低気温","降水量合計","日照時間","単位"
+        };
+
+        /// <summary>
+        /// マージ後の列名一覧を返す
+        /// </summary>
+        public override string[] GetMergedDataTableColumnNames()
+        {
+            return (string[])UnifiedMergedColumnNames.Clone();
+        }
+    }
+
 	/// <summary>
     /// 1. CSVファイル結合クラス
     /// </summary>
     /// <param name="salesCsvPath">売上CSVファイルパス</param>
     /// <param name="weatherCsvPath">天気CSVファイルパス</param>
     /// <param name="unitsCsvPath">単位CSVファイルパス</param>
-	public class CsvSalesDataMerger(string salesCsvPath, string weatherCsvPath, string unitsCsvPath) : DataMerger
+    public class CsvSalesDataMerger(string salesCsvPath, string weatherCsvPath, string unitsCsvPath) : SalesDataMerger
     {
 
 		/// <summary>
@@ -65,9 +85,132 @@ namespace SalesAnalysisSource
                     単位 = unit.Field<string>("単位")
                 };
 
-            // DataMergerの共通フィルタ述語を利用
-            var predicate = BuildCsvFilterPredicate("sales");
-            query = query.Where(x => predicate(x.sales));
+            // DataMerger の Filters をマージ後の匿名オブジェクト上で評価する述語に変換して適用
+            if (Filters != null && Filters.Count > 0)
+            {
+                // Shunting Yard Algorithm で RPN 変換
+                var output = new List<object>();
+                var ops = new Stack<string>();
+                foreach (var filter in Filters)
+                {
+                    if (filter is FilterCondition cond)
+                    {
+                        // 論理演算子扱い
+                        if (cond.Logic == "AND" || cond.Logic == "OR")
+                        {
+                            while (ops.Count > 0 && Precedence(ops.Peek()) >= Precedence(cond.Logic))
+                                output.Add(ops.Pop());
+                            ops.Push(cond.Logic);
+                        }
+                        else
+                        {
+                            output.Add(cond);
+                        }
+                    }
+                    else if (filter is FilterGroupStart)
+                    {
+                        ops.Push("(");
+                    }
+                    else if (filter is FilterGroupEnd)
+                    {
+                        while (ops.Count > 0 && ops.Peek() != "(") output.Add(ops.Pop());
+                        if (ops.Count > 0) ops.Pop();
+                    }
+                }
+                while (ops.Count > 0) output.Add(ops.Pop());
+
+                // RPN 評価で匿名オブジェクト用述語を作成
+                Func<object, bool> mergedPredicate;
+                {
+                    var stack = new Stack<Func<object, bool>>();
+                    foreach (var token in output)
+                    {
+                        if (token is FilterCondition condToken)
+                        {
+                            var field = condToken.Field;
+                            var condTrim = condToken.Condition.Trim();
+                            if (condTrim.StartsWith("LIKE", StringComparison.OrdinalIgnoreCase))
+                            {
+                                var pattern = condTrim.Substring(4).Trim().Trim('\'', '"');
+                                var startsWithWildcard = pattern.StartsWith("%");
+                                var endsWithWildcard = pattern.EndsWith("%");
+                                var core = pattern.Trim('%');
+                                stack.Push(obj =>
+                                {
+                                    if (obj == null) return false;
+                                    // フィールド参照
+                                    if (field.Contains('.'))
+                                    {
+                                        var parts = field.Split('.', 2);
+                                        var tbl = parts[0];
+                                        var col = parts[1];
+                                        // sales/weather/unit の DataRow プロパティを経由
+                                        var prop = obj.GetType().GetProperty(tbl);
+                                        if (prop == null) return false;
+                                        var row = prop.GetValue(obj) as DataRow;
+                                        if (row == null) return false;
+                                        var val = row.Table.Columns.Contains(col) ? row.Field<string>(col) : null;
+                                        if (val == null) return false;
+                                        if (startsWithWildcard && endsWithWildcard) return val.Contains(core);
+                                        if (startsWithWildcard) return val.EndsWith(core);
+                                        if (endsWithWildcard) return val.StartsWith(core);
+                                        return val == core;
+                                    }
+                                    else
+                                    {
+                                        var p = obj.GetType().GetProperty(field);
+                                        if (p == null) return false;
+                                        var v = p.GetValue(obj)?.ToString();
+                                        if (v == null) return false;
+                                        if (startsWithWildcard && endsWithWildcard) return v.Contains(core);
+                                        if (startsWithWildcard) return v.EndsWith(core);
+                                        if (endsWithWildcard) return v.StartsWith(core);
+                                        return v == core;
+                                    }
+                                });
+                            }
+                            else
+                            {
+                                var value = condTrim.Trim('=', '\'', '"');
+                                stack.Push(obj =>
+                                {
+                                    if (obj == null) return false;
+                                    if (field.Contains('.'))
+                                    {
+                                        var parts = field.Split('.', 2);
+                                        var tbl = parts[0];
+                                        var col = parts[1];
+                                        var prop = obj.GetType().GetProperty(tbl);
+                                        if (prop == null) return false;
+                                        var row = prop.GetValue(obj) as DataRow;
+                                        if (row == null) return false;
+                                        if (!row.Table.Columns.Contains(col)) return false;
+                                        return row.Field<string>(col) == value;
+                                    }
+                                    else
+                                    {
+                                        var p = obj.GetType().GetProperty(field);
+                                        if (p == null) return false;
+                                        return (p.GetValue(obj)?.ToString() ?? "") == value;
+                                    }
+                                });
+                            }
+                        }
+                        else if (token is string op && (op == "AND" || op == "OR"))
+                        {
+                            var right = stack.Pop();
+                            var left = stack.Pop();
+                            if (op == "AND") stack.Push(obj => left(obj) && right(obj));
+                            else stack.Push(obj => left(obj) || right(obj));
+                        }
+                    }
+                    mergedPredicate = stack.Count > 0 ? stack.Pop() : (obj => true);
+                }
+
+                query = query.Where(x => mergedPredicate(x));
+            }
+
+            static int Precedence(string op) => op == "AND" ? 2 : op == "OR" ? 1 : 0;
 
             // DataTable生成
             DataTable mergedTable = new();
@@ -78,11 +221,11 @@ namespace SalesAnalysisSource
             mergedTable.Columns.Add("年");
             mergedTable.Columns.Add("月");
             mergedTable.Columns.Add("売上");
-            mergedTable.Columns.Add("平均気温(℃)");
-            mergedTable.Columns.Add("最高気温(℃)");
-            mergedTable.Columns.Add("最低気温(℃)");
-            mergedTable.Columns.Add("降水量の合計(mm)");
-            mergedTable.Columns.Add("日照時間(時間)");
+            mergedTable.Columns.Add("平均気温");
+            mergedTable.Columns.Add("最高気温");
+            mergedTable.Columns.Add("最低気温");
+            mergedTable.Columns.Add("降水量合計");
+            mergedTable.Columns.Add("日照時間");
             mergedTable.Columns.Add("単位");
 			// 結合データをDataTableに追加
 			foreach (var row in query)
@@ -100,8 +243,28 @@ namespace SalesAnalysisSource
     /// <param name="salesTable">売上テーブル名</param>
     /// <param name="weatherTable">天気テーブル名</param>
     /// <param name="unitsTable">単位テーブル名</param>
-	public class MySqlSalesDataMerger(string salesTable, string weatherTable, string unitsTable) : DataMerger
+    public class MySqlSalesDataMerger(string salesTable, string weatherTable, string unitsTable) : SalesDataMerger
     {
+
+        /// <summary>
+        /// マージ後列名 -> SQL エイリアス付きカラムのマッピング
+        /// </summary>
+        public override Dictionary<string, string> MergedColumnToSqlMapping { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["部門"] = "s.department",
+            ["大分類"] = "s.primary_item",
+            ["中分類"] = "s.secondary_item",
+            ["品種"] = "s.variety",
+            ["年"] = "s.year",
+            ["月"] = "s.month",
+            ["売上"] = "s.sales",
+            ["平均気温"] = "w.average_temperature",
+            ["最高気温"] = "w.maximum_temperature",
+            ["最低気温"] = "w.lowest_temperature",
+            ["降水量合計"] = "w.precipitation",
+            ["日照時間"] = "w.sunshine_hours",
+            ["単位"] = "u.unit"
+        };
 
 		/// <summary>
         /// MySQLテーブル結合ロジック実装
@@ -139,30 +302,51 @@ namespace SalesAnalysisSource
 		/// <returns>WHERE句文字列</returns>
 		public string BuildSqlWhereClause(string tableName, out List<MySqlParameter> parameters)
 		{
-			// WHERE句生成
-			var clauses = new List<string>();
-            parameters = [];
-			int paramIndex = 0;
-			foreach (var cond in Filters.OfType<FilterCondition>().Where(f => f.Field.StartsWith(tableName + ".")))
-			{
-				// フィルタ条件をWHERE句に変換
-				var field = cond.Field.Substring(tableName.Length + 1);
-				var paramName = "@p" + paramIndex;
+            // WHERE句生成（Filters の内容をマージ後列名または table.field で解釈して SQL に変換）
+            var clauses = new List<string>();
+            parameters = new List<MySqlParameter>();
+            int paramIndex = 0;
+            // マージ後列名 -> alias.column のマッピングは DataMerger 側のプロパティを利用
+            var map = this.MergedColumnToSqlMapping ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var cond in Filters.OfType<FilterCondition>())
+            {
+                string left = null;
+                if (cond.Field.Contains('.'))
+                {
+                    // table.field 形式 -> alias.field
+                    var parts = cond.Field.Split('.', 2);
+                    var tbl = parts[0];
+                    var col = parts[1];
+                    var alias = tbl.Length > 0 ? tbl.Substring(0, 1) : tbl; // sales -> s
+                    left = $"{alias}.{col}";
+                }
+                else if (map.TryGetValue(cond.Field, out var mapped))
+                {
+                    left = mapped;
+                }
+                else
+                {
+                    // 未知のフィールドは無視
+                    continue;
+                }
+
+                var paramName = "@p" + paramIndex;
                 var condTrim = cond.Condition.Trim();
                 if (condTrim.StartsWith("LIKE", StringComparison.OrdinalIgnoreCase))
                 {
-                    clauses.Add($"{(string.IsNullOrEmpty(cond.Logic) ? "" : cond.Logic + " ")}{tableName.Substring(0, 1)}.{field} LIKE {paramName}");
+                    clauses.Add($"{(string.IsNullOrEmpty(cond.Logic) ? "" : cond.Logic + " ")}{left} LIKE {paramName}");
                     var pattern = condTrim.Substring(4).Trim().Trim('\'', '"');
                     parameters.Add(new MySqlParameter(paramName, pattern));
                 }
                 else
                 {
-                    clauses.Add($"{(string.IsNullOrEmpty(cond.Logic) ? "" : cond.Logic + " ")}{tableName.Substring(0, 1)}.{field} = {paramName}");
+                    clauses.Add($"{(string.IsNullOrEmpty(cond.Logic) ? "" : cond.Logic + " ")}{left} = {paramName}");
                     parameters.Add(new MySqlParameter(paramName, condTrim.Trim('=', '\'', '"')));
                 }
-				paramIndex++;
-			}
-			return clauses.Count > 0 ? ("WHERE " + string.Join(" ", clauses)) : "";
+                paramIndex++;
+            }
+            return clauses.Count > 0 ? ("WHERE " + string.Join(" ", clauses)) : "";
 		}
 	}
 }

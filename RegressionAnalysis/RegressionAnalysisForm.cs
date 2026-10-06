@@ -13,10 +13,7 @@ namespace RegressionAnalysis
 	{
 		// マージャー保持（SalesDataSourceForm から移譲して保持する）
 		public DataMerger? DataMerger { get; private set; }
-		// 現在選択されたソース種別キー（"CSV" または "DB"）
-		private string currentSourceKey = string.Empty;
-		// DB テーブル名保持（DB ソース時に使用）
-		private string salesTableName = string.Empty;
+		// 以前はソース種別やテーブル名を保持していたが、現在は DataMerger 側で管理する
 		/// <summary>
 		/// RegressionAnalysisForm クラスの新しいインスタンスを初期化します
 		/// </summary>
@@ -43,20 +40,16 @@ namespace RegressionAnalysis
 				// SalesDataSourceForm から DataMerger を移譲して保持
 				this.DataMerger = sourceForm.DataMerger;
 				// ソース種別キーとテーブル名を保持（UI 上の列名表示に利用）
-				if (sourceForm.SalesDataColumns != null && sourceForm.SalesDataColumns.Count > 0)
+				var dm = this.DataMerger;
+				if (dm != null)
 				{
-					currentSourceKey = sourceForm.SalesDataColumns.Keys.First();
-					var cols = sourceForm.SalesDataColumns.Values.First().ToList();
+					var cols = dm.GetMergedDataTableColumnNames().ToList();
 					CmbResponseVariable.DataSource = cols;
 					ClbPredictorVariable.DataSource = cols;
 					CmbFilterColumn.DataSource = cols;
 					LblRecordCount.Text = "レコード数: (未生成)";
 				}
-				// DB の場合はテーブル名保持
-				if (sourceForm.IsSelectDBSource)
-				{
-					salesTableName = sourceForm.TxtSalesTableName.Text ?? string.Empty;
-				}
+			// DataMerger が列名を管理するためソース種別・テーブル名の保持は不要
 				// グリッドはまだ未生成のためクリア
 				DgvAnalysisData.DataSource = null;
 			}
@@ -218,17 +211,8 @@ namespace RegressionAnalysis
 				// 部分一致（LIKE '%value%') を常に適用する
 				var esc = filter.Replace("'", "''");
 				var condition = $"LIKE '%{esc}%'";
-				// フィールド名はソースによりプレフィックスを付与
-				if (currentSourceKey == "CSV")
-				{
-					// CSV マージ時のテーブル名は "sales" を想定
-					DataMerger.AddFilterCondition("", $"sales.{column}", condition);
-				}
-				else if (currentSourceKey == "DB")
-				{
-					var tbl = string.IsNullOrEmpty(salesTableName) ? "sales" : salesTableName;
-					DataMerger.AddFilterCondition("", $"{tbl}.{column}", condition);
-				}
+				// マージ後列名（UIのcolumn）を渡す
+				DataMerger.AddFilterCondition("", column, condition);
 			}
 
 			// 実データ生成（マージ）

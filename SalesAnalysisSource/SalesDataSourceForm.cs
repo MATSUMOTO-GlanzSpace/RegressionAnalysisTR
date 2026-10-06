@@ -63,12 +63,6 @@ namespace SalesAnalysisSource
 		/// DataMerger（呼出し側でGetMergedDataTable実行するために保持する）
 		public RegressionAnalysis.Common.DataMerger? DataMerger { get; private set; }
 
-		/// <summary>
-		/// CSVおよびDBの列名一覧を格納する（キー: "CSV" / "DB"）
-		/// 呼出し側 RegressionAnalysisForm から参照する
-		/// </summary>
-		public Dictionary<string, string[]> SalesDataColumns { get; private set; } = new();
-
 		// イベントハンドラー定義
 		/// <summary>
 		/// 販売CSVファイルを選択するボタンがクリックされたときに発生するイベント ハンドラー
@@ -125,30 +119,7 @@ namespace SalesAnalysisSource
 					);
 				// DataMerger を保持
 				DataMerger = mysqlMerger;
-				// DB用の列名一覧をデータベースのスキーマから取得して設定（conn.GetSchema を使用）
-				try
-				{
-					using var conn = MySqlConnectionFactory.CreateOpenConnection();
-					// テーブル名の検証（ホワイトリスト）
-					var tableWhitelist = DbSchemaHelper.GetTableWhitelist_MySql(conn);
-					string tableName = TxtSalesTableName.Text ?? string.Empty;
-					if (!tableWhitelist.Contains(tableName))
-					{
-						MessageBox.Show(this, "不正なテーブル名です。", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
-						return;
-					}
-					// スキーマ取得（Columns）
-					var schema = conn.GetSchema("Columns", new string[] { null, null, tableName, null });
-					var cols = schema.AsEnumerable()
-						.OrderBy(r => Convert.ToInt32(r["ORDINAL_POSITION"]))
-						.Select(r => r["COLUMN_NAME"].ToString())
-						.ToArray();
-					SalesDataColumns = new Dictionary<string, string[]>() { ["DB"] = cols };
-				}
-				catch (Exception ex)
-				{
-					MessageBox.Show(this, $"データベースから列情報の取得に失敗しました。\n{ex.Message}", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
-				}
+				// 列名一覧は DataMerger 側で提供する
 			}
 			finally
 			{
@@ -175,17 +146,7 @@ namespace SalesAnalysisSource
 					);
 				// DataMerger を保持
 				DataMerger = csvMerger;
-				// CSVファイルのヘッダーから列名一覧を取得して設定
-				try
-				{
-					var dt = ReadCsv(TxtSalseCSVFileName.Text);
-					var cols = dt.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToArray();
-					SalesDataColumns = new Dictionary<string, string[]>() { ["CSV"] = cols };
-				}
-				catch (Exception ex)
-				{
-					MessageBox.Show(this, $"CSVファイルから列情報の取得に失敗しました。\n{ex.Message}", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
-				}
+				// 列名一覧は DataMerger 側で提供する
 			}
 			finally
 			{

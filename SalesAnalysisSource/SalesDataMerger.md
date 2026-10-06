@@ -1,148 +1,50 @@
-﻿# DataMerger クラス群 説明書
+﻿# SalesDataMerger リファクタリング概要
 
----
+この文書は、DataMerger の継承構成を整理して SalesDataMerger を導入した変更点をまとめたものです。
 
-## DataMerger（抽象基底クラス）
+目的
+- DataMerger -> CsvSalesDataMerger / MySqlSalesDataMerger の直接継承構造に中間抽象クラス `SalesDataMerger` を導入し、CSV / DB に共通する振る舞いやマージ後列名を集約する。
+- マージ後列名（UI/フィルタで使用する列名）を DB 側の表記に合わせて統一する。
 
-- **役割**: データ結合処理の共通基底クラス。
-- **特徴**:
-  - エラーハンドリング（例外キャッチ＋ログ出力）を共通化。
-  - `GetMergedDataTable()`：共通のデータ取得メソッド。内部で例外処理を行い、エラー時は空の`DataTable`を返す。
-  - `LogError(Exception ex)`：仮想メソッド。標準出力にエラーメッセージを表示。必要に応じて派生クラスでオーバーライド可能。
-  - `GetMergedDataTableCore()`：抽象メソッド。各派生クラスで具体的な結合処理を実装。
+概要
+- SalesDataMerger (抽象クラス)
+  - DataMerger を継承。
+  - マージ後列名一覧を一元管理する `GetMergedDataTableColumnNames()` を実装する（派生クラスは通常オーバーライド不要）。
+  - 統一列名は DB 側の表記（例: "平均気温" / "降水量合計" / "日照時間"）に合わせている。
 
----
+- CsvSalesDataMerger
+  - 基底を `SalesDataMerger` に変更。
+  - CSV 側の元列名（例: "平均気温(℃)", "降水量の合計(mm)", "日照時間(時間)"）から値を取得し、基底で定義された統一列名へ詰めて DataTable を構築する。
+  - Filters の評価は既存の匿名オブジェクト上での RPN 評価ロジックを継承している。
 
-## CsvDataMerger（CSVファイル結合クラス）
+- MySqlSalesDataMerger
+  - 基底を `SalesDataMerger` に変更。
+  - DB プッシュダウン用の `MergedColumnToSqlMapping` は MySql 側でオーバーライドして提供する（例: "部門"->"s.department" 等）。
+  - SQL の SELECT 句ではマージ後列名を AS エイリアスとして返すため、呼出し側の DataTable 列名と一致する。
 
-- **役割**: 3つのCSVファイル（販売・気象・単位）を読み込み、結合し、`DataTable`で返す。
-- **コンストラクタ引数**:
-  - `salesCsvPath`：販売CSVファイルパス
-  - `weatherCsvPath`：気象CSVファイルパス
-  - `unitsCsvPath`：単位CSVファイルパス
-- **主なメソッド**:
-  - `GetMergedDataTableCore()`：
-    - 3つのCSVファイルを読み込み、LINQで結合。
-    - 結合結果を`DataTable`として返却。
-  - `ReadCsv(string path)`：CSVファイルを`DataTable`として読み込む内部メソッド。
+統一したマージ後列名
 
----
+1. 部門
+2. 大分類
+3. 中分類
+4. 品種
+5. 年
+6. 月
+7. 売上
+8. 平均気温
+9. 最高気温
+10. 最低気温
+11. 降水量合計
+12. 日照時間
+13. 単位
 
-## MySqlDataMerger（MySQLテーブル結合クラス）
+CSV と MySQL の差分と扱い
+- CSV 元の列名は単位表記や括弧付きの単位が付くため、CsvSalesDataMerger は元列名から値を抽出して統一列名にマップする。UI とフィルタは統一列名のみを参照すれば良い。
+- MySQL 側は SELECT ... AS で統一列名を返すため、DataMerger 側での追加変換は不要。
 
-- **役割**: MySQLの3テーブル（sales, weather, units）を結合し、`DataTable`で返す。
-- **コンストラクタ引数**:
-  - `connectionString`：MySQL接続文字列
-  - `salesTable`：販売テーブル名
-  - `weatherTable`：気象テーブル名
-  - `unitsTable`：単位テーブル名
-- **主なメソッド**:
-  - `GetMergedDataTableCore()`：
-    - MySQLに接続し、3テーブルをSQLで結合。
-    - 結合結果を`DataTable`として返却。
+設計上の注意点・今後の検討
+- `MergedColumnToSqlMapping` を基底へ移して共通定義する選択肢があるが、現状は MySQL 固有のマッピングのため MySqlSalesDataMerger に置くことを採択している。
+- CsvSalesDataMerger の入力CSVで列名が期待値と異なる場合の挙動（ログ出力・エラー・空列埋め）は現状の実装を踏襲している。運用で問題があれば明示的なバリデーションを追加することを推奨する。
 
----
-
-## 使用するCSVファイル仕様
-
-### 売上CSV (salesCsvPath)
-| フィールド名 | 説明         |
-|--------------|--------------|
-| 部門         | 部門名       |
-| 大分類       | 商品大分類   |
-| 中分類       | 商品中分類   |
-| 品種         | 商品品種     |
-| 年           | 年           |
-| 月           | 月           |
-| 売上         | 売上数量     |
-
-### 天気CSV (weatherCsvPath)
-| フィールド名         | 説明             |
-|----------------------|------------------|
-| 年                   | 年               |
-| 月                   | 月               |
-| 平均気温(℃)         | 月平均気温       |
-| 最高気温(℃)         | 月最高気温       |
-| 最低気温(℃)         | 月最低気温       |
-| 降水量の合計(mm)     | 月降水量合計     |
-| 日照時間(時間)       | 月日照時間       |
-
-### 単位CSV (unitsCsvPath)
-| フィールド名 | 説明         |
-|--------------|--------------|
-| 品種         | 商品品種     |
-| 単位         | 販売単位     |
-
----
-
-## 使用するMySQLデータベーステーブル仕様
-
-### 売上テーブル（salesTable）
-| フィールド名        | 説明           |
-|---------------------|----------------|
-| id                  | id             |
-| department          | 部門名         |
-| primary_item        | 商品大分類     |
-| secondary_item      | 商品中分類     |
-| variety              | 商品品種       |
-| year                | 年             |
-| month               | 月             |
-| sales               | 売上数量       |
-
-### 天気テーブル（weatherTable）
-| フィールド名        | 説明           |
-|---------------------|----------------|
-| id                  | id             |
-| year                | 年             |
-| month               | 月             |
-| average_temperature | 月平均気温     |
-| maximum_temperature | 月最高気温     |
-| lowest_temperature  | 月最低気温     |
-| precipitation       | 月降水量合計   |
-| sunshine_hours      | 月日照時間     |
-
-### 単位テーブル（unitsTable）
-| フィールド名        | 説明           |
-|---------------------|----------------|
-| id                  | id             |
-| variety              | 商品品種       |
-| unit                | 販売単位       |
-
----
-
-## 結合後データテーブルのフィールド名
-
-| フィールド名         | 説明             |
-|----------------------|------------------|
-| 部門                 | 部門名           |
-| 大分類               | 商品大分類       |
-| 中分類               | 商品中分類       |
-| 品種                 | 商品品種         |
-| 年                   | 年               |
-| 月                   | 月               |
-| 売上                 | 売上数量         |
-| 平均気温(℃)         | 月平均気温       |
-| 最高気温(℃)         | 月最高気温       |
-| 最低気温(℃)         | 月最低気温       |
-| 降水量の合計(mm)／降水量合計 | 月降水量合計 |
-| 日照時間(時間)／日照時間     | 月日照時間   |
-| 単位                 | 販売単位         |
-
----
-
-## 共通事項
-- いずれのクラスも`GetMergedDataTable()`で結合済みデータを`DataTable`型で取得可能。
-- エラー発生時は基底クラスの共通処理でログ出力し、空の`DataTable`を返却。
-- GridView等へのバインドが容易。
-
----
-
-## 利用例
-```csharp
-// CSVファイル結合
-var csvMerger = new CsvDataMerger(salesPath, weatherPath, unitsPath);
-DataTable csvResult = csvMerger.GetMergedDataTable();
-
-// MySQLテーブル結合
-var mysqlMerger = new MySqlDataMerger(connStr, "sales", "weather", "units");
-DataTable dbResult = mysqlMerger.GetMergedDataTable();
+変更履歴
+- 2026-10-06: SalesDataMerger を導入し、CsvSalesDataMerger / MySqlSalesDataMerger を基底継承するようリファクタリング。GetMergedDataTableColumnNames() を基底で統一実装。

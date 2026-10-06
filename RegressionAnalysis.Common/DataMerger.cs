@@ -194,6 +194,18 @@ namespace RegressionAnalysis.Common
 			// 行がない場合はデータが空の（カラム情報は設定された）DataTableを返す
 			return validRows.Count > 0 ? validRows.CopyToDataTable() : source.Clone();
 		}
+
+		/// <summary>
+		/// マージ後のDataTableの列名一覧を返す（派生クラスでオーバーライド）
+		/// </summary>
+		/// <returns>列名配列</returns>
+		public virtual string[] GetMergedDataTableColumnNames() => Array.Empty<string>();
+
+		/// <summary>
+		/// マージ後の列名 -> DB 側の alias.column へのマッピング
+		/// DB プッシュダウンを行うマージャーはここをオーバーライドしてマッピングを提供する
+		/// </summary>
+		public virtual Dictionary<string, string> MergedColumnToSqlMapping { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 	}
 
 	/// <summary>
