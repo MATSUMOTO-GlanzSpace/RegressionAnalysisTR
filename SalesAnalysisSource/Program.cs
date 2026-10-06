@@ -16,6 +16,6 @@ static class Program
 		var connStr = ConfigurationHelper.GetConnectionString();
         MySqlConnectionFactory.SetConnectionString(connStr);
 		// メインフォームを起動
-		Application.Run(new Form1());
+		Application.Run(new SalesDataSourceForm());
     }    
 }
