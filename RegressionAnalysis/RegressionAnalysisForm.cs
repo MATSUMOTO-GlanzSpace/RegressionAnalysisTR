@@ -1,7 +1,6 @@
 ﻿using RegressionAnalysis.Common;
 using SalesAnalysisSource;
 using System.Data;
-using System.Diagnostics; // ファイル先頭に追加
 using System.Text;
 
 namespace RegressionAnalysis
@@ -11,9 +10,11 @@ namespace RegressionAnalysis
 	/// </summary>
 	public partial class RegressionAnalysisForm : Form
 	{
-		// マージャー保持（SalesDataSourceForm から移譲して保持する）
+		/// <summary>
+		/// マージャー保持（SalesDataSourceForm から移譲して保持する）
+		/// </summary>
 		public DataMerger? DataMerger { get; private set; }
-		// 以前はソース種別やテーブル名を保持していたが、現在は DataMerger 側で管理する
+
 		/// <summary>
 		/// RegressionAnalysisForm クラスの新しいインスタンスを初期化します
 		/// </summary>
@@ -29,9 +30,6 @@ namespace RegressionAnalysis
 		/// <param name="e">イベント データ</param>
 		private void BtnLoadAnalysisData_Click(object sender, EventArgs e)
 		{
-			// 既存のデータソースをクリア
-			DgvAnalysisData.DataSource = null;
-
 			// 分析元データソース取得
 			var sourceForm = new SalesDataSourceForm();
 			sourceForm.ShowDialog(this);
@@ -39,17 +37,16 @@ namespace RegressionAnalysis
 			{
 				// SalesDataSourceForm から DataMerger を移譲して保持
 				this.DataMerger = sourceForm.DataMerger;
-				// ソース種別キーとテーブル名を保持（UI 上の列名表示に利用）
 				var dm = this.DataMerger;
 				if (dm != null)
 				{
+					// ソース種別キーを保持（UI 上の列名表示に利用）
 					var cols = dm.GetMergedDataTableColumnNames().ToList();
 					CmbResponseVariable.DataSource = cols;
 					ClbPredictorVariable.DataSource = cols;
 					CmbFilterColumn.DataSource = cols;
 					LblRecordCount.Text = "レコード数: (未生成)";
 				}
-			// DataMerger が列名を管理するためソース種別・テーブル名の保持は不要
 				// グリッドはまだ未生成のためクリア
 				DgvAnalysisData.DataSource = null;
 			}
@@ -69,7 +66,6 @@ namespace RegressionAnalysis
 			var predictorNames = ClbPredictorVariable.CheckedItems.Cast<string>().ToList();
 			// 目的変数名
 			var responseName = CmbResponseVariable.Text;
-
 			// 目的変数名が説明変数名リストに含まれている場合はエラー
 			if (predictorNames.Contains(responseName))
 			{
@@ -86,7 +82,6 @@ namespace RegressionAnalysis
 			}
 			// 目的変数テーブル（1列のみ）
 			var responseTable = filteredTable.DefaultView.ToTable(false, responseName);
-
 			// 説明変数テーブル（複数列）
 			var predictorTable = filteredTable.DefaultView.ToTable(false, predictorNames.ToArray());
 
@@ -191,12 +186,18 @@ namespace RegressionAnalysis
 			}
 		}
 
+		/// <summary>
+		/// 分析データを設定するボタンがクリックされたときに発生するイベント ハンドラー
+		/// </summary>
+		/// <param name="sender">イベントの送信元</param>
+		/// <param name="e">イベント データ</param>
 		private void BtnSetAnalisysData_Click(object sender, EventArgs e)
 		{
 			// DataMerger が存在することを確認
 			if (DataMerger == null)
 			{
-				MessageBox.Show("データソースが設定されていません。データを読み込んでください。", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				MessageBox.Show("データソースが設定されていません。データを読み込んでください。",
+					"エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return;
 			}
 
