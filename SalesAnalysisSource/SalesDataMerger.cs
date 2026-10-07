@@ -311,7 +311,7 @@ namespace SalesAnalysisSource
 
             foreach (var cond in Filters.OfType<FilterCondition>())
             {
-                string left = null;
+                string? left = null;
                 if (cond.Field.Contains('.'))
                 {
                     // table.field 形式 -> alias.field
