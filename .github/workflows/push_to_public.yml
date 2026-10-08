@@ -31,24 +31,21 @@ jobs:
         run: |
           SOURCE_SHA="${GITHUB_SHA}"
 
-          # Fetch public/master if exists
-          if git ls-remote --exit-code public refs/heads/master; then
-            git fetch public master
-            # create or reset local public-master branch to public/master
-            git checkout -B public-master public/master
-            # merge source commit (for_training push) into public-master
-            git merge --no-ff --no-edit "$SOURCE_SHA"
-          else
-            # public master does not exist yet — start from source commit
-            git checkout -B public-master "$SOURCE_SHA"
-          fi
-
-          # Exclude workflow files from public mirror
+          # Prepare source commit for public: remove workflow files first
+          git checkout -B source-for-public "$SOURCE_SHA"
           git rm -r --ignore-unmatch .github/workflows
-
-          # Commit only when workflows were removed/changed
           if ! git diff --cached --quiet; then
             git commit -m "chore: exclude workflow files from public mirror"
+          fi
+
+          # Fetch public/master if exists, then merge sanitized source
+          if git ls-remote --exit-code public refs/heads/master; then
+            git fetch public master
+            git checkout -B public-master public/master
+            git merge --no-ff --no-edit source-for-public
+          else
+            # public master does not exist yet — use sanitized source directly
+            git checkout -B public-master source-for-public
           fi
 
           # push merged result to public master (non-forced)
