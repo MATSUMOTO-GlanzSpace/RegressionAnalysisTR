@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - for_training
+    paths-ignore:
+      - '.github/workflows/**'
 
 jobs:
   mirror-to-public:
