@@ -114,7 +114,7 @@ git fetch origin master
 # 現在のローカル変更を確認
 git status
 
-# master の最新版を現在のホランチにマージ
+# master の最新版を現在のブランチにマージ
 git merge origin/master
 ```
 
