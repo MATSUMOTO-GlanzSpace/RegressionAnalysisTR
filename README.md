@@ -39,9 +39,13 @@ appsettings.Development.json を用いて接続文字列等を環境ごとに管
 ```
 
 ## 注意点
+
 - DB テーブル名や列名を SQL に直接埋め込む箇所があります。外部入力を直接埋め込まないよう注意してください（実運用ではエスケープ/検証を追加すること）。
 
 ## 公開リポジトリ自動同期ルール
+
+連携元リポジトリ(private RegressionAnalysis)管理者向け情報です。
+
 - このリポジトリの for_training ブランチへの push を検知して、公開リポジトリ `MATSUMOTO-GlanzSpace/RegressionAnalysisTR` の master ブランチへ自動ミラーリングする GitHub Actions ワークフローを追加しています。
 - 必要な Secret:
   - `PUBLIC_REPO_PAT` — 公開リポジトリへ push できる personal access token をリポジトリの Settings → Secrets and variables → Actions に登録してください。
