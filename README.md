@@ -47,6 +47,7 @@ appsettings.Development.json を用いて接続文字列等を環境ごとに管
 連携元リポジトリ(private RegressionAnalysis)管理者向け情報です。
 
 - このリポジトリの for_training ブランチへの push を検知して、公開リポジトリ `MATSUMOTO-GlanzSpace/RegressionAnalysisTR` の master ブランチへ自動ミラーリングする GitHub Actions ワークフローを追加しています。
+- workflow設定は.gitignoreで除外されており、公開リポジトリには push されません。
 - 必要な Secret:
   - `PUBLIC_REPO_PAT` — 公開リポジトリへ push できる personal access token をリポジトリの Settings → Secrets and variables → Actions に登録してください。
 - ワークフローの場所: `.github/workflows/push_to_public.yml`。
