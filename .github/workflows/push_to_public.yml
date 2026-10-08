@@ -27,7 +27,7 @@ jobs:
           # Public repo owner is same as private repository owner
           git remote add public https://x-access-token:${PUBLIC_REPO_PAT}@github.com/MATSUMOTO-GlanzSpace/RegressionAnalysisTR.git
 
-      - name: Push to public master (merge strategy)
+      - name: Push to public master (exclude .github/workflows)
         run: |
           # Fetch public/master if exists
           if git ls-remote --exit-code public refs/heads/master; then
@@ -36,9 +36,18 @@ jobs:
             git checkout -B public-master public/master
             # merge current HEAD (for_training) into public-master with no-fast-forward
             git merge --no-ff --no-edit HEAD || true
-            # push merged result to public master (non-forced)
-            git push public public-master:master
           else
-            # public master does not exist yet — push current HEAD as master
-            git push public HEAD:refs/heads/master
+            # public master does not exist yet — start from current HEAD
+            git checkout -B public-master HEAD
           fi
+
+          # Exclude workflow files from public mirror
+          git rm -r --ignore-unmatch .github/workflows
+
+          # Commit only when workflows were removed/changed
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: exclude workflow files from public mirror"
+          fi
+
+          # push merged result to public master (non-forced)
+          git push public public-master:master
