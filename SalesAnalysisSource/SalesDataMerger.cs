@@ -1,4 +1,5 @@
 using RegressionAnalysis.Common;
+using static RegressionAnalysis.Common.DataTableHelpers;
 using System.Data;
 using System.Data.Common;
 using MySqlConnector;
@@ -37,10 +38,10 @@ public abstract class SalesDataMerger : DataMerger
 
 		protected override DataTable GetMergedDataTableCore()
 		{
-			// CSV ファイルを DataTable に読み込み
-			var salesTable = LoadCsvToDataTable(_csvSalesPath);
-			var weatherTable = LoadCsvToDataTable(_csvWeatherPath);
-			var unitsTable = LoadCsvToDataTable(_csvUnitsPath);
+			// CSV ファイルを DataTable に読み込み（共通 Helper 利用）
+			var salesTable = ReadCsv(_csvSalesPath);
+			var weatherTable = ReadCsv(_csvWeatherPath);
+			var unitsTable = ReadCsv(_csvUnitsPath);
 
 			// LINQ JOIN
 			var query = from s in salesTable.AsEnumerable()
@@ -92,36 +93,6 @@ public abstract class SalesDataMerger : DataMerger
 			}
 
 			return mergedTable;
-		}
-
-		private static DataTable LoadCsvToDataTable(string csvPath)
-		{
-			if (!File.Exists(csvPath))
-				throw new FileNotFoundException($"CSV file not found: {csvPath}");
-
-			var table = new DataTable();
-			using var reader = new StreamReader(csvPath, System.Text.Encoding.UTF8);
-			{
-				string? headerLine = reader.ReadLine();
-				if (headerLine == null)
-					throw new InvalidOperationException("CSV file is empty");
-
-				string[] headers = headerLine.Split(',');
-				foreach (var header in headers)
-					table.Columns.Add(header.Trim());
-
-				string? line;
-				while ((line = reader.ReadLine()) != null)
-				{
-					string[] values = line.Split(',');
-					object[] objValues = new object[values.Length];
-					for (int i = 0; i < values.Length; i++)
-						objValues[i] = values[i].Trim();
-					table.Rows.Add(objValues);
-				}
-			}
-
-			return table;
 		}
 	}
 
