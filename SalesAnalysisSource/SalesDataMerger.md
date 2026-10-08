@@ -1,50 +1,125 @@
-﻿# SalesDataMerger リファクタリング概要
+﻿# SalesDataMerger 説明書
 
-この文書は、DataMerger の継承構成を整理して SalesDataMerger を導入した変更点をまとめたものです。
+このドキュメントは、`DataMerger` 基底クラスの設計と、`SalesDataMerger` 派生体系における使用方法を説明するものです。
 
-目的
-- DataMerger -> CsvSalesDataMerger / MySqlSalesDataMerger の直接継承構造に中間抽象クラス `SalesDataMerger` を導入し、CSV / DB に共通する振る舞いやマージ後列名を集約する。
-- マージ後列名（UI/フィルタで使用する列名）を DB 側の表記に合わせて統一する。
+## 目的
 
-概要
-- SalesDataMerger (抽象クラス)
-  - DataMerger を継承。
-  - マージ後列名一覧を一元管理する `GetMergedDataTableColumnNames()` を実装する（派生クラスは通常オーバーライド不要）。
-  - 統一列名は DB 側の表記（例: "平均気温" / "降水量合計" / "日照時間"）に合わせている。
+- **`DataMerger` 基底クラス**：CSV・MySQL データソースに共通するマージロジックを集約
+- **`SalesDataMerger` 中間抽象クラス**：Sales ドメイン固有のマージ後列名を一元管理
+- **派生実装クラス**：データソース固有処理のみ実装
 
-- CsvSalesDataMerger
-  - 基底を `SalesDataMerger` に変更。
-  - CSV 側の元列名（例: "平均気温(℃)", "降水量の合計(mm)", "日照時間(時間)"）から値を取得し、基底で定義された統一列名へ詰めて DataTable を構築する。
-  - Filters の評価は既存の匿名オブジェクト上での RPN 評価ロジックを継承している。
+## クラス設計階層
 
-- MySqlSalesDataMerger
-  - 基底を `SalesDataMerger` に変更。
-  - DB プッシュダウン用の `MergedColumnToSqlMapping` は MySql 側でオーバーライドして提供する（例: "部門"->"s.department" 等）。
-  - SQL の SELECT 句ではマージ後列名を AS エイリアスとして返すため、呼出し側の DataTable 列名と一致する。
+DataMerger（基底クラス）
+├── SalesDataMerger（中間：Sales領域固有） 
+│   ├── CsvSalesDataMerger（複数/単一 CSV） 
+│   └── MySqlSalesDataMerger（MySQL） 
+└── その他の派生クラス
 
-統一したマージ後列名
+## 実装パターン
 
-1. 部門
-2. 大分類
-3. 中分類
-4. 品種
-5. 年
-6. 月
-7. 売上
-8. 平均気温
-9. 最高気温
-10. 最低気温
-11. 降水量合計
-12. 日照時間
-13. 単位
+### パターン1：複数 CSV ファイル結合
 
-CSV と MySQL の差分と扱い
-- CSV 元の列名は単位表記や括弧付きの単位が付くため、CsvSalesDataMerger は元列名から値を抽出して統一列名にマップする。UI とフィルタは統一列名のみを参照すれば良い。
-- MySQL 側は SELECT ... AS で統一列名を返すため、DataMerger 側での追加変換は不要。
+```csharp
+public class CsvSalesDataMerger( string salesCsvPath, string weatherCsvPath, string unitsCsvPath) : SalesDataMerger
+{
+    protected override DataTable GetMergedDataTableCore()
+    {
+        // CSV読み込み → LINQ JOIN → ApplyFiltersAndConvertToDataTable() 
+    }
 
-設計上の注意点・今後の検討
-- `MergedColumnToSqlMapping` を基底へ移して共通定義する選択肢があるが、現状は MySQL 固有のマッピングのため MySqlSalesDataMerger に置くことを採択している。
-- CsvSalesDataMerger の入力CSVで列名が期待値と異なる場合の挙動（ログ出力・エラー・空列埋め）は現状の実装を踏襲している。運用で問題があれば明示的なバリデーションを追加することを推奨する。
+    protected override DataTable ConvertToDataTable<T>(IEnumerable<T> data)
+    {
+        // リフレクションで匿名型を統一列名の DataTable に変換
+    }
+}
+```
 
-変更履歴
-- 2026-10-06: SalesDataMerger を導入し、CsvSalesDataMerger / MySqlSalesDataMerger を基底継承するようリファクタリング。GetMergedDataTableColumnNames() を基底で統一実装。
+
+### パターン2：単一 CSV ファイル
+
+```csharp
+public class CsvSalesDataMerger(string salesCsvPath) : SalesDataMerger
+{
+    protected override DataTable GetMergedDataTableCore()
+    {
+        // CSV読み込み → LINQ 投影（結合なし） → ApplyFiltersAndConvertToDataTable() 
+    }
+
+    protected override DataTable ConvertToDataTable<T>(IEnumerable<T> data)
+    {
+        // リフレクションで匿名型を統一列名の DataTable に変換
+    }
+}
+```
+
+
+### パターン3：MySQL テーブル結合
+
+```csharp
+public class MySqlSalesDataMerger( string salesTable, string weatherTable, string unitsTable) : SalesDataMerger
+{
+    public override Dictionary<string, string> MergedColumnToSqlMapping { get; } = new();
+
+    protected override DbConnection GetDbConnection()
+    {
+        return MySqlConnectionFactory.CreateOpenConnection();
+    }
+
+    protected override DataTable GetMergedDataTableCore()
+    {
+        // フィルタから SQL WHERE句生成 → SQL実行 → ExecuteMergedSqlQuery()
+    }
+
+    protected override DataTable ConvertToDataTable<T>(IEnumerable<T> data)
+    {
+        throw new NotSupportedException("...");
+    }
+}
+```
+
+
+## テンプレートメソッドのフロー
+
+### CSV（CsvSalesDataMerger）
+
+CSV読み込み → LINQ(JOIN or 投影) → ApplyFiltersAndConvertToDataTable() → Filters評価（述語） → ConvertToDataTable<T>（リフレクション） → DataTable返却
+
+
+### MySQL（MySqlSalesDataMerger）
+
+Filters → SQL WHERE句生成 → ExecuteMergedSqlQuery() → SQL実行 → DbDataAdapter.Fill() → DataTable返却
+
+
+## 統一マージ後列名
+
+部門、大分類、中分類、品種、年、月、売上、平均気温、最高気温、最低気温、降水量合計、日照時間、単位
+
+## CSV と MySQL の差分
+
+| 側面 | CSV | MySQL |
+|------|-----|-------|
+| フィルタ評価 | LINQ述語（メモリ） | SQL WHERE句（DB側） |
+| 列名マッピング | リフレクション（ConvertToDataTable） | AS エイリアス（SQL SELECT） |
+| MergedColumnToSqlMapping | 不要 | 必須 |
+
+## 派生実装のチェックリスト
+
+- [ ] `SalesDataMerger` を継承
+- [ ] `GetMergedDataTableCore()` を実装
+- [ ] `ConvertToDataTable<T>()` を実装
+- [ ] DB の場合：`GetDbConnection()`、`MergedColumnToSqlMapping` を実装
+- [ ] フィルタ・SQL WHERE 句生成は基底メソッドを利用
+
+## 設計上の注意点
+
+- **MergedColumnToSqlMapping**：DB固有のマッピングのため、MySQL実装に配置。他のDB対応時に基底移行を検討。
+- **CSV列名バリデーション**：現状は期待値と異なる場合の対応（エラー・ログ・空列埋め）を踏襲。運用で問題があれば明示的バリデーション追加を推奨。
+- **Null許可警告**：`factory.CreateDataAdapter()` など外部API戻り値が null許可型の場合、必要に応じて `#pragma warning disable` で抑制。
+
+## 変更履歴
+
+- **2026-10-09**：SalesDataMerger説明書を再作成。テンプレートメソッド設計、CSV（複数・単一）、MySQLの実装例を記載。
+
+
+
