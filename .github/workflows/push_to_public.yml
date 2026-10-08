@@ -1,0 +1,43 @@
+name: Mirror for_training to public master
+
+on:
+  push:
+    branches:
+      - for_training
+
+jobs:
+  mirror-to-public:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository (full)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Add public remote
+        env:
+          PUBLIC_REPO_PAT: ${{ secrets.PUBLIC_REPO_PAT }}
+        run: |
+          # Public repo owner is same as private repository owner
+          git remote add public https://x-access-token:${PUBLIC_REPO_PAT}@github.com/MATSUMOTO-GlanzSpace/RegressionAnalysisTR.git
+
+      - name: Push to public master (merge strategy)
+        run: |
+          # Fetch public/master if exists
+          if git ls-remote --exit-code public refs/heads/master; then
+            git fetch public master
+            # create or reset local public-master branch to public/master
+            git checkout -B public-master public/master
+            # merge current HEAD (for_training) into public-master with no-fast-forward
+            git merge --no-ff --no-edit HEAD || true
+            # push merged result to public master (non-forced)
+            git push public public-master:master
+          else
+            # public master does not exist yet — push current HEAD as master
+            git push public HEAD:refs/heads/master
+          fi
