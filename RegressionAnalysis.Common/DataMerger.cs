@@ -519,18 +519,11 @@ namespace RegressionAnalysis.Common
 		/// <returns>変換後の DataTable</returns>
 		protected virtual DataTable ApplyFiltersAndConvertToDataTable<T>(IEnumerable<T> query)
 		{
-			// フィルタを適用
-			if (Filters.Count > 0)
-			{
-				var predicate = BuildLinqFilterPredicate();
-				if (predicate != null)
-				{
-					query = query.Where(x => x != null && predicate(x)).ToList();
-				}
-			}
+			// フィルタを適用（ApplyFilters へ委譲）
+			var filteredQuery = ApplyFilters(query);
 
-			// DataTableに変換
-			return ConvertToDataTable(query);
+			// DataTable に変換
+			return ConvertToDataTable(filteredQuery);
 		}
 	}
 
@@ -558,3 +551,4 @@ namespace RegressionAnalysis.Common
 	/// </summary>
 	public record FilterGroupEnd() : FilterElement;
 }
+

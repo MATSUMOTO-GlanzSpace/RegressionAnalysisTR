@@ -132,8 +132,9 @@ public abstract class SalesDataMerger : DataMerger
 		/// <returns>結合データテーブル</returns>
 		protected override DataTable GetMergedDataTableCore()
 		{
-			// DataMerger の共通 SQL フィルタ生成を利用
-			var whereSql = BuildSqlWhereClause("sales", 
+			// DataMerger の共通 SQL フィルタ生成を利用（generic版）
+			var whereSql = BuildSqlWhereClause<MySqlParameter>(
+				"sales", 
 				(fieldName, value) => new MySqlParameter($"@p{Guid.NewGuid():N}", value),
 				out var parameters);
 
@@ -147,8 +148,8 @@ public abstract class SalesDataMerger : DataMerger
 				{whereSql}
 			";
 
-			// 共通 SQL 実行メソッドへ委譲
-			return ExecuteMergedSqlQuery(sql, parameters);
+			// 共通 SQL 実行メソッドへ委譲（generic版）
+			return ExecuteMergedSqlQuery<MySqlParameter>(sql, parameters);
 		}
 	}
 }
