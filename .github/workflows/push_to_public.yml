@@ -29,16 +29,18 @@ jobs:
 
       - name: Push to public master (exclude .github/workflows)
         run: |
+          SOURCE_SHA="${GITHUB_SHA}"
+
           # Fetch public/master if exists
           if git ls-remote --exit-code public refs/heads/master; then
             git fetch public master
             # create or reset local public-master branch to public/master
             git checkout -B public-master public/master
-            # merge current HEAD (for_training) into public-master with no-fast-forward
-            git merge --no-ff --no-edit HEAD || true
+            # merge source commit (for_training push) into public-master
+            git merge --no-ff --no-edit "$SOURCE_SHA"
           else
-            # public master does not exist yet — start from current HEAD
-            git checkout -B public-master HEAD
+            # public master does not exist yet — start from source commit
+            git checkout -B public-master "$SOURCE_SHA"
           fi
 
           # Exclude workflow files from public mirror
