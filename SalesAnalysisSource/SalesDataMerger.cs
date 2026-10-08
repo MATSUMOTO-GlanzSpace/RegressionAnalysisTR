@@ -43,27 +43,27 @@ public abstract class SalesDataMerger : DataMerger
 			var weatherTable = ReadCsv(_csvWeatherPath);
 			var unitsTable = ReadCsv(_csvUnitsPath);
 
-			// LINQ JOIN
+			// LINQ JOIN（日本語列名で統一）
 			var query = from s in salesTable.AsEnumerable()
-						join w in weatherTable.AsEnumerable() on new { year = s.Field<string>("year"), month = s.Field<string>("month") }
-							equals new { year = w.Field<string>("year"), month = w.Field<string>("month") }
-						join u in unitsTable.AsEnumerable() on s.Field<string>("variety")
-							equals u.Field<string>("variety")
+					join w in weatherTable.AsEnumerable() on new { year = s.Field<string>("年"), month = s.Field<string>("月") }
+						equals new { year = w.Field<string>("年"), month = w.Field<string>("月") }
+						join u in unitsTable.AsEnumerable() on s.Field<string>("品種")
+							equals u.Field<string>("品種")
 						select new
 						{
-							部門 = s.Field<string>("department"),
-							大分類 = s.Field<string>("primary_item"),
-							中分類 = s.Field<string>("secondary_item"),
-							品種 = s.Field<string>("variety"),
-							年 = s.Field<string>("year"),
-							月 = s.Field<string>("month"),
-							売上 = s.Field<string>("sales"),
-							平均気温 = w.Field<string>("average_temperature"),
-							最高気温 = w.Field<string>("maximum_temperature"),
-							最低気温 = w.Field<string>("lowest_temperature"),
-							降水量合計 = w.Field<string>("precipitation"),
-							日照時間 = w.Field<string>("sunshine_hours"),
-							単位 = u.Field<string>("unit")
+							部門 = s.Field<string>("部門"),
+							大分類 = s.Field<string>("大分類"),
+							中分類 = s.Field<string>("中分類"),
+							品種 = s.Field<string>("品種"),
+							年 = s.Field<string>("年"),
+							月 = s.Field<string>("月"),
+							売上 = s.Field<string>("売上"),
+							平均気温 = w.Field<string>("平均気温(℃)"),
+							最高気温 = w.Field<string>("最高気温(℃)"),
+							最低気温 = w.Field<string>("最低気温(℃)"),
+							降水量合計 = w.Field<string>("降水量の合計(mm)"),
+							日照時間 = w.Field<string>("日照時間(時間)"),
+							単位 = u.Field<string>("単位")
 						};
 
 			// DataMerger の共通フィルタ適用メソッドを利用
