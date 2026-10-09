@@ -44,7 +44,8 @@ jobs:
           if git ls-remote --exit-code public refs/heads/master; then
             git fetch public master
             git checkout -B public-master public/master
-            git merge --no-ff --no-edit source-for-public
+            # public/master を空履歴へ作り直した直後でも同期できるようにする
+            git merge --allow-unrelated-histories --no-ff --no-edit source-for-public
           else
             # public master does not exist yet — use sanitized source directly
             git checkout -B public-master source-for-public
