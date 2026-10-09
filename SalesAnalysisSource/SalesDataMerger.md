@@ -103,13 +103,51 @@ Filters → SQL WHERE句生成 → ExecuteMergedSqlQuery() → SQL実行 → DbD
 | 列名マッピング | リフレクション（ConvertToDataTable） | AS エイリアス（SQL SELECT） |
 | MergedColumnToSqlMapping | 不要 | 必須 |
 
+## 新しい DataMerger（例：NewCsvDataMerger / NewMySqlDataMerger）追加手順
+
+### A. マージあり（複数ファイル/複数テーブル）
+
+1. クラスを追加（`SalesDataMerger` 継承）
+   - CSV: `NewCsvDataMerger(fileA, fileB, ...)`
+   - MySQL: `NewMySqlDataMerger(tableA, tableB, ...)`
+2. マージ仕様を定義
+   - `GetJoinSpecification()` で JOIN キーを定義
+3. `GetMergedDataTableCore()` を実装
+   - CSV: 読み込み → JOIN（LINQ）→ `ApplyFilters(...)` → DataTable 化
+   - MySQL: JOIN 句生成 → `BuildSqlWhereClause(...)` で WHERE 生成 → SQL 実行
+4. フィルタ処理を必ず有効化
+   - CSV: `ApplyFilters(...)` を通す
+   - MySQL: `BuildSqlWhereClause(...)` の戻り値を SQL に連結し、生成パラメータを `ExecuteMergedSqlQuery(...)` へ渡す
+5. 列名を統一
+   - `GetMergedDataTableColumnNames()` の列順と、CSV 投影 / SQL `AS` エイリアスを一致させる
+
+### B. マージなし（単一ファイル/単一テーブル）
+
+1. クラスを追加（`SalesDataMerger` 継承）
+   - CSV: `NewCsvDataMerger(filePath)`
+   - MySQL: `NewMySqlDataMerger(tableName)`
+2. `GetMergedDataTableCore()` を実装
+   - CSV: 読み込み → 必要列へ投影 → `ApplyFilters(...)` → DataTable 化
+   - MySQL: 単一テーブル SELECT を構築 → `BuildSqlWhereClause(...)` を適用
+3. フィルタ処理を必ず有効化
+   - マージなしでも、CSV は述語フィルタ、MySQL は WHERE + パラメータを必須で適用
+4. 列名を統一
+   - `GetMergedDataTableColumnNames()` の列順と、投影結果/SQL エイリアスを一致させる
+
+### 実装時の注意（共通）
+
+- MySQL では `BuildSqlWhereClause(...)` で生成されたプレースホルダ名（例: `@p0`）と、実際に作成する `DbParameter.ParameterName` を一致させる。
+- `BuildSqlJoinClauses(...)` が返す JOIN 句に余計な記号（`{}` など）を混入させない。
+- 追加後は UI 側で列コンボ（目的変数/説明変数/フィルタ列）に列名が出ることを確認する。
+
 ## 派生実装のチェックリスト
 
 - [ ] `SalesDataMerger` を継承
 - [ ] `GetMergedDataTableCore()` を実装
-- [ ] `ConvertToDataTable<T>()` を実装
+- [ ] `GetMergedDataTableColumnNames()` の列定義と実データ列を一致
+- [ ] `ConvertToDataTable<T>()` を実装（必要な場合）
 - [ ] DB の場合：`GetDbConnection()`、`MergedColumnToSqlMapping` を実装
-- [ ] フィルタ・SQL WHERE 句生成は基底メソッドを利用
+- [ ] フィルタ処理（CSV: `ApplyFilters` / MySQL: `BuildSqlWhereClause`）を有効化
 
 ## 設計上の注意点
 
@@ -119,6 +157,7 @@ Filters → SQL WHERE句生成 → ExecuteMergedSqlQuery() → SQL実行 → DbD
 
 ## 変更履歴
 
+- **2026-10-09**：新規 DataMerger 追加手順を追記（マージあり/なしを分離、両方でフィルタ適用必須を明記）。
 - **2026-10-09**：SalesDataMerger説明書を再作成。テンプレートメソッド設計、CSV（複数・単一）、MySQLの実装例を記載。
 
 
