@@ -29,19 +29,8 @@ public abstract class SalesDataMerger : DataMerger
 	/// <summary>
 	/// CSV ファイルから Sales/Weather/Units の結合データ取得
 	/// </summary>
-	public class CsvSalesDataMerger : SalesDataMerger
+	public class CsvSalesDataMerger(string csvSalesPath, string csvWeatherPath, string csvUnitsPath) : SalesDataMerger
 	{
-		private readonly string _csvSalesPath;
-		private readonly string _csvWeatherPath;
-		private readonly string _csvUnitsPath;
-
-		public CsvSalesDataMerger(string csvSalesPath, string csvWeatherPath, string csvUnitsPath)
-		{
-			_csvSalesPath = csvSalesPath;
-			_csvWeatherPath = csvWeatherPath;
-			_csvUnitsPath = csvUnitsPath;
-		}
-
 		/// <summary>
 		/// CSV データ用 JOIN 仕様（デッドコード）
 		/// 
@@ -59,9 +48,9 @@ public abstract class SalesDataMerger : DataMerger
 		protected override DataTable GetMergedDataTableCore()
 		{
 			// CSV ファイルを DataTable に読み込み（共通 Helper 利用）
-			var salesTable = ReadCsv(_csvSalesPath);
-			var weatherTable = ReadCsv(_csvWeatherPath);
-			var unitsTable = ReadCsv(_csvUnitsPath);
+			var salesTable = ReadCsv(csvSalesPath);
+			var weatherTable = ReadCsv(csvWeatherPath);
+			var unitsTable = ReadCsv(csvUnitsPath);
 
 			// LINQ to DataSet で JOIN を実装
 			// 複数キーJOIN対応：year と month で weather テーブルと JOIN、品種で units テーブルと JOIN
