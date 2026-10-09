@@ -18,7 +18,7 @@ public abstract class SalesDataMerger : DataMerger
 	/// <summary>
 	/// マージ後の統一列名 -> SQL エイリアス付きカラムのマッピング
 	/// </summary>
-	public virtual Dictionary<string, string> MergedColumnToSqlMapping { get; } = [];
+	public override Dictionary<string, string> MergedColumnToSqlMapping { get; } = [];
 
 	/// <summary>
 	/// JOIN 仕様を定義（MySQL側で実装）
@@ -156,8 +156,8 @@ public abstract class SalesDataMerger : DataMerger
 		public override JoinSpecification GetJoinSpecification()
 		{
 			return new JoinSpecification()
-				.Join("sales", new[] { "year", "month" }, "weather", new[] { "year", "month" })
-				.Join("sales", new[] { "variety" }, "units", new[] { "variety" });
+				.Join(salesTable, new[] { "year", "month" }, weatherTable, new[] { "year", "month" })
+				.Join(salesTable, new[] { "variety" }, unitsTable, new[] { "variety" });
 		}
 
 		/// <summary>
