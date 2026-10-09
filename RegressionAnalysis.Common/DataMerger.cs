@@ -544,7 +544,7 @@ namespace RegressionAnalysis.Common
 							cond.LeftKeys.Zip(cond.RightKeys, 
 								(lk, rk) => $"{leftAlias}.{lk} = {rightAlias}.{rk}"));
 
-						clauses.AppendLine($"INNER JOIN {{{cond.RightTable}}} {rightAlias} ON {joinKeys}");
+						clauses.AppendLine($"INNER JOIN {cond.RightTable} {rightAlias} ON {joinKeys}");
 					}
 					return clauses.ToString();
 				}

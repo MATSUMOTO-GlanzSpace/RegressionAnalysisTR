@@ -180,7 +180,7 @@ public abstract class SalesDataMerger : DataMerger
 			// DataMerger の共通 SQL フィルタ生成を利用（generic版）
 			var whereSql = BuildSqlWhereClause<MySqlParameter>(
 				"sales", 
-				(fieldName, value) => new MySqlParameter($"@p{Guid.NewGuid():N}", value),
+				(paramName, value) => new MySqlParameter(paramName, value),
 				out var parameters);
 
 			string sql = $@"
