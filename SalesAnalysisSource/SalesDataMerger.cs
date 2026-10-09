@@ -21,6 +21,12 @@ public abstract class SalesDataMerger : DataMerger
 	public virtual Dictionary<string, string> MergedColumnToSqlMapping { get; } = [];
 
 	/// <summary>
+	/// JOIN 仕様を定義（CSV/MySQLなど、データソース固有の JOIN キーを明示）
+	/// 派生クラスで override して、使用するテーブル・キーを指定
+	/// </summary>
+	public abstract JoinSpecification GetJoinSpecification();
+
+	/// <summary>
 	/// CSV ファイルから Sales/Weather/Units の結合データ取得
 	/// </summary>
 	public class CsvSalesDataMerger : SalesDataMerger
@@ -34,6 +40,16 @@ public abstract class SalesDataMerger : DataMerger
 			_csvSalesPath = csvSalesPath;
 			_csvWeatherPath = csvWeatherPath;
 			_csvUnitsPath = csvUnitsPath;
+		}
+
+		/// <summary>
+		/// CSV データ用 JOIN 仕様の定義
+		/// </summary>
+		public override JoinSpecification GetJoinSpecification()
+		{
+			return new JoinSpecification()
+				.Join("sales", new[] { "年", "月" }, "weather", new[] { "年", "月" })
+				.Join("sales", new[] { "品種" }, "units", new[] { "品種" });
 		}
 
 		protected override DataTable GetMergedDataTableCore()
@@ -119,6 +135,16 @@ public abstract class SalesDataMerger : DataMerger
 		};
 
 		/// <summary>
+		/// MySQL データ用 JOIN 仕様の定義
+		/// </summary>
+		public override JoinSpecification GetJoinSpecification()
+		{
+			return new JoinSpecification()
+				.Join("sales", new[] { "year", "month" }, "weather", new[] { "year", "month" })
+				.Join("sales", new[] { "variety" }, "units", new[] { "variety" });
+		}
+
+		/// <summary>
 		/// MySQL データベース接続を取得
 		/// </summary>
 		protected override DbConnection GetDbConnection()
@@ -128,10 +154,15 @@ public abstract class SalesDataMerger : DataMerger
 
 		/// <summary>
 		/// MySQL テーブル結合ロジック実装
+		/// GetJoinSpecification() から SQL JOIN 句を自動生成
 		/// </summary>
 		/// <returns>結合データテーブル</returns>
 		protected override DataTable GetMergedDataTableCore()
 		{
+			// GetJoinSpecification() から JOIN 条件を取得して SQL JOIN 句を自動生成
+			var joinSpec = GetJoinSpecification();
+			var joinClauses = BuildSqlJoinClauses(joinSpec);
+
 			// DataMerger の共通 SQL フィルタ生成を利用（generic版）
 			var whereSql = BuildSqlWhereClause<MySqlParameter>(
 				"sales", 
@@ -143,13 +174,14 @@ public abstract class SalesDataMerger : DataMerger
 					   w.average_temperature AS 平均気温, w.maximum_temperature AS 最高気温, w.lowest_temperature AS 最低気温,
 					   w.precipitation AS 降水量合計, w.sunshine_hours AS 日照時間, u.unit AS 単位
 				FROM {salesTable} s
-				INNER JOIN {weatherTable} w ON s.year = w.year AND s.month = w.month
-				INNER JOIN {unitsTable} u ON s.variety = u.variety
+				{joinClauses}
 				{whereSql}
-			";
+				";
 
 			// 共通 SQL 実行メソッドへ委譲（generic版）
 			return ExecuteMergedSqlQuery<MySqlParameter>(sql, parameters);
 		}
+
+
 	}
 }

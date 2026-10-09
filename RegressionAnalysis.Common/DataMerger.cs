@@ -517,15 +517,38 @@ namespace RegressionAnalysis.Common
 		/// <typeparam name="T">クエリ結果の型</typeparam>
 		/// <param name="query">対象のクエリ結果</param>
 		/// <returns>変換後の DataTable</returns>
-		protected virtual DataTable ApplyFiltersAndConvertToDataTable<T>(IEnumerable<T> query)
-		{
-			// フィルタを適用（ApplyFilters へ委譲）
-			var filteredQuery = ApplyFilters(query);
+			protected virtual DataTable ApplyFiltersAndConvertToDataTable<T>(IEnumerable<T> query)
+			{
+				// フィルタを適用（ApplyFilters へ委譲）
+				var filteredQuery = ApplyFilters(query);
 
-			// DataTable に変換
-			return ConvertToDataTable(filteredQuery);
+				// DataTable に変換
+				return ConvertToDataTable(filteredQuery);
+			}
+
+			/// <summary>
+			/// JOIN 仕様から SQL JOIN 句を自動生成
+			/// 複数キー対応、複数 JOIN 対応
+			/// </summary>
+			protected string BuildSqlJoinClauses(JoinSpecification spec)
+			{
+				var clauses = new System.Text.StringBuilder();
+				foreach (var cond in spec.Conditions)
+				{
+					// テーブルエイリアスのマッピング
+					var leftAlias = cond.LeftTable.Length > 0 ? cond.LeftTable[0].ToString().ToLower() : "l";
+					var rightAlias = cond.RightTable.Length > 0 ? cond.RightTable[0].ToString().ToLower() : "r";
+
+					// キーの結合条件を生成（複数キー対応）
+					var joinKeys = string.Join(" AND ", 
+						cond.LeftKeys.Zip(cond.RightKeys, 
+							(lk, rk) => $"{leftAlias}.{lk} = {rightAlias}.{rk}"));
+
+					clauses.AppendLine($"INNER JOIN {{{cond.RightTable}}} {rightAlias} ON {joinKeys}");
+				}
+				return clauses.ToString();
+			}
 		}
-	}
 
 	/// <summary>
 	/// フィルタ要素基底レコード
@@ -550,5 +573,35 @@ namespace RegressionAnalysis.Common
 	/// フィルタグループ終了レコード")"
 	/// </summary>
 	public record FilterGroupEnd() : FilterElement;
+}
+
+/// <summary>
+/// JOIN 条件（複数テーブルの結合キーを定義）
+/// CSV、MySQL、その他データソース共通で使用可能
+/// </summary>
+public record JoinCondition(
+	string LeftTable,
+	string[] LeftKeys,
+	string RightTable,
+	string[] RightKeys);
+
+/// <summary>
+/// JOIN 仕様（複数の JOIN 条件を保持）
+/// JSON、YAML などのメタデータから自動生成も可能
+/// </summary>
+public class JoinSpecification
+{
+	public List<JoinCondition> Conditions { get; } = [];
+
+	/// <summary>
+	/// JOIN 条件をビルダーパターンで追加
+	/// </summary>
+	public JoinSpecification Join(
+		string leftTable, string[] leftKeys,
+		string rightTable, string[] rightKeys)
+	{
+		Conditions.Add(new JoinCondition(leftTable, leftKeys, rightTable, rightKeys));
+		return this;
+	}
 }
 
