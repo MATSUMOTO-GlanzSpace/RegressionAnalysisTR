@@ -16,6 +16,15 @@ public abstract class SalesDataMerger : DataMerger
 	}
 
 	/// <summary>
+	/// マージ後の列名一覧
+	/// </summary>
+	public override string[] GetMergedDataTableColumnNames() =>
+	[
+		"部門", "大分類", "中分類", "品種", "年", "月", "売上",
+		"平均気温", "最高気温", "最低気温", "降水量合計", "日照時間", "単位"
+	];
+
+	/// <summary>
 	/// マージ後の統一列名 -> SQL エイリアス付きカラムのマッピング
 	/// </summary>
 	public override Dictionary<string, string> MergedColumnToSqlMapping { get; } = [];
