@@ -37,31 +37,5 @@ namespace HousingAnalysisSource
 			selectFileDialog.Filter = "CSVファイル (*.csv)|*.csv|すべてのファイル (*.*)|*.*";
 		}
 
-		/// <summary>
-		/// (CSV)分析データを読み込むボタンがクリックされるときに発生するイベント ハンドラー
-		/// </summary>
-		/// <param name="sender">イベントの送信元</param>
-		/// <param name="e">イベント データ</param>
-		private void BtnLoadCSVAnalysisData_Click(object sender, EventArgs e)
-		{
-			// CSVデータソースマージャー生成（実際のデータ取得は呼出し側で遅延実行する）
-			var csvMerger = new HousingDataMerger.CsvHousingDataMerger(TxtHousingCSVFileName.Text);
-			// DataMerger を保持
-			DataMerger = csvMerger;
-		}
-
-		// イベントハンドラー定義
-		/// <summary>
-		/// 住宅価格CSVファイルを選択するボタンがクリックされたときに発生するイベント ハンドラー
-		/// </summary>
-		/// <param name="sender">イベントの送信元</param>
-		/// <param name="e">イベント データ</param>
-		private void BtnSelectHousingCSVFile_Click(object sender, EventArgs e)
-		{
-			selectFileDialog.Title = "住宅価格CSVファイルを選択してください";
-			selectFileDialog.FileName = TxtHousingCSVFileName.Text;
-			if (selectFileDialog.ShowDialog(this) == DialogResult.OK)
-				TxtHousingCSVFileName.Text = selectFileDialog.FileName;
-		}
 	}
 }
