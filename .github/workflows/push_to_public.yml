@@ -40,16 +40,9 @@ jobs:
             git commit -m "chore: exclude workflow files from public mirror"
           fi
 
-          # Fetch public/master if exists, then merge sanitized source
-          if git ls-remote --exit-code public refs/heads/master; then
-            git fetch public master
-            git checkout -B public-master public/master
-            # public/master を空履歴へ作り直した直後でも同期できるようにする
-            git merge --allow-unrelated-histories --no-ff --no-edit source-for-public
-          else
-            # public master does not exist yet — use sanitized source directly
-            git checkout -B public-master source-for-public
-          fi
+          # Always mirror sanitized source as public/master
+          # （公開側で履歴を作り直した後でも競合なく同期するため、merge ではなく上書き同期）
+          git checkout -B public-master source-for-public
 
-          # push merged result to public master (non-forced)
-          git push public public-master:master
+          # push mirrored result to public master (forced)
+          git push public public-master:master --force
