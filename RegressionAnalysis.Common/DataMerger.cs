@@ -526,29 +526,135 @@ namespace RegressionAnalysis.Common
 				return ConvertToDataTable(filteredQuery);
 			}
 
-			/// <summary>
-			/// JOIN 仕様から SQL JOIN 句を自動生成
-			/// 複数キー対応、複数 JOIN 対応
-			/// </summary>
-			protected string BuildSqlJoinClauses(JoinSpecification spec)
-			{
-				var clauses = new System.Text.StringBuilder();
-				foreach (var cond in spec.Conditions)
+				/// <summary>
+				/// JOIN 仕様から SQL JOIN 句を自動生成
+				/// 複数キー対応、複数 JOIN 対応
+				/// </summary>
+				protected string BuildSqlJoinClauses(JoinSpecification spec)
 				{
-					// テーブルエイリアスのマッピング
-					var leftAlias = cond.LeftTable.Length > 0 ? cond.LeftTable[0].ToString().ToLower() : "l";
-					var rightAlias = cond.RightTable.Length > 0 ? cond.RightTable[0].ToString().ToLower() : "r";
+					var clauses = new System.Text.StringBuilder();
+					foreach (var cond in spec.Conditions)
+					{
+						// テーブルエイリアスのマッピング
+						var leftAlias = cond.LeftTable.Length > 0 ? cond.LeftTable[0].ToString().ToLower() : "l";
+						var rightAlias = cond.RightTable.Length > 0 ? cond.RightTable[0].ToString().ToLower() : "r";
 
-					// キーの結合条件を生成（複数キー対応）
-					var joinKeys = string.Join(" AND ", 
-						cond.LeftKeys.Zip(cond.RightKeys, 
-							(lk, rk) => $"{leftAlias}.{lk} = {rightAlias}.{rk}"));
+						// キーの結合条件を生成（複数キー対応）
+						var joinKeys = string.Join(" AND ", 
+							cond.LeftKeys.Zip(cond.RightKeys, 
+								(lk, rk) => $"{leftAlias}.{lk} = {rightAlias}.{rk}"));
 
-					clauses.AppendLine($"INNER JOIN {{{cond.RightTable}}} {rightAlias} ON {joinKeys}");
+						clauses.AppendLine($"INNER JOIN {{{cond.RightTable}}} {rightAlias} ON {joinKeys}");
+					}
+					return clauses.ToString();
 				}
-				return clauses.ToString();
+
+				/// <summary>
+				/// JOIN 仕様から LINQ JOIN を自動適用（CSV 側用）
+				/// 複数 DataTable を JoinSpecification に基づいて逐次 JOIN
+				/// </summary>
+				/// <param name="tableMap">テーブル名 -> DataTable のマップ</param>
+				/// <param name="spec">JOIN 仕様</param>
+				/// <returns>JOIN 結果の IEnumerable（各要素は { Left = ..., Right = ... } 形式）</returns>
+				protected virtual IEnumerable<dynamic> ApplyJoinSpecification(
+					Dictionary<string, DataTable> tableMap, 
+					JoinSpecification spec)
+				{
+					if (spec.Conditions.Count == 0)
+					{
+						// JOIN が指定されない場合は yield break
+						yield break;
+					}
+
+					// 最初の JOIN 条件から左テーブルを取得
+					var firstCond = spec.Conditions[0];
+					var leftTableName = firstCond.LeftTable.ToLower();
+
+					if (!tableMap.ContainsKey(leftTableName))
+					{
+						yield break;
+					}
+
+					var leftTable = tableMap[leftTableName];
+					IEnumerable<dynamic> current = leftTable.AsEnumerable().Cast<dynamic>();
+
+					// 各 JOIN 条件を逐次適用
+					foreach (var cond in spec.Conditions)
+					{
+						var rightTableName = cond.RightTable.ToLower();
+						if (!tableMap.ContainsKey(rightTableName))
+						{
+							continue;
+						}
+
+						var rightTable = tableMap[rightTableName];
+						var leftKeySelectors = cond.LeftKeys;
+						var rightKeySelectors = cond.RightKeys;
+
+						if (leftKeySelectors.Length == 1)
+						{
+							// 単一キー JOIN
+							var leftKey = leftKeySelectors[0];
+							var rightKey = rightKeySelectors[0];
+
+							current = current.Join(
+								rightTable.AsEnumerable(),
+								leftRow =>
+								{
+									try
+									{
+										// leftRow が DataRow の場合と dynamic 匿名型の場合に対応
+										if (leftRow is DataRow dr)
+											return dr.Field<string>(leftKey)?? "";
+										else
+											return ((dynamic)leftRow).Left.Field<string>(leftKey) ?? "";
+									}
+									catch
+									{
+										return "";
+									}
+								},
+								rightRow => rightRow.Field<string>(rightKey) ?? "",
+								(left, right) => (dynamic)new { Left = left, Right = right });
+						}
+						else
+						{
+							// 複数キー JOIN（文字列結合）
+							current = current.Join(
+								rightTable.AsEnumerable(),
+								leftRow =>
+								{
+									try
+									{
+										DataRow dataRow;
+										if (leftRow is DataRow dr)
+											dataRow = dr;
+										else
+											dataRow = ((dynamic)leftRow).Left;
+
+										var keyParts = leftKeySelectors.Select(k => dataRow.Field<string>(k) ?? "");
+										return string.Join("|", keyParts);
+									}
+									catch
+									{
+										return "";
+									}
+								},
+								rightRow =>
+								{
+									var keyParts = rightKeySelectors.Select(k => rightRow.Field<string>(k) ?? "");
+									return string.Join("|", keyParts);
+								},
+								(left, right) => (dynamic)new { Left = left, Right = right });
+						}
+					}
+
+					foreach (var item in current)
+					{
+						yield return item;
+					}
+				}
 			}
-		}
 
 	/// <summary>
 	/// フィルタ要素基底レコード

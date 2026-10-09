@@ -21,8 +21,8 @@ public abstract class SalesDataMerger : DataMerger
 	public virtual Dictionary<string, string> MergedColumnToSqlMapping { get; } = [];
 
 	/// <summary>
-	/// JOIN 仕様を定義（CSV/MySQLなど、データソース固有の JOIN キーを明示）
-	/// 派生クラスで override して、使用するテーブル・キーを指定
+	/// JOIN 仕様を定義（MySQL側で実装）
+	/// CSV側は LINQ to DataSet で直接 JOIN を記述するため実装しない
 	/// </summary>
 	public abstract JoinSpecification GetJoinSpecification();
 
@@ -43,7 +43,11 @@ public abstract class SalesDataMerger : DataMerger
 		}
 
 		/// <summary>
-		/// CSV データ用 JOIN 仕様の定義
+		/// CSV データ用 JOIN 仕様（デッドコード）
+		/// 
+		/// 仕様定義のため残している。
+		/// 実装：GetMergedDataTableCore() 内で LINQ to DataSet により実現
+		/// （複数キーJOINの複雑な結果処理を回避し、可読性を維持）
 		/// </summary>
 		public override JoinSpecification GetJoinSpecification()
 		{
@@ -59,28 +63,31 @@ public abstract class SalesDataMerger : DataMerger
 			var weatherTable = ReadCsv(_csvWeatherPath);
 			var unitsTable = ReadCsv(_csvUnitsPath);
 
-			// LINQ JOIN（日本語列名で統一）
+			// LINQ to DataSet で JOIN を実装
+			// 複数キーJOIN対応：year と month で weather テーブルと JOIN、品種で units テーブルと JOIN
+			//
 			var query = from s in salesTable.AsEnumerable()
-					join w in weatherTable.AsEnumerable() on new { year = s.Field<string>("年"), month = s.Field<string>("月") }
+					join w in weatherTable.AsEnumerable() 
+						on new { year = s.Field<string>("年"), month = s.Field<string>("月") }
 						equals new { year = w.Field<string>("年"), month = w.Field<string>("月") }
-						join u in unitsTable.AsEnumerable() on s.Field<string>("品種")
-							equals u.Field<string>("品種")
-						select new
-						{
-							部門 = s.Field<string>("部門"),
-							大分類 = s.Field<string>("大分類"),
-							中分類 = s.Field<string>("中分類"),
-							品種 = s.Field<string>("品種"),
-							年 = s.Field<string>("年"),
-							月 = s.Field<string>("月"),
-							売上 = s.Field<string>("売上"),
-							平均気温 = w.Field<string>("平均気温(℃)"),
-							最高気温 = w.Field<string>("最高気温(℃)"),
-							最低気温 = w.Field<string>("最低気温(℃)"),
-							降水量合計 = w.Field<string>("降水量の合計(mm)"),
-							日照時間 = w.Field<string>("日照時間(時間)"),
-							単位 = u.Field<string>("単位")
-						};
+					join u in unitsTable.AsEnumerable() 
+						on s.Field<string>("品種") equals u.Field<string>("品種")
+					select new
+					{
+						部門 = s.Field<string>("部門"),
+						大分類 = s.Field<string>("大分類"),
+						中分類 = s.Field<string>("中分類"),
+						品種 = s.Field<string>("品種"),
+						年 = s.Field<string>("年"),
+						月 = s.Field<string>("月"),
+						売上 = s.Field<string>("売上"),
+						平均気温 = w.Field<string>("平均気温(℃)"),
+						最高気温 = w.Field<string>("最高気温(℃)"),
+						最低気温 = w.Field<string>("最低気温(℃)"),
+						降水量合計 = w.Field<string>("降水量の合計(mm)"),
+						日照時間 = w.Field<string>("日照時間(時間)"),
+						単位 = u.Field<string>("単位")
+					};
 
 			// DataMerger の共通フィルタ適用メソッドを利用
 			var filteredQuery = ApplyFilters(query);
@@ -101,11 +108,20 @@ public abstract class SalesDataMerger : DataMerger
 			mergedTable.Columns.Add("日照時間");
 			mergedTable.Columns.Add("単位");
 
-			// 結合データを DataTable に追加
+			// 結合データを DataTable に追加（SQL結果と同様にフラットなデータが取得される）
 			foreach (var row in filteredQuery)
 			{
-				mergedTable.Rows.Add(row.部門, row.大分類, row.中分類, row.品種, row.年, row.月, row.売上,
-					row.平均気温, row.最高気温, row.最低気温, row.降水量合計, row.日照時間, row.単位);
+				try
+				{
+					mergedTable.Rows.Add(
+						row.部門, row.大分類, row.中分類, row.品種, row.年, row.月, row.売上,
+						row.平均気温, row.最高気温, row.最低気温, row.降水量合計, row.日照時間, row.単位);
+				}
+				catch (Exception ex)
+				{
+					LogError(new Exception($"行データ変換エラー: {ex.Message}", ex));
+					continue;
+				}
 			}
 
 			return mergedTable;
