@@ -12,8 +12,8 @@
 
 DataMerger（基底クラス）
 ├── SalesDataMerger（中間：Sales領域固有） 
-│   ├── CsvSalesDataMerger（複数/単一 CSV） 
-│   └── MySqlSalesDataMerger（MySQL） 
+│   ├── SalesDataMerger.CsvSalesDataMerger（複数/単一 CSV） 
+│   └── SalesDataMerger.MySqlSalesDataMerger（MySQL） 
 └── その他の派生クラス
 
 ## 実装パターン
