@@ -11,6 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\HousingAnalysisSource\HousingAnalysisSource.csproj" />
     <ProjectReference Include="..\SalesAnalysisSource\SalesAnalysisSource.csproj" />
   </ItemGroup>
 
