@@ -308,7 +308,16 @@ namespace RegressionAnalysis.Common
 		private static double CalcOneSidedPValue(double t, int degreesOfFreedom)
 		{
 			var dist = new StudentT(0, 1, degreesOfFreedom);
-			return 1 - dist.CumulativeDistribution(Math.Abs(t));
+			return dist.CumulativeDistribution(-Math.Abs(t));
+		}
+
+		private const double MinDisplayPValue = 1e-308;
+
+		private static string FormatPValue(double value)
+		{
+			return value > 0 && value < MinDisplayPValue
+				? "< 1e-308"
+				: value.ToString("E4");
 		}
 
 		/// <summary>
@@ -417,7 +426,9 @@ namespace RegressionAnalysis.Common
 				int idx = i + 1;
 				// t値・p値の計算
 				double t = CalcTValue(coefficients[idx], se[idx]);
+				//double pOneSided = CalcOneSidedPValue(t, df);
 				double pOneSided = CalcOneSidedPValue(t, df);
+				double pTwoSided = Math.Min(1.0, 2.0 * pOneSided);
 				// VariableStatインスタンスを追加
 				stats.Add(new VariableStat
 				{
@@ -438,6 +449,7 @@ namespace RegressionAnalysis.Common
 			// 結果を返す
 			return result;
 		}
+
 
 		/// <summary>
 		/// 変数ごとの統計情報を表すクラス
@@ -497,8 +509,8 @@ namespace RegressionAnalysis.Common
 				row["変数名"] = stat.VariableName;
 				row["回帰係数"] = colInfo.Coefficient?.Format != null ? stat.Coefficient.ToString(colInfo.Coefficient.Format) : stat.Coefficient;
 				row["VIF"] = colInfo.Vif?.Format != null ? stat.Vif.ToString(colInfo.Vif.Format) : stat.Vif;
-				row["片側p値"] = colInfo.PValueOneSided?.Format != null ? stat.PValueOneSided.ToString(colInfo.PValueOneSided.Format) : stat.PValueOneSided;
-				row["両側p値"] = colInfo.PValueTwoSided?.Format != null ? stat.PValueTwoSided.ToString(colInfo.PValueTwoSided.Format) : stat.PValueTwoSided;
+				row["片側p値"] = colInfo.PValueOneSided?.Format != null ? stat.PValueOneSided.ToString(colInfo.PValueOneSided.Format) : FormatPValue(stat.PValueOneSided);
+				row["両側p値"] = colInfo.PValueTwoSided?.Format != null ? stat.PValueTwoSided.ToString(colInfo.PValueTwoSided.Format) : FormatPValue(stat.PValueTwoSided);
 				// 行をDataTableに追加
 				variableStats.Rows.Add(row);
 			}
