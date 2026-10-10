@@ -10,16 +10,16 @@ public abstract class HousingDataMerger : DataMerger
 	/// <summary>
 	/// マージ後の列名一覧
 	/// </summary>
-	//public override string[] GetMergedDataTableColumnNames() =>
-	//[
-	//	"経度", "緯度", "住宅築年数の中央値", "総部屋数", "総寝室数", "人口", "世帯数",
-	//"世帯収入の中央値", "外洋まで1時間以内", "海岸線の近く", "湾沿い", "島しょ部", "住宅価格の中央値"
-	//];
+	public override string[] GetMergedDataTableColumnNames() =>
+	[
+		"経度", "緯度", "住宅築年数の中央値", "総部屋数", "総寝室数", "人口", "世帯数",
+	"世帯収入の中央値", "外洋まで1時間以内", "海岸線の近く", "湾沿い", "島しょ部", "住宅価格の中央値"
+	];
 
 	/// <summary>
 	/// マージ後の統一列名 -> SQL エイリアス付きカラムのマッピング
 	/// </summary>
-	//public override Dictionary<string, string> MergedColumnToSqlMapping { get; } = [];
+	public override Dictionary<string, string> MergedColumnToSqlMapping { get; } = [];
 
 	/// <summary>
 	/// CSV ファイルから Housing の結合データ取得
@@ -42,7 +42,7 @@ public abstract class HousingDataMerger : DataMerger
 							総寝室数 = s.Field<string>("total_bedrooms"),
 							人口 = s.Field<string>("population"),
 							世帯数 = s.Field<string>("households"),
-							世帯収入の中央値 = s.Field<string>("median_household_income"),
+							世帯収入の中央値 = s.Field<string>("median_income"),
 							外洋まで1時間以内 = s.Field<string>("OCEAN"),
 							海岸線の近く = s.Field<string>("NEAR_OCEAN"),
 							湾沿い = s.Field<string>("NEAR_BAY"),
