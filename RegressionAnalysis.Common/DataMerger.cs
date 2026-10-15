@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace RegressionAnalysis.Common
@@ -13,6 +14,21 @@ namespace RegressionAnalysis.Common
 	/// </summary>
 	public abstract class DataMerger
 	{
+		private static readonly Regex SafeIdentifierRegex = new(@"^[A-Za-z_][A-Za-z0-9_]*$", RegexOptions.Compiled);
+
+		/// <summary>
+		/// 識別子をクオートで囲む
+		/// </summary>
+		/// <param name="identifier">識別子</param>
+		/// <returns>クオートで囲まれた識別子</returns>
+		protected static string QuoteIdentifier(string identifier)
+		{
+			if (string.IsNullOrWhiteSpace(identifier) || !SafeIdentifierRegex.IsMatch(identifier))
+				throw new InvalidOperationException($"不正な識別子です: {identifier}");
+
+			return $"`{identifier}`";
+		}
+
 		/// <summary>
 		/// 結合データテーブル取得メソッド
 		/// </summary>
@@ -305,8 +321,9 @@ namespace RegressionAnalysis.Common
 					var parts = cond.Field.Split('.', 2);
 					var tbl = parts[0];
 					var col = parts[1];
-					var alias = tbl.Length > 0 ? tbl.Substring(0, 1) : tbl;
-					left = $"{alias}.{col}";
+					_ = QuoteIdentifier(tbl);
+					var alias = tbl.Length > 0 ? tbl.Substring(0, 1).ToLowerInvariant() : tbl; // カルチャ環境に依存しない正規化
+					left = $"{QuoteIdentifier(alias)}.{QuoteIdentifier(col)}";
 				}
 				else if (map.TryGetValue(cond.Field, out var mapped))
 				{
@@ -535,16 +552,19 @@ namespace RegressionAnalysis.Common
 					var clauses = new System.Text.StringBuilder();
 					foreach (var cond in spec.Conditions)
 					{
+						_ = QuoteIdentifier(cond.LeftTable);
+						_ = QuoteIdentifier(cond.RightTable);
+
 						// テーブルエイリアスのマッピング
-						var leftAlias = cond.LeftTable.Length > 0 ? cond.LeftTable[0].ToString().ToLower() : "l";
-						var rightAlias = cond.RightTable.Length > 0 ? cond.RightTable[0].ToString().ToLower() : "r";
+						var leftAlias = cond.LeftTable.Length > 0 ? cond.LeftTable[0].ToString().ToLowerInvariant() : "l"; // カルチャ環境に依存しない正規化
+						var rightAlias = cond.RightTable.Length > 0 ? cond.RightTable[0].ToString().ToLowerInvariant() : "r"; // カルチャ環境に依存しない正規化
 
 						// キーの結合条件を生成（複数キー対応）
 						var joinKeys = string.Join(" AND ", 
 							cond.LeftKeys.Zip(cond.RightKeys, 
-								(lk, rk) => $"{leftAlias}.{lk} = {rightAlias}.{rk}"));
+								(lk, rk) => $"{QuoteIdentifier(leftAlias)}.{QuoteIdentifier(lk)} = {QuoteIdentifier(rightAlias)}.{QuoteIdentifier(rk)}"));
 
-						clauses.AppendLine($"INNER JOIN {cond.RightTable} {rightAlias} ON {joinKeys}");
+						clauses.AppendLine($"INNER JOIN {QuoteIdentifier(cond.RightTable)} {QuoteIdentifier(rightAlias)} ON {joinKeys}");
 					}
 					return clauses.ToString();
 				}

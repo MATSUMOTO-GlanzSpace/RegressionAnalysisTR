@@ -11,6 +11,9 @@ namespace SalesAnalysisSource;
 /// </summary>
 public abstract class SalesDataMerger : DataMerger
 {
+	/// <summary>
+	/// コンストラクタ
+	/// </summary>
 	public SalesDataMerger()
 	{
 	}
@@ -54,6 +57,9 @@ public abstract class SalesDataMerger : DataMerger
 				.Join("sales", new[] { "品種" }, "units", new[] { "品種" });
 		}
 
+		/// <summary>
+		/// CSV ファイルから Sales/Weather/Units の結合データ取得
+		/// </summary>
 		protected override DataTable GetMergedDataTableCore()
 		{
 			// CSV ファイルを DataTable に読み込み（共通 Helper 利用）
@@ -126,6 +132,9 @@ public abstract class SalesDataMerger : DataMerger
 		}
 	}
 
+	/// <summary>
+	/// MySQL 用 SalesDataMerger
+	/// </summary>
 	public class MySqlSalesDataMerger(string salesTable, string weatherTable, string unitsTable) : SalesDataMerger
 	{
 		/// <summary>
@@ -187,7 +196,7 @@ public abstract class SalesDataMerger : DataMerger
 				SELECT s.department AS 部門, s.primary_item AS 大分類, s.secondary_item AS 中分類, s.variety AS 品種, s.year AS 年, s.month AS 月, s.sales AS 売上,
 					   w.average_temperature AS 平均気温, w.maximum_temperature AS 最高気温, w.lowest_temperature AS 最低気温,
 					   w.precipitation AS 降水量合計, w.sunshine_hours AS 日照時間, u.unit AS 単位
-				FROM {salesTable} s
+				FROM {QuoteIdentifier(salesTable)} s
 				{joinClauses}
 				{whereSql}
 				";
@@ -195,7 +204,5 @@ public abstract class SalesDataMerger : DataMerger
 			// 共通 SQL 実行メソッドへ委譲（generic版）
 			return ExecuteMergedSqlQuery<MySqlParameter>(sql, parameters);
 		}
-
-
 	}
 }
