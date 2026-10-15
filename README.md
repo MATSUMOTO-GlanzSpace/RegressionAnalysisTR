@@ -54,7 +54,7 @@ appsettings.Development.json を用いて接続文字列等を環境ごとに管
 ```json
 {
   "ConnectionStrings": {
-    "MyDbConnection": "Server=localhost;Port=3306;Database=salesdb;User Id=root;Password=;Connection Timeout=300;"
+    "MySQLSales": "Server=localhost;Port=3306;Database=salesdb;User Id=root;Password=;Connection Timeout=300;"
   }
 }
 ```
@@ -73,43 +73,6 @@ appsettings.Development.json を用いて接続文字列等を環境ごとに管
   - `PUBLIC_REPO_PAT` — 公開リポジトリへ push できる personal access token をリポジトリの Settings → Secrets and variables → Actions に登録してください。
 - ワークフローの場所: `.github/workflows/push_to_public.yml`。
 - 挙動: for_training に push されると該当ワークフローが起動し、公開リポジトリの master を強制更新します（force push）。履歴上書きを避けたい場合はワークフローの `--force` を削除して手動マージに変更してください。
-
----
-
-## 管理者向け: 教材更新・配布フロー
-
-### 1. 非公開 master での修正（管理者のみ）
-
-```bash
-# master にチェックアウト（完成版）
-git checkout master
-
-# 修正を実装・テスト
-# ...修正コード...
-
-# commit して push
-git add .
-git commit -m "Fix: <修正内容>"
-git push origin master
-```
-
-### 2. 修正を演習版（for_training）に反映（管理者）
-
-```bash
-# for_training にチェックアウト
-git checkout for_training
-
-# master から修正のみを取り込む（merge）
-git merge origin/master
-
-# push すると、自動で公開 master に同期される
-git push origin for_training
-```
-
-> **注意**: この時点で、以下が実行されます：
-> - `.github/workflows` 配下は公開側から除外
-> - CI ワークフロー（`ci.yml`）で build/test 実行
-> - 自動同期完了後、履修生が pull 可能
 
 ---
 
