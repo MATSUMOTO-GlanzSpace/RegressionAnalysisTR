@@ -45,5 +45,16 @@ namespace RegressionAnalysis.Common
 			var configuration = builder.Build();
 			return configuration;
 		}
+
+		/// <summary>
+		/// 接続文字列キーの一覧を取得するメソッド
+		/// </summary>
+		/// <returns>接続文字列キーのリスト</returns>
+		public static List<string> GetConnectionStringsKeys()
+		{
+			var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Development";
+			var configuration = CreateConfiguration(environment);
+			return configuration.GetSection("ConnectionStrings").GetChildren().Select(c => c.Key).ToList();
+		}
 	}
 }

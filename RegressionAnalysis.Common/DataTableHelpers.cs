@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using System.Text;
 using Microsoft.VisualBasic.FileIO;
+using MySqlConnector;
 
 namespace RegressionAnalysis.Common
 {
@@ -92,6 +93,36 @@ namespace RegressionAnalysis.Common
 					arr[i][j] = Convert.ToDouble(table.Rows[i][j]);
 			}
 			return arr;
+		}
+
+		/// <summary>
+		/// MySQLデータベースから接続データベースの全テーブル名を取得するメソッド
+		/// </summary>
+		/// <param name="conn">MySqlConnectionオブジェクト</param>
+		/// <returns>テーブル名リスト</returns>
+		public static List<string> GetAllTableNames(MySqlConnection conn)
+		{
+			// テーブル名リスト
+			var tableNames = new List<string>();
+			// SQLクエリで情報スキーマからテーブル名を取得
+			using var cmd = conn.CreateCommand();
+			cmd.CommandText = @"
+				SELECT table_name
+				FROM information_schema.tables
+				WHERE table_schema = @db
+				  AND table_type = 'BASE TABLE'
+				ORDER BY table_name;";
+			cmd.Parameters.AddWithValue("@db", conn.Database);
+
+			// クエリ実行
+			using var reader = cmd.ExecuteReader();
+			// 結果をリストに追加
+			while (reader.Read())
+			{
+				tableNames.Add(reader.GetString(0));
+			}
+			// テーブル名リストを返す
+			return tableNames;
 		}
 
 	}
