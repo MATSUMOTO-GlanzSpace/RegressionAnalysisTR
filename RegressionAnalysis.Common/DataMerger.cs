@@ -4,7 +4,6 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace RegressionAnalysis.Common
@@ -14,19 +13,24 @@ namespace RegressionAnalysis.Common
 	/// </summary>
 	public abstract class DataMerger
 	{
-		private static readonly Regex SafeIdentifierRegex = new(@"^[A-Za-z_][A-Za-z0-9_]*$", RegexOptions.Compiled);
+		/// <summary>
+		/// SQL方言
+		/// </summary>
+		private DBDialect? SqlDialect { get; }
 
 		/// <summary>
-		/// 識別子をクオートで囲む
+		/// SQL方言（必須）
 		/// </summary>
-		/// <param name="identifier">識別子</param>
-		/// <returns>クオートで囲まれた識別子</returns>
-		protected static string QuoteIdentifier(string identifier)
-		{
-			if (string.IsNullOrWhiteSpace(identifier) || !SafeIdentifierRegex.IsMatch(identifier))
-				throw new InvalidOperationException($"不正な識別子です: {identifier}");
+		protected DBDialect RequiredSqlDialect =>
+			SqlDialect ?? throw new InvalidOperationException("SQL方言が設定されていません。");
 
-			return $"`{identifier}`";
+		/// <summary>
+		/// コンストラクタ
+		/// </summary>
+		/// <param name="sqlDialect">SQL方言</param>
+		protected DataMerger(DBDialect? sqlDialect = null)
+		{
+			SqlDialect = sqlDialect;
 		}
 
 		/// <summary>
@@ -294,26 +298,23 @@ namespace RegressionAnalysis.Common
 		public virtual Dictionary<string, string> MergedColumnToSqlMapping { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
 		/// <summary>
-		/// SQL WHERE句生成メソッド（ジェネリック版）
+		/// SQL WHERE句生成メソッド
 		/// </summary>
-		/// <typeparam name="TParameter">パラメータ型（DbParameter 派生）</typeparam>
 		/// <param name="tableName">テーブル別名</param>
-		/// <param name="parameterFactory">パラメータ生成ファクトリ関数</param>
 		/// <param name="parameters">生成されたパラメータリスト</param>
 		/// <returns>WHERE句文字列（例："WHERE s.department = @p0 AND ..."）</returns>
-		public virtual string BuildSqlWhereClause<TParameter>(
+		public virtual string BuildSqlWhereClause(
 			string tableName,
-			Func<string, object, TParameter> parameterFactory,
-			out List<TParameter> parameters)
-			where TParameter : DbParameter
+			out List<DbParameter> parameters)
 		{
 			var clauses = new List<string>();
-			parameters = new List<TParameter>();
+			parameters = new List<DbParameter>();
 			int paramIndex = 0;
 			var map = MergedColumnToSqlMapping ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
+			// フィルタ条件を処理
 			foreach (var cond in Filters.OfType<FilterCondition>())
 			{
+				// フィールド名を正規化して SQL 形式に変換
 				string? left = null;
 				if (cond.Field.Contains('.'))
 				{
@@ -321,9 +322,9 @@ namespace RegressionAnalysis.Common
 					var parts = cond.Field.Split('.', 2);
 					var tbl = parts[0];
 					var col = parts[1];
-					_ = QuoteIdentifier(tbl);
-					var alias = tbl.Length > 0 ? tbl.Substring(0, 1).ToLowerInvariant() : tbl; // カルチャ環境に依存しない正規化
-					left = $"{QuoteIdentifier(alias)}.{QuoteIdentifier(col)}";
+					_ = RequiredSqlDialect.QuoteIdentifier(tbl);
+					var alias = tbl.Length > 0 ? RequiredSqlDialect.NormalizeAlias(tbl.Substring(0, 1)) : tbl; // カルチャ環境に依存しない正規化
+					left = $"{RequiredSqlDialect.QuoteIdentifier(alias)}.{RequiredSqlDialect.QuoteIdentifier(col)}";
 				}
 				else if (map.TryGetValue(cond.Field, out var mapped))
 				{
@@ -338,21 +339,23 @@ namespace RegressionAnalysis.Common
 				// left が null でないことを確認
 				if (string.IsNullOrEmpty(left)) continue;
 
+				// パラメータ名を生成
 				var paramName = "@p" + paramIndex;
 				var condTrim = cond.Condition.Trim();
 				if (condTrim.StartsWith("LIKE", StringComparison.OrdinalIgnoreCase))
 				{
 					clauses.Add($"{(string.IsNullOrEmpty(cond.Logic) ? "" : cond.Logic + " ")}{left} LIKE {paramName}");
 					var pattern = condTrim.Substring(4).Trim().Trim('\'', '"');
-					parameters.Add(parameterFactory(paramName, pattern));
+					parameters.Add(RequiredSqlDialect.CreateParameter(paramName, pattern));
 				}
 				else
 				{
 					clauses.Add($"{(string.IsNullOrEmpty(cond.Logic) ? "" : cond.Logic + " ")}{left} = {paramName}");
-					parameters.Add(parameterFactory(paramName, condTrim.Trim('=', '\'', '"')));
+					parameters.Add(RequiredSqlDialect.CreateParameter(paramName, condTrim.Trim('=', '\'', '"')));
 				}
 				paramIndex++;
 			}
+			// WHERE句を生成
 			return clauses.Count > 0 ? ("WHERE " + string.Join(" ", clauses)) : "";
 		}
 
@@ -370,6 +373,7 @@ namespace RegressionAnalysis.Common
 			var ops = new Stack<string>();
 			foreach (var filter in Filters)
 			{
+				// フィルタ条件を処理
 				if (filter is FilterCondition cond)
 				{
 					// 論理演算子処理
@@ -492,16 +496,14 @@ namespace RegressionAnalysis.Common
 		/// <summary>
 		/// SQLクエリを実行してDataTableを取得（テンプレートメソッド）
 		/// </summary>
-		/// <typeparam name="TParameter">DbParameter 派生型</typeparam>
 		/// <param name="sql">実行するSQL文</param>
 		/// <param name="parameters">パラメータリスト</param>
 		/// <param name="setupCommand">追加のコマンド設定（オプション）</param>
 		/// <returns>クエリ実行結果の DataTable</returns>
-		protected virtual DataTable ExecuteMergedSqlQuery<TParameter>(
+		protected virtual DataTable ExecuteMergedSqlQuery(
 			string sql,
-			List<TParameter> parameters,
+			List<DbParameter> parameters,
 			Action<DbCommand>? setupCommand = null)
-			where TParameter : DbParameter
 		{
 			using var conn = GetDbConnection();
 			using var cmd = conn.CreateCommand();
@@ -534,147 +536,147 @@ namespace RegressionAnalysis.Common
 		/// <typeparam name="T">クエリ結果の型</typeparam>
 		/// <param name="query">対象のクエリ結果</param>
 		/// <returns>変換後の DataTable</returns>
-			protected virtual DataTable ApplyFiltersAndConvertToDataTable<T>(IEnumerable<T> query)
+		protected virtual DataTable ApplyFiltersAndConvertToDataTable<T>(IEnumerable<T> query)
+		{
+			// フィルタを適用（ApplyFilters へ委譲）
+			var filteredQuery = ApplyFilters(query);
+
+			// DataTable に変換
+			return ConvertToDataTable(filteredQuery);
+		}
+
+		/// <summary>
+		/// JOIN 仕様から SQL JOIN 句を自動生成
+		/// 複数キー対応、複数 JOIN 対応
+		/// </summary>
+		protected string BuildSqlJoinClauses(JoinSpecification spec)
+		{
+			var clauses = new System.Text.StringBuilder();
+			foreach (var cond in spec.Conditions)
 			{
-				// フィルタを適用（ApplyFilters へ委譲）
-				var filteredQuery = ApplyFilters(query);
+				_ = RequiredSqlDialect.QuoteIdentifier(cond.LeftTable);
+				_ = RequiredSqlDialect.QuoteIdentifier(cond.RightTable);
 
-				// DataTable に変換
-				return ConvertToDataTable(filteredQuery);
+				// テーブルエイリアスのマッピング
+				var leftAlias = cond.LeftTable.Length > 0 ? RequiredSqlDialect.NormalizeAlias(cond.LeftTable[0].ToString()) : "l"; // カルチャ環境に依存しない正規化
+				var rightAlias = cond.RightTable.Length > 0 ? RequiredSqlDialect.NormalizeAlias(cond.RightTable[0].ToString()) : "r"; // カルチャ環境に依存しない正規化
+
+				// キーの結合条件を生成（複数キー対応）
+				var joinKeys = string.Join(" AND ", 
+					cond.LeftKeys.Zip(cond.RightKeys, 
+						(lk, rk) => $"{RequiredSqlDialect.QuoteIdentifier(leftAlias)}.{RequiredSqlDialect.QuoteIdentifier(lk)} = {RequiredSqlDialect.QuoteIdentifier(rightAlias)}.{RequiredSqlDialect.QuoteIdentifier(rk)}"));
+
+				clauses.AppendLine($"INNER JOIN {RequiredSqlDialect.QuoteIdentifier(cond.RightTable)} {RequiredSqlDialect.QuoteIdentifier(rightAlias)} ON {joinKeys}");
+			}
+			return clauses.ToString();
+		}
+
+		/// <summary>
+		/// JOIN 仕様から LINQ JOIN を自動適用（CSV 側用）
+		/// 複数 DataTable を JoinSpecification に基づいて逐次 JOIN
+		/// </summary>
+		/// <param name="tableMap">テーブル名 -> DataTable のマップ</param>
+		/// <param name="spec">JOIN 仕様</param>
+		/// <returns>JOIN 結果の IEnumerable（各要素は { Left = ..., Right = ... } 形式）</returns>
+		protected virtual IEnumerable<dynamic> ApplyJoinSpecification(
+			Dictionary<string, DataTable> tableMap, 
+			JoinSpecification spec)
+		{
+			if (spec.Conditions.Count == 0)
+			{
+				// JOIN が指定されない場合は yield break
+				yield break;
 			}
 
-				/// <summary>
-				/// JOIN 仕様から SQL JOIN 句を自動生成
-				/// 複数キー対応、複数 JOIN 対応
-				/// </summary>
-				protected string BuildSqlJoinClauses(JoinSpecification spec)
+			// 最初の JOIN 条件から左テーブルを取得
+			var firstCond = spec.Conditions[0];
+			var leftTableName = firstCond.LeftTable.ToLower();
+
+			if (!tableMap.ContainsKey(leftTableName))
+			{
+				yield break;
+			}
+
+			var leftTable = tableMap[leftTableName];
+			IEnumerable<dynamic> current = leftTable.AsEnumerable().Cast<dynamic>();
+
+			// 各 JOIN 条件を逐次適用
+			foreach (var cond in spec.Conditions)
+			{
+				var rightTableName = cond.RightTable.ToLower();
+				if (!tableMap.ContainsKey(rightTableName))
 				{
-					var clauses = new System.Text.StringBuilder();
-					foreach (var cond in spec.Conditions)
-					{
-						_ = QuoteIdentifier(cond.LeftTable);
-						_ = QuoteIdentifier(cond.RightTable);
-
-						// テーブルエイリアスのマッピング
-						var leftAlias = cond.LeftTable.Length > 0 ? cond.LeftTable[0].ToString().ToLowerInvariant() : "l"; // カルチャ環境に依存しない正規化
-						var rightAlias = cond.RightTable.Length > 0 ? cond.RightTable[0].ToString().ToLowerInvariant() : "r"; // カルチャ環境に依存しない正規化
-
-						// キーの結合条件を生成（複数キー対応）
-						var joinKeys = string.Join(" AND ", 
-							cond.LeftKeys.Zip(cond.RightKeys, 
-								(lk, rk) => $"{QuoteIdentifier(leftAlias)}.{QuoteIdentifier(lk)} = {QuoteIdentifier(rightAlias)}.{QuoteIdentifier(rk)}"));
-
-						clauses.AppendLine($"INNER JOIN {QuoteIdentifier(cond.RightTable)} {QuoteIdentifier(rightAlias)} ON {joinKeys}");
-					}
-					return clauses.ToString();
+					continue;
 				}
 
-				/// <summary>
-				/// JOIN 仕様から LINQ JOIN を自動適用（CSV 側用）
-				/// 複数 DataTable を JoinSpecification に基づいて逐次 JOIN
-				/// </summary>
-				/// <param name="tableMap">テーブル名 -> DataTable のマップ</param>
-				/// <param name="spec">JOIN 仕様</param>
-				/// <returns>JOIN 結果の IEnumerable（各要素は { Left = ..., Right = ... } 形式）</returns>
-				protected virtual IEnumerable<dynamic> ApplyJoinSpecification(
-					Dictionary<string, DataTable> tableMap, 
-					JoinSpecification spec)
+				var rightTable = tableMap[rightTableName];
+				var leftKeySelectors = cond.LeftKeys;
+				var rightKeySelectors = cond.RightKeys;
+
+				if (leftKeySelectors.Length == 1)
 				{
-					if (spec.Conditions.Count == 0)
-					{
-						// JOIN が指定されない場合は yield break
-						yield break;
-					}
+					// 単一キー JOIN
+					var leftKey = leftKeySelectors[0];
+					var rightKey = rightKeySelectors[0];
 
-					// 最初の JOIN 条件から左テーブルを取得
-					var firstCond = spec.Conditions[0];
-					var leftTableName = firstCond.LeftTable.ToLower();
-
-					if (!tableMap.ContainsKey(leftTableName))
-					{
-						yield break;
-					}
-
-					var leftTable = tableMap[leftTableName];
-					IEnumerable<dynamic> current = leftTable.AsEnumerable().Cast<dynamic>();
-
-					// 各 JOIN 条件を逐次適用
-					foreach (var cond in spec.Conditions)
-					{
-						var rightTableName = cond.RightTable.ToLower();
-						if (!tableMap.ContainsKey(rightTableName))
+					current = current.Join(
+						rightTable.AsEnumerable(),
+						leftRow =>
 						{
-							continue;
-						}
-
-						var rightTable = tableMap[rightTableName];
-						var leftKeySelectors = cond.LeftKeys;
-						var rightKeySelectors = cond.RightKeys;
-
-						if (leftKeySelectors.Length == 1)
+							try
+							{
+								// leftRow が DataRow の場合と dynamic 匿名型の場合に対応
+								if (leftRow is DataRow dr)
+									return dr.Field<string>(leftKey)?? "";
+								else
+									return ((dynamic)leftRow).Left.Field<string>(leftKey) ?? "";
+							}
+							catch
+							{
+								return "";
+							}
+						},
+						rightRow => rightRow.Field<string>(rightKey) ?? "",
+						(left, right) => (dynamic)new { Left = left, Right = right });
+				}
+				else
+				{
+					// 複数キー JOIN（文字列結合）
+					current = current.Join(
+						rightTable.AsEnumerable(),
+						leftRow =>
 						{
-							// 単一キー JOIN
-							var leftKey = leftKeySelectors[0];
-							var rightKey = rightKeySelectors[0];
+							try
+							{
+								DataRow dataRow;
+								if (leftRow is DataRow dr)
+									dataRow = dr;
+								else
+									dataRow = ((dynamic)leftRow).Left;
 
-							current = current.Join(
-								rightTable.AsEnumerable(),
-								leftRow =>
-								{
-									try
-									{
-										// leftRow が DataRow の場合と dynamic 匿名型の場合に対応
-										if (leftRow is DataRow dr)
-											return dr.Field<string>(leftKey)?? "";
-										else
-											return ((dynamic)leftRow).Left.Field<string>(leftKey) ?? "";
-									}
-									catch
-									{
-										return "";
-									}
-								},
-								rightRow => rightRow.Field<string>(rightKey) ?? "",
-								(left, right) => (dynamic)new { Left = left, Right = right });
-						}
-						else
+								var keyParts = leftKeySelectors.Select(k => dataRow.Field<string>(k) ?? "");
+								return string.Join("|", keyParts);
+							}
+							catch
+							{
+								return "";
+							}
+						},
+						rightRow =>
 						{
-							// 複数キー JOIN（文字列結合）
-							current = current.Join(
-								rightTable.AsEnumerable(),
-								leftRow =>
-								{
-									try
-									{
-										DataRow dataRow;
-										if (leftRow is DataRow dr)
-											dataRow = dr;
-										else
-											dataRow = ((dynamic)leftRow).Left;
-
-										var keyParts = leftKeySelectors.Select(k => dataRow.Field<string>(k) ?? "");
-										return string.Join("|", keyParts);
-									}
-									catch
-									{
-										return "";
-									}
-								},
-								rightRow =>
-								{
-									var keyParts = rightKeySelectors.Select(k => rightRow.Field<string>(k) ?? "");
-									return string.Join("|", keyParts);
-								},
-								(left, right) => (dynamic)new { Left = left, Right = right });
-						}
-					}
-
-					foreach (var item in current)
-					{
-						yield return item;
-					}
+							var keyParts = rightKeySelectors.Select(k => rightRow.Field<string>(k) ?? "");
+							return string.Join("|", keyParts);
+						},
+						(left, right) => (dynamic)new { Left = left, Right = right });
 				}
 			}
+			// 最終的な JOIN 結果を返す
+			foreach (var item in current)
+			{
+				yield return item;
+			}
+		}
+	}
 
 	/// <summary>
 	/// フィルタ要素基底レコード

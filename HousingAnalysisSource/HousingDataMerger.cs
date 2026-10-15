@@ -5,8 +5,18 @@ using System.Data.Common;
 
 namespace HousingAnalysisSource;
 
+/// <summary>
+/// Housing データマージャー基底class
+/// </summary>
 public abstract class HousingDataMerger : DataMerger
 {
+	/// <summary>
+	/// コンストラクタ
+	/// </summary>
+	public HousingDataMerger(DBDialect? sqlDialect = null) : base(sqlDialect)
+	{
+	}
+
 	/// <summary>
 	/// マージ後の列名一覧
 	/// </summary>
@@ -24,8 +34,12 @@ public abstract class HousingDataMerger : DataMerger
 	/// <summary>
 	/// CSV ファイルから Housing の結合データ取得
 	/// </summary>
-	public class CsvHousingDataMerger(string csvHousingPath) : HousingDataMerger
+	public class CsvHousingDataMerger(string csvHousingPath, DBDialect? sqlDialect = null) : HousingDataMerger(sqlDialect)
 	{
+		/// <summary>
+		/// CSV ファイルから Housing の結合データ取得
+		/// </summary>
+		/// <returns>結合データを含む DataTable</returns>
 		protected override DataTable GetMergedDataTableCore()
 		{
 			// CSV ファイルを DataTable に読み込み（共通 Helper 利用）

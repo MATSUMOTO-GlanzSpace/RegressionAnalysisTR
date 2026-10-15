@@ -2,7 +2,6 @@ using RegressionAnalysis.Common;
 using static RegressionAnalysis.Common.DataTableHelpers;
 using System.Data;
 using System.Data.Common;
-using MySqlConnector;
 
 namespace SalesAnalysisSource;
 
@@ -14,7 +13,8 @@ public abstract class SalesDataMerger : DataMerger
 	/// <summary>
 	/// コンストラクタ
 	/// </summary>
-	public SalesDataMerger()
+	/// <param name="sqlDialect">SQL方言</param>
+	public SalesDataMerger(DBDialect? sqlDialect = null) : base(sqlDialect)
 	{
 	}
 
@@ -41,6 +41,9 @@ public abstract class SalesDataMerger : DataMerger
 	/// <summary>
 	/// CSV ファイルから Sales/Weather/Units の結合データ取得
 	/// </summary>
+	/// <param name="csvSalesPath">Sales CSV ファイルパス</param>
+	/// <param name="csvWeatherPath">Weather CSV ファイルパス</param>
+	/// <param name="csvUnitsPath">Units CSV ファイルパス</param>
 	public class CsvSalesDataMerger(string csvSalesPath, string csvWeatherPath, string csvUnitsPath) : SalesDataMerger
 	{
 		/// <summary>
@@ -133,10 +136,22 @@ public abstract class SalesDataMerger : DataMerger
 	}
 
 	/// <summary>
-	/// MySQL 用 SalesDataMerger
+	/// DB 用 SalesDataMerger
 	/// </summary>
-	public class MySqlSalesDataMerger(string salesTable, string weatherTable, string unitsTable) : SalesDataMerger
+	/// <param name="salesTable">Sales テーブル名</param>
+	/// <param name="weatherTable">Weather テーブル名</param>
+	/// <param name="unitsTable">Units テーブル名</param>
+	/// <param name="dialect">DB方言（省略時はMySqlDialect）</param>
+	/// <param name="connectionFactory">オープン済みDbConnectionを返すファクトリ（省略時はMySqlConnectionFactory）</param>
+	public class DbSalesDataMerger(
+		string salesTable,
+		string weatherTable,
+		string unitsTable,
+		DBDialect? dialect = null,
+		Func<DbConnection>? connectionFactory = null) : SalesDataMerger(dialect ?? new MySqlDialect())
 	{
+		/// データベース接続ファクトリ（オープン済み DbConnection を返す）
+		private readonly Func<DbConnection> _connectionFactory = connectionFactory ?? MySqlConnectionFactory.CreateOpenConnection;
 		/// <summary>
 		/// マージ後列名 -> SQL エイリアス付きカラムのマッピング
 		/// </summary>
@@ -168,15 +183,15 @@ public abstract class SalesDataMerger : DataMerger
 		}
 
 		/// <summary>
-		/// MySQL データベース接続を取得
+		/// データベース接続を取得
 		/// </summary>
 		protected override DbConnection GetDbConnection()
 		{
-			return MySqlConnectionFactory.CreateOpenConnection();
+			return _connectionFactory();
 		}
 
 		/// <summary>
-		/// MySQL テーブル結合ロジック実装
+		/// DB テーブル結合ロジック実装
 		/// GetJoinSpecification() から SQL JOIN 句を自動生成
 		/// </summary>
 		/// <returns>結合データテーブル</returns>
@@ -186,23 +201,22 @@ public abstract class SalesDataMerger : DataMerger
 			var joinSpec = GetJoinSpecification();
 			var joinClauses = BuildSqlJoinClauses(joinSpec);
 
-			// DataMerger の共通 SQL フィルタ生成を利用（generic版）
-			var whereSql = BuildSqlWhereClause<MySqlParameter>(
-				"sales", 
-				(paramName, value) => new MySqlParameter(paramName, value),
+			// DataMerger の共通 SQL フィルタ生成を利用
+			var whereSql = BuildSqlWhereClause(
+				"sales",
 				out var parameters);
 
 			string sql = $@"
 				SELECT s.department AS 部門, s.primary_item AS 大分類, s.secondary_item AS 中分類, s.variety AS 品種, s.year AS 年, s.month AS 月, s.sales AS 売上,
 					   w.average_temperature AS 平均気温, w.maximum_temperature AS 最高気温, w.lowest_temperature AS 最低気温,
 					   w.precipitation AS 降水量合計, w.sunshine_hours AS 日照時間, u.unit AS 単位
-				FROM {QuoteIdentifier(salesTable)} s
+				FROM {RequiredSqlDialect.QuoteIdentifier(salesTable)} s
 				{joinClauses}
 				{whereSql}
 				";
 
-			// 共通 SQL 実行メソッドへ委譲（generic版）
-			return ExecuteMergedSqlQuery<MySqlParameter>(sql, parameters);
+			// 共通 SQL 実行メソッドへ委譲
+			return ExecuteMergedSqlQuery(sql, parameters);
 		}
 	}
 }
