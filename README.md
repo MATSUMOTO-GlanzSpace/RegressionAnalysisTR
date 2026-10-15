@@ -6,6 +6,9 @@
 
 - RegressionAnalysis (WinFormsアプリケーション)
   - エントリポイント。UI（RegressionAnalysisForm）を提供し、DataMerger を利用して分析用データを取得・表示・分析する。
+- HousingAnalysisSource (クラスライブラリ)
+  - CSV から住宅価格データを読み込み、マージした DataTable を生成するマージャー群を提供。
+  - 主なクラス: HousingDataMerger (抽象), CsvHousingDataMerger, 現在はMySqlHousingDataMergerは未実装
 - SalesAnalysisSource (クラスライブラリ)
   - CSV / DB から販売・気象・単位データを読み込み、マージした DataTable を生成するマージャー群を提供。
   - 主なクラス: SalesDataMerger (抽象), CsvSalesDataMerger, MySqlSalesDataMerger
@@ -15,16 +18,34 @@
 
 ## 実装されている主要クラス（簡易版）
 
-- RegressionAnalysis.Common.DataMerger
-  - データ結合の抽象基底。GetMergedDataTable()（例外処理付き）、Filters 管理、CSV 用フィルタ述語生成等を提供。
-- SalesAnalysisSource.SalesDataMerger
-  - DataMerger を継承する抽象基底。マージ後の列名一覧を一元管理する（GetMergedDataTableColumnNames を実装）。
-- SalesAnalysisSource.CsvSalesDataMerger
-  - CSVの3ファイル（sales, weather, units）を読み込み LINQ で結合し、マージ済み DataTable を返す。CSV 側の元列名を統一列名へマップする。
-- SalesAnalysisSource.MySqlSalesDataMerger
-  - MySQL の 3テーブルを結合して DataTable を取得する。DB 側にプッシュダウンするための MergedColumnToSqlMapping と BuildSqlWhereClause を提供。
-- RegressionAnalysis.RegressionAnalysisForm
-  - ユーザー操作で DataMerger を受け取り分析用データのフィルタ設定・取得・表示を行う主要 UI。
+- 【回帰分析アプリケーション】RegressionAnalysis (WinFormsアプリケーション)
+    - RegressionAnalysisForm
+      - ユーザー操作で DataMerger を受け取り分析用データのフィルタ設定・取得・表示を行う主要 UI。
+    - Program
+      - アプリケーションのエントリポイント。RegressionAnalysisForm を起動する。
+- 【住宅価格データ】HousingAnalysisSource (クラスライブラリ)
+    - HousingDataMerger
+      - DataMerger を継承する抽象基底。マージ後の列名一覧を一元管理する（GetMergedDataTableColumnNames を実装）。
+    - CsvHousingDataMerger
+      - CSVファイル（housing）を読み込み LINQ で結合し、マージ済み DataTable を返す。CSV 側の元列名を統一列名へマップする。
+- 【販売データ】SalesAnalysisSource (クラスライブラリ)
+    - SalesDataMerger
+      - DataMerger を継承する抽象基底。マージ後の列名一覧を一元管理する（GetMergedDataTableColumnNames を実装）。
+    - CsvSalesDataMerger
+      - CSVの3ファイル（sales, weather, units）を読み込み LINQ で結合し、マージ済み DataTable を返す。CSV 側の元列名を統一列名へマップする。
+    - MySqlSalesDataMerger
+      - MySQL の 3テーブルを結合して DataTable を取得する。DB 側にプッシュダウンするための MergedColumnToSqlMapping と BuildSqlWhereClause を提供。
+- 【共通ライブラリ】RegressionAnalysis.Common (クラスライブラリ)
+    - DataMerger
+      - データ結合の抽象基底。GetMergedDataTable()（例外処理付き）、Filters 管理、CSV 用フィルタ述語生成等を提供。
+    - DataTableHelpers
+      - DataTable の列名変更、列の追加、列の削除、列の型変換、DataTable のコピー等のユーティリティを提供。
+    - ConfigurationHelper
+      - appsettings.json / appsettings.Development.json から設定値を取得するユーティリティを提供。
+    - FilterPredicateBuilder
+      - DataMerger の Filters を SQL WHERE 句に変換するユーティリティを提供。
+    - SqlWhereClauseBuilder
+      - FilterPredicateBuilder で生成されたフィルタ述語を SQL WHERE 句に変換するユーティリティを提供。
 
 ## 設定ファイル
 
