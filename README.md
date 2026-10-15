@@ -33,21 +33,27 @@
       - DataMerger を継承する抽象基底。マージ後の列名一覧を一元管理する（GetMergedDataTableColumnNames を実装）。
     - CsvSalesDataMerger
       - CSVの3ファイル（sales, weather, units）を読み込み LINQ で結合し、マージ済み DataTable を返す。CSV 側の元列名を統一列名へマップする。
-    - MySqlSalesDataMerger
-      - MySQL の 3テーブルを結合して DataTable を取得する。DB 側にプッシュダウンするための MergedColumnToSqlMapping と BuildSqlWhereClause を提供。
+    - DbSalesDataMerger
+      - DB（MySQL）から販売・気象・単位データを読み込み LINQ で結合し、マージ済み DataTable を返す。DB 側の元列名を統一列名へマップする。
 - 【共通ライブラリ】RegressionAnalysis.Common (クラスライブラリ)
     - DataMerger
       - データ結合の抽象基底。GetMergedDataTable()（例外処理付き）、Filters 管理、CSV 用フィルタ述語生成等を提供。
+    - DbDiagnostics
+      - DB 接続の診断ユーティリティ。接続文字列から DB に接続できるかを確認する。
+    - MySqlDiagnostics
+        - MySQL 接続の診断ユーティリティ。接続文字列から MySQL に接続できるかを確認する。
+    - MySQLConnnectionFactory
+      - MySQL 接続を生成するユーティリティ。接続文字列から MySqlConnection を生成する。
     - DataTableHelpers
       - DataTable の列名変更、列の追加、列の削除、列の型変換、DataTable のコピー等のユーティリティを提供。
+    - DbSchemaHelper
+      - DB スキーマ情報を取得するユーティリティ。テーブル名一覧、列名一覧、列の型情報を取得する。
     - ConfigurationHelper
-      - appsettings.json / appsettings.Development.json から設定値を取得するユーティリティを提供。
-    - FilterPredicateBuilder
-      - DataMerger の Filters を SQL WHERE 句に変換するユーティリティを提供。
-    - SqlWhereClauseBuilder
-      - FilterPredicateBuilder で生成されたフィルタ述語を SQL WHERE 句に変換するユーティリティを提供。
-
-## 設定ファイル
+      - appsettings.*.json から設定値を取得するユーティリティを提供。
+    - LinearRegressionAnalysis
+      - 線形回帰分析の計算を行うユーティリティ。最小二乗法で回帰係数を求める。
+ 
+ ## 設定ファイル
 
 appsettings.Development.json を用いて接続文字列等を環境ごとに管理します。例:
 
