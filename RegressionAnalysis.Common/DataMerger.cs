@@ -111,18 +111,19 @@ namespace RegressionAnalysis.Common
 			foreach (var row in data)
 			{
 				if (row == null) continue;
-
+				// リフレクションで匿名型のプロパティ値を取得し、DataTable に追加
 				var colNames = GetMergedDataTableColumnNames();
 				var type = row.GetType();
 				var values = colNames.Select(c =>
 				{
+					// プロパティ名を取得
 					var prop = type.GetProperty(c);
 					if (prop == null) return DBNull.Value;
 
 					var value = prop.GetValue(row);
 					return value ?? DBNull.Value;
 				}).ToArray();
-
+				// DataRow に追加
 				mergedTable.Rows.Add(values);
 			}
 			return mergedTable;
@@ -165,6 +166,11 @@ namespace RegressionAnalysis.Common
 		public void AddFilterCondition(string logic, string field, FilterOperator filterOperator, string value)
 			=> Filters.Add(new FilterCondition(logic, field, filterOperator, value));
 
+		/// <summary>
+		/// レガシー条件式を解析して比較演算子と値を取得
+		/// </summary>
+		/// <param name="condition">条件式（例: "='value'", "LIKE '%value%'"）</param>
+		/// <returns>比較演算子と値のタプル</returns>
 		private static (FilterOperator Operator, string Value) ParseLegacyCondition(string condition)
 		{
 			var condTrim = condition.Trim();
@@ -363,18 +369,22 @@ namespace RegressionAnalysis.Common
 				switch (cond.Operator)
 				{
 					case FilterOperator.Contains:
+						// 部分一致の場合、LIKE 演算子を使用
 						clauses.Add($"{(string.IsNullOrEmpty(cond.Logic) ? "" : cond.Logic + " ")}{left} LIKE {paramName}");
 						parameters.Add(RequiredSqlDialect.CreateParameter(paramName, $"%{value}%"));
 						break;
 					case FilterOperator.StartsWith:
+						// 前方一致の場合、LIKE 演算子を使用
 						clauses.Add($"{(string.IsNullOrEmpty(cond.Logic) ? "" : cond.Logic + " ")}{left} LIKE {paramName}");
 						parameters.Add(RequiredSqlDialect.CreateParameter(paramName, $"{value}%"));
 						break;
 					case FilterOperator.EndsWith:
+						// 後方一致の場合、LIKE 演算子を使用
 						clauses.Add($"{(string.IsNullOrEmpty(cond.Logic) ? "" : cond.Logic + " ")}{left} LIKE {paramName}");
 						parameters.Add(RequiredSqlDialect.CreateParameter(paramName, $"%{value}"));
 						break;
 					default:
+						// 完全一致の場合、= 演算子を使用
 						clauses.Add($"{(string.IsNullOrEmpty(cond.Logic) ? "" : cond.Logic + " ")}{left} = {paramName}");
 						parameters.Add(RequiredSqlDialect.CreateParameter(paramName, value));
 						break;
@@ -432,6 +442,7 @@ namespace RegressionAnalysis.Common
 			{
 				if (token is FilterCondition condToken)
 				{
+					// フィルタ条件を匿名オブジェクトに対する述語に変換
 					var field = condToken.Field;
 					var value = condToken.Value;
 					stack.Push(obj =>
@@ -440,6 +451,7 @@ namespace RegressionAnalysis.Common
 						string? targetValue;
 						if (field.Contains('.'))
 						{
+							// "table.field" 形式の場合、匿名オブジェクトのプロパティから DataRow を取得してフィールド値を取得
 							var parts = field.Split('.', 2);
 							var tbl = parts[0];
 							var col = parts[1];
@@ -451,6 +463,7 @@ namespace RegressionAnalysis.Common
 						}
 						else
 						{
+							// フィールド名が単一の場合、匿名オブジェクトのプロパティから直接値を取得
 							var p = obj.GetType().GetProperty(field);
 							if (p == null) return false;
 							targetValue = p.GetValue(obj)?.ToString();
@@ -459,6 +472,7 @@ namespace RegressionAnalysis.Common
 						if (string.IsNullOrEmpty(targetValue)) return false;
 						return condToken.Operator switch
 						{
+							// フィルタ演算子に応じて比較
 							FilterOperator.Contains => targetValue.Contains(value),
 							FilterOperator.StartsWith => targetValue.StartsWith(value),
 							FilterOperator.EndsWith => targetValue.EndsWith(value),
@@ -468,6 +482,7 @@ namespace RegressionAnalysis.Common
 				}
 				else if (token is string op && (op == "AND" || op == "OR"))
 				{
+					// 論理演算子適用
 					var right = stack.Pop();
 					var left = stack.Pop();
 					if (op == "AND") stack.Push(obj => left(obj) && right(obj));
@@ -494,27 +509,30 @@ namespace RegressionAnalysis.Common
 		{
 			using var conn = GetDbConnection();
 			using var cmd = conn.CreateCommand();
+			// SQL文とパラメータを設定
 			cmd.CommandText = sql;
 			foreach (var p in parameters)
 				cmd.Parameters.Add(p);
 
-					setupCommand?.Invoke(cmd);
-
-					var factory = DbProviderFactories.GetFactory(conn);
-					var adapter = factory.CreateDataAdapter() 
-						?? throw new InvalidOperationException("DataAdapter の作成に失敗しました。");
-
-					try
-					{
-						adapter.SelectCommand = cmd;
-						var table = new DataTable();
-						adapter.Fill(table);
-						return table;
-					}
-					finally
-					{
-						adapter.Dispose();
-					}
+			// 追加のコマンド設定があれば実行
+			setupCommand?.Invoke(cmd);
+			// DbProviderFactory を使用して DataAdapter を作成
+			var factory = DbProviderFactories.GetFactory(conn);
+			var adapter = factory.CreateDataAdapter() 
+				?? throw new InvalidOperationException("DataAdapter の作成に失敗しました。");
+			try
+			{
+				// DataAdapter に SelectCommand を設定して DataTable に結果を取得
+				adapter.SelectCommand = cmd;
+				var table = new DataTable();
+				adapter.Fill(table);
+				return table;
+			}
+			finally
+			{
+				// DataAdapter を破棄
+				adapter.Dispose();
+			}
 		}
 
 		/// <summary>
@@ -538,9 +556,11 @@ namespace RegressionAnalysis.Common
 		/// </summary>
 		protected string BuildSqlJoinClauses(JoinSpecification spec)
 		{
+			// JOIN 句を構築
 			var clauses = new System.Text.StringBuilder();
 			foreach (var cond in spec.Conditions)
 			{
+				// テーブル名を SQL 方言に従って引用符で囲む
 				_ = RequiredSqlDialect.QuoteIdentifier(cond.LeftTable);
 				_ = RequiredSqlDialect.QuoteIdentifier(cond.RightTable);
 
@@ -552,9 +572,10 @@ namespace RegressionAnalysis.Common
 				var joinKeys = string.Join(" AND ", 
 					cond.LeftKeys.Zip(cond.RightKeys, 
 						(lk, rk) => $"{RequiredSqlDialect.QuoteIdentifier(leftAlias)}.{RequiredSqlDialect.QuoteIdentifier(lk)} = {RequiredSqlDialect.QuoteIdentifier(rightAlias)}.{RequiredSqlDialect.QuoteIdentifier(rk)}"));
-
+				// JOIN 句を追加
 				clauses.AppendLine($"INNER JOIN {RequiredSqlDialect.QuoteIdentifier(cond.RightTable)} {RequiredSqlDialect.QuoteIdentifier(rightAlias)} ON {joinKeys}");
 			}
+			// 生成された JOIN 句を返す
 			return clauses.ToString();
 		}
 
@@ -584,6 +605,7 @@ namespace RegressionAnalysis.Common
 				yield break;
 			}
 
+			// 左テーブルを取得し、IEnumerable<dynamic> に変換
 			var leftTable = tableMap[leftTableName];
 			IEnumerable<dynamic> current = leftTable.AsEnumerable().Cast<dynamic>();
 
@@ -595,7 +617,7 @@ namespace RegressionAnalysis.Common
 				{
 					continue;
 				}
-
+				// 右テーブルを取得
 				var rightTable = tableMap[rightTableName];
 				var leftKeySelectors = cond.LeftKeys;
 				var rightKeySelectors = cond.RightKeys;
@@ -605,7 +627,7 @@ namespace RegressionAnalysis.Common
 					// 単一キー JOIN
 					var leftKey = leftKeySelectors[0];
 					var rightKey = rightKeySelectors[0];
-
+					// LINQ Join を適用
 					current = current.Join(
 						rightTable.AsEnumerable(),
 						leftRow =>
@@ -623,8 +645,10 @@ namespace RegressionAnalysis.Common
 								return "";
 							}
 						},
+						// 右テーブルのキーを選択
 						rightRow => rightRow.Field<string>(rightKey) ?? "",
-						(left, right) => (dynamic)new { Left = left, Right = right });
+						(left, right) => (dynamic)new { Left = left, Right = right }
+					);
 				}
 				else
 				{
@@ -635,12 +659,13 @@ namespace RegressionAnalysis.Common
 						{
 							try
 							{
+								// leftRow が DataRow の場合と dynamic 匿名型の場合に対応
 								DataRow dataRow;
 								if (leftRow is DataRow dr)
 									dataRow = dr;
 								else
 									dataRow = ((dynamic)leftRow).Left;
-
+								// 複数キーを結合して一意のキーを生成
 								var keyParts = leftKeySelectors.Select(k => dataRow.Field<string>(k) ?? "");
 								return string.Join("|", keyParts);
 							}
@@ -651,10 +676,12 @@ namespace RegressionAnalysis.Common
 						},
 						rightRow =>
 						{
+							// 右テーブルの複数キーを結合して一意のキーを生成
 							var keyParts = rightKeySelectors.Select(k => rightRow.Field<string>(k) ?? "");
 							return string.Join("|", keyParts);
 						},
-						(left, right) => (dynamic)new { Left = left, Right = right });
+						(left, right) => (dynamic)new { Left = left, Right = right }
+					);
 				}
 			}
 			// 最終的な JOIN 結果を返す
@@ -684,10 +711,10 @@ namespace RegressionAnalysis.Common
 	/// </summary>
 	public enum FilterOperator
 	{
-		Equals,
-		Contains,
-		StartsWith,
-		EndsWith
+		Equals,		// 完全一致
+		Contains,   // 部分一致
+		StartsWith, // 前方一致
+		EndsWith    // 後方一致
 	}
 
 	/// <summary>
@@ -707,10 +734,11 @@ namespace RegressionAnalysis.Common
 /// CSV、MySQL、その他データソース共通で使用可能
 /// </summary>
 public record JoinCondition(
-	string LeftTable,
-	string[] LeftKeys,
-	string RightTable,
-	string[] RightKeys);
+	string LeftTable,   // 左テーブル名
+	string[] LeftKeys,  // 左テーブルの結合キー列名配列
+	string RightTable,  // 右テーブル名
+	string[] RightKeys  // 右テーブルの結合キー列名配列
+);
 
 /// <summary>
 /// JOIN 仕様（複数の JOIN 条件を保持）
