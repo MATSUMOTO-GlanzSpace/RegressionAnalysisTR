@@ -144,13 +144,45 @@ namespace RegressionAnalysis.Common
 		public List<FilterElement> Filters { get; } = [];
 
 		/// <summary>
-		/// フィルタ条件追加メソッド
+		/// フィルタ条件追加メソッド（互換用）
 		/// </summary>
 		/// <param name="logic">論理演算子（AND/OR）</param>
 		/// <param name="field">フィールド名（テーブル名.フィールド名形式）</param>
-		/// <param name="condition">条件式（例: "='value'"）</param>
+		/// <param name="condition">条件式（例: "='value'", "LIKE '%value%'"）</param>
 		public void AddFilterCondition(string logic, string field, string condition)
-			=> Filters.Add(new FilterCondition(logic, field, condition));
+		{
+			var parsed = ParseLegacyCondition(condition);
+			Filters.Add(new FilterCondition(logic, field, parsed.Operator, parsed.Value));
+		}
+
+		/// <summary>
+		/// フィルタ条件追加メソッド（推奨）
+		/// </summary>
+		/// <param name="logic">論理演算子（AND/OR）</param>
+		/// <param name="field">フィールド名（テーブル名.フィールド名形式）</param>
+		/// <param name="filterOperator">比較演算子</param>
+		/// <param name="value">比較値</param>
+		public void AddFilterCondition(string logic, string field, FilterOperator filterOperator, string value)
+			=> Filters.Add(new FilterCondition(logic, field, filterOperator, value));
+
+		private static (FilterOperator Operator, string Value) ParseLegacyCondition(string condition)
+		{
+			var condTrim = condition.Trim();
+			if (condTrim.StartsWith("LIKE", StringComparison.OrdinalIgnoreCase))
+			{
+				var pattern = condTrim.Substring(4).Trim().Trim('\'', '"');
+				var startsWithWildcard = pattern.StartsWith("%");
+				var endsWithWildcard = pattern.EndsWith("%");
+				var core = pattern.Trim('%');
+
+				if (startsWithWildcard && endsWithWildcard) return (FilterOperator.Contains, core);
+				if (startsWithWildcard) return (FilterOperator.EndsWith, core);
+				if (endsWithWildcard) return (FilterOperator.StartsWith, core);
+				return (FilterOperator.Equals, core);
+			}
+
+			return (FilterOperator.Equals, condTrim.Trim('=', '\'', '"'));
+		}
 
 		/// <summary>
 		/// フィルタグループ開始追加メソッド
@@ -217,34 +249,20 @@ namespace RegressionAnalysis.Common
 				{
 					// フィルタ条件を述語に変換
 					var field = cond.Field.Substring(tableName.Length + 1);
-					var condTrim = cond.Condition.Trim();
-					// LIKE 演算子に対応
-					if (condTrim.StartsWith("LIKE", StringComparison.OrdinalIgnoreCase))
+					var value = cond.Value;
+					stack.Push(row =>
 					{
-						var pattern = condTrim.Substring(4).Trim().Trim('\'', '"');
-						var startsWithWildcard = pattern.StartsWith("%");
-						var endsWithWildcard = pattern.EndsWith("%");
-						var core = pattern.Trim('%');
-						stack.Push(row =>
+						if (!row.Table.Columns.Contains(field)) return false;
+						var val = row.Field<string>(field);
+						if (val == null) return false;
+						return cond.Operator switch
 						{
-							if (!row.Table.Columns.Contains(field)) return false;
-							var val = row.Field<string>(field);
-							if (val == null) return false;
-							if (startsWithWildcard && endsWithWildcard) return val.Contains(core);
-							if (startsWithWildcard) return val.EndsWith(core);
-							if (endsWithWildcard) return val.StartsWith(core);
-							return val == core;
-						});
-					}
-					else
-					{
-						var value = condTrim.Trim('=', '\'', '"');
-						stack.Push(row =>
-						{
-							if (!row.Table.Columns.Contains(field)) return false;
-							return row.Field<string>(field) == value;
-						});
-					}
+							FilterOperator.Contains => val.Contains(value),
+							FilterOperator.StartsWith => val.StartsWith(value),
+							FilterOperator.EndsWith => val.EndsWith(value),
+							_ => val == value
+						};
+					});
 				}
 				else if (token is string op && (op == "AND" || op == "OR"))
 				{
@@ -341,17 +359,25 @@ namespace RegressionAnalysis.Common
 
 				// パラメータ名を生成
 				var paramName = "@p" + paramIndex;
-				var condTrim = cond.Condition.Trim();
-				if (condTrim.StartsWith("LIKE", StringComparison.OrdinalIgnoreCase))
+				var value = cond.Value;
+				switch (cond.Operator)
 				{
-					clauses.Add($"{(string.IsNullOrEmpty(cond.Logic) ? "" : cond.Logic + " ")}{left} LIKE {paramName}");
-					var pattern = condTrim.Substring(4).Trim().Trim('\'', '"');
-					parameters.Add(RequiredSqlDialect.CreateParameter(paramName, pattern));
-				}
-				else
-				{
-					clauses.Add($"{(string.IsNullOrEmpty(cond.Logic) ? "" : cond.Logic + " ")}{left} = {paramName}");
-					parameters.Add(RequiredSqlDialect.CreateParameter(paramName, condTrim.Trim('=', '\'', '"')));
+					case FilterOperator.Contains:
+						clauses.Add($"{(string.IsNullOrEmpty(cond.Logic) ? "" : cond.Logic + " ")}{left} LIKE {paramName}");
+						parameters.Add(RequiredSqlDialect.CreateParameter(paramName, $"%{value}%"));
+						break;
+					case FilterOperator.StartsWith:
+						clauses.Add($"{(string.IsNullOrEmpty(cond.Logic) ? "" : cond.Logic + " ")}{left} LIKE {paramName}");
+						parameters.Add(RequiredSqlDialect.CreateParameter(paramName, $"{value}%"));
+						break;
+					case FilterOperator.EndsWith:
+						clauses.Add($"{(string.IsNullOrEmpty(cond.Logic) ? "" : cond.Logic + " ")}{left} LIKE {paramName}");
+						parameters.Add(RequiredSqlDialect.CreateParameter(paramName, $"%{value}"));
+						break;
+					default:
+						clauses.Add($"{(string.IsNullOrEmpty(cond.Logic) ? "" : cond.Logic + " ")}{left} = {paramName}");
+						parameters.Add(RequiredSqlDialect.CreateParameter(paramName, value));
+						break;
 				}
 				paramIndex++;
 			}
@@ -407,77 +433,38 @@ namespace RegressionAnalysis.Common
 				if (token is FilterCondition condToken)
 				{
 					var field = condToken.Field;
-					var condTrim = condToken.Condition.Trim();
-					if (condTrim.StartsWith("LIKE", StringComparison.OrdinalIgnoreCase))
+					var value = condToken.Value;
+					stack.Push(obj =>
 					{
-						var pattern = condTrim.Substring(4).Trim().Trim('\'', '"');
-						var startsWithWildcard = pattern.StartsWith("%");
-						var endsWithWildcard = pattern.EndsWith("%");
-						var core = pattern.Trim('%');
-						stack.Push(obj =>
+						if (obj == null) return false;
+						string? targetValue;
+						if (field.Contains('.'))
 						{
-							if (obj == null) return false;
-							// フィールド参照
-							if (field.Contains('.'))
-							{
-								var parts = field.Split('.', 2);
-								var tbl = parts[0];
-								var col = parts[1];
-								// sales/weather/unit の DataRow プロパティを経由
-								var prop = obj.GetType().GetProperty(tbl);
-								if (prop == null) return false;
-								var row = prop.GetValue(obj) as DataRow;
-								if (row == null) return false;
-								var val = row.Table.Columns.Contains(col) ? row.Field<string>(col) : null;
-								if (string.IsNullOrEmpty(val)) return false;
-								if (startsWithWildcard && endsWithWildcard) return val.Contains(core);
-								if (startsWithWildcard) return val.EndsWith(core);
-								if (endsWithWildcard) return val.StartsWith(core);
-								return val == core;
-							}
-							else
-							{
-								var p = obj.GetType().GetProperty(field);
-								if (p == null) return false;
-								var v = p.GetValue(obj)?.ToString();
-								if (v == null) return false;
-								if (startsWithWildcard && endsWithWildcard) return v.Contains(core);
-								if (startsWithWildcard) return v.EndsWith(core);
-								if (endsWithWildcard) return v.StartsWith(core);
-								return v == core;
-							}
-						});
-					}
-					else
-					{
-						var value = condTrim.Trim('=', '\'', '"');
-						stack.Push(obj =>
+							var parts = field.Split('.', 2);
+							var tbl = parts[0];
+							var col = parts[1];
+							var prop = obj.GetType().GetProperty(tbl);
+							if (prop == null) return false;
+							var row = prop.GetValue(obj) as DataRow;
+							if (row == null || !row.Table.Columns.Contains(col)) return false;
+							targetValue = row.Field<string>(col);
+						}
+						else
 						{
-							if (obj == null) return false;
-							if (field.Contains('.'))
-							{
-								var parts = field.Split('.', 2);
-								var tbl = parts[0];
-								var col = parts[1];
-								var prop = obj.GetType().GetProperty(tbl);
-								if (prop == null) return false;
-								var row = prop.GetValue(obj) as DataRow;
-								if (row == null) return false;
-								if (!row.Table.Columns.Contains(col)) return false;
-								var rowValue = row.Field<string>(col);
-								if (string.IsNullOrEmpty(rowValue)) return false;
-								return rowValue == value;
-							}
-							else
-							{
-								var p = obj.GetType().GetProperty(field);
-								if (p == null) return false;
-								var pValue = p.GetValue(obj)?.ToString();
-								if (string.IsNullOrEmpty(pValue)) return false;
-								return pValue == value;
-							}
-						});
-					}
+							var p = obj.GetType().GetProperty(field);
+							if (p == null) return false;
+							targetValue = p.GetValue(obj)?.ToString();
+						}
+
+						if (string.IsNullOrEmpty(targetValue)) return false;
+						return condToken.Operator switch
+						{
+							FilterOperator.Contains => targetValue.Contains(value),
+							FilterOperator.StartsWith => targetValue.StartsWith(value),
+							FilterOperator.EndsWith => targetValue.EndsWith(value),
+							_ => targetValue == value
+						};
+					});
 				}
 				else if (token is string op && (op == "AND" || op == "OR"))
 				{
@@ -688,8 +675,20 @@ namespace RegressionAnalysis.Common
 	/// </summary>
 	/// <param name="Logic">論理演算子（AND/OR）</param>
 	/// <param name="Field">フィールド名（テーブル名.フィールド名形式）</param>
-	/// <param name="Condition">条件式（例: "='value'"）</param>
-	public record FilterCondition(string Logic, string Field, string Condition) : FilterElement;
+	/// <param name="Operator">フィルタ演算子</param>
+	/// <param name="Value">比較値</param>
+	public record FilterCondition(string Logic, string Field, FilterOperator Operator, string Value) : FilterElement;
+
+	/// <summary>
+	/// フィルタ演算子
+	/// </summary>
+	public enum FilterOperator
+	{
+		Equals,
+		Contains,
+		StartsWith,
+		EndsWith
+	}
 
 	/// <summary>
 	/// フィルタグループ開始レコード"("
