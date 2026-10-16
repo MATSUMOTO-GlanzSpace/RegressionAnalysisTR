@@ -51,7 +51,7 @@ public abstract class DBDialect
 }
 
 /// <summary>
-/// MySQL 向け SQL 方言
+/// MySQL 向け DB 方言
 /// </summary>
 public sealed class MySqlDialect : DBDialect
 {

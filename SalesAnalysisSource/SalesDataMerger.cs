@@ -12,8 +12,8 @@ public abstract class SalesDataMerger : DataMerger
 	/// <summary>
 	/// コンストラクタ
 	/// </summary>
-	/// <param name="sqlDialect">SQL方言</param>
-	public SalesDataMerger(DBDialect? sqlDialect = null) : base(sqlDialect)
+	/// <param name="dbDialect">DB方言</param>
+	public SalesDataMerger(DBDialect? dbDialect = null) : base(dbDialect)
 	{
 	}
 
@@ -209,7 +209,7 @@ public abstract class SalesDataMerger : DataMerger
 				SELECT s.department AS 部門, s.primary_item AS 大分類, s.secondary_item AS 中分類, s.variety AS 品種, s.year AS 年, s.month AS 月, s.sales AS 売上,
 					   w.average_temperature AS 平均気温, w.maximum_temperature AS 最高気温, w.lowest_temperature AS 最低気温,
 					   w.precipitation AS 降水量合計, w.sunshine_hours AS 日照時間, u.unit AS 単位
-				FROM {RequiredSqlDialect.QuoteIdentifier(salesTable)} s
+				FROM {RequiredDBDialect.QuoteIdentifier(salesTable)} s
 				{joinClauses}
 				{whereSql}
 				";

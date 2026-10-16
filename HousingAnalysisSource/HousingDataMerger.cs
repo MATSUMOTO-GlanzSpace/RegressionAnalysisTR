@@ -12,7 +12,7 @@ public abstract class HousingDataMerger : DataMerger
 	/// <summary>
 	/// コンストラクタ
 	/// </summary>
-	public HousingDataMerger(DBDialect? sqlDialect = null) : base(sqlDialect)
+	public HousingDataMerger(DBDialect? dbDialect = null) : base(dbDialect)
 	{
 	}
 

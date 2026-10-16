@@ -14,23 +14,23 @@ namespace RegressionAnalysis.Common
 	public abstract class DataMerger
 	{
 		/// <summary>
-		/// SQL方言
+		/// DB方言
 		/// </summary>
-		private DBDialect? SqlDialect { get; }
+		private DBDialect? DBDialect { get; }
 
 		/// <summary>
-		/// SQL方言（必須）
+		/// DB方言（必須）
 		/// </summary>
-		protected DBDialect RequiredSqlDialect =>
-			SqlDialect ?? throw new InvalidOperationException("SQL方言が設定されていません。");
+		protected DBDialect RequiredDBDialect =>
+			DBDialect ?? throw new InvalidOperationException("DB方言が設定されていません。");
 
 		/// <summary>
 		/// コンストラクタ
 		/// </summary>
-		/// <param name="sqlDialect">SQL方言</param>
-		protected DataMerger(DBDialect? sqlDialect = null)
+		/// <param name="dbDialect">DB方言</param>
+		protected DataMerger(DBDialect? dbDialect = null)
 		{
-			SqlDialect = sqlDialect;
+			DBDialect = dbDialect;
 		}
 
 		/// <summary>
@@ -346,9 +346,9 @@ namespace RegressionAnalysis.Common
 					var parts = cond.Field.Split('.', 2);
 					var tbl = parts[0];
 					var col = parts[1];
-					_ = RequiredSqlDialect.QuoteIdentifier(tbl);
-					var alias = tbl.Length > 0 ? RequiredSqlDialect.NormalizeAlias(tbl.Substring(0, 1)) : tbl; // カルチャ環境に依存しない正規化
-					left = $"{RequiredSqlDialect.QuoteIdentifier(alias)}.{RequiredSqlDialect.QuoteIdentifier(col)}";
+					_ = RequiredDBDialect.QuoteIdentifier(tbl);
+					var alias = tbl.Length > 0 ? RequiredDBDialect.NormalizeAlias(tbl.Substring(0, 1)) : tbl; // カルチャ環境に依存しない正規化
+					left = $"{RequiredDBDialect.QuoteIdentifier(alias)}.{RequiredDBDialect.QuoteIdentifier(col)}";
 				}
 				else if (map.TryGetValue(cond.Field, out var mapped))
 				{
@@ -371,22 +371,22 @@ namespace RegressionAnalysis.Common
 					case FilterOperator.Contains:
 						// 部分一致の場合、LIKE 演算子を使用
 						clauses.Add($"{(string.IsNullOrEmpty(cond.Logic) ? "" : cond.Logic + " ")}{left} LIKE {paramName}");
-						parameters.Add(RequiredSqlDialect.CreateParameter(paramName, $"%{value}%"));
+						parameters.Add(RequiredDBDialect.CreateParameter(paramName, $"%{value}%"));
 						break;
 					case FilterOperator.StartsWith:
 						// 前方一致の場合、LIKE 演算子を使用
 						clauses.Add($"{(string.IsNullOrEmpty(cond.Logic) ? "" : cond.Logic + " ")}{left} LIKE {paramName}");
-						parameters.Add(RequiredSqlDialect.CreateParameter(paramName, $"{value}%"));
+						parameters.Add(RequiredDBDialect.CreateParameter(paramName, $"{value}%"));
 						break;
 					case FilterOperator.EndsWith:
 						// 後方一致の場合、LIKE 演算子を使用
 						clauses.Add($"{(string.IsNullOrEmpty(cond.Logic) ? "" : cond.Logic + " ")}{left} LIKE {paramName}");
-						parameters.Add(RequiredSqlDialect.CreateParameter(paramName, $"%{value}"));
+						parameters.Add(RequiredDBDialect.CreateParameter(paramName, $"%{value}"));
 						break;
 					default:
 						// 完全一致の場合、= 演算子を使用
 						clauses.Add($"{(string.IsNullOrEmpty(cond.Logic) ? "" : cond.Logic + " ")}{left} = {paramName}");
-						parameters.Add(RequiredSqlDialect.CreateParameter(paramName, value));
+						parameters.Add(RequiredDBDialect.CreateParameter(paramName, value));
 						break;
 				}
 				paramIndex++;
@@ -560,20 +560,20 @@ namespace RegressionAnalysis.Common
 			var clauses = new System.Text.StringBuilder();
 			foreach (var cond in spec.Conditions)
 			{
-				// テーブル名を SQL 方言に従って引用符で囲む
-				_ = RequiredSqlDialect.QuoteIdentifier(cond.LeftTable);
-				_ = RequiredSqlDialect.QuoteIdentifier(cond.RightTable);
+				// テーブル名を DB 方言に従って引用符で囲む
+				_ = RequiredDBDialect.QuoteIdentifier(cond.LeftTable);
+				_ = RequiredDBDialect.QuoteIdentifier(cond.RightTable);
 
 				// テーブルエイリアスのマッピング
-				var leftAlias = cond.LeftTable.Length > 0 ? RequiredSqlDialect.NormalizeAlias(cond.LeftTable[0].ToString()) : "l"; // カルチャ環境に依存しない正規化
-				var rightAlias = cond.RightTable.Length > 0 ? RequiredSqlDialect.NormalizeAlias(cond.RightTable[0].ToString()) : "r"; // カルチャ環境に依存しない正規化
+				var leftAlias = cond.LeftTable.Length > 0 ? RequiredDBDialect.NormalizeAlias(cond.LeftTable[0].ToString()) : "l"; // カルチャ環境に依存しない正規化
+				var rightAlias = cond.RightTable.Length > 0 ? RequiredDBDialect.NormalizeAlias(cond.RightTable[0].ToString()) : "r"; // カルチャ環境に依存しない正規化
 
 				// キーの結合条件を生成（複数キー対応）
 				var joinKeys = string.Join(" AND ", 
 					cond.LeftKeys.Zip(cond.RightKeys, 
-						(lk, rk) => $"{RequiredSqlDialect.QuoteIdentifier(leftAlias)}.{RequiredSqlDialect.QuoteIdentifier(lk)} = {RequiredSqlDialect.QuoteIdentifier(rightAlias)}.{RequiredSqlDialect.QuoteIdentifier(rk)}"));
+						(lk, rk) => $"{RequiredDBDialect.QuoteIdentifier(leftAlias)}.{RequiredDBDialect.QuoteIdentifier(lk)} = {RequiredDBDialect.QuoteIdentifier(rightAlias)}.{RequiredDBDialect.QuoteIdentifier(rk)}"));
 				// JOIN 句を追加
-				clauses.AppendLine($"INNER JOIN {RequiredSqlDialect.QuoteIdentifier(cond.RightTable)} {RequiredSqlDialect.QuoteIdentifier(rightAlias)} ON {joinKeys}");
+				clauses.AppendLine($"INNER JOIN {RequiredDBDialect.QuoteIdentifier(cond.RightTable)} {RequiredDBDialect.QuoteIdentifier(rightAlias)} ON {joinKeys}");
 			}
 			// 生成された JOIN 句を返す
 			return clauses.ToString();
