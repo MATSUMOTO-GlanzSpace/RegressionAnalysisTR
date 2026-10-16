@@ -1,5 +1,4 @@
 ﻿using RegressionAnalysis.Common;
-using static RegressionAnalysis.Common.DataTableHelpers;
 using System.Data;
 using System.Data.Common;
 
@@ -43,7 +42,7 @@ public abstract class HousingDataMerger : DataMerger
 		protected override DataTable GetMergedDataTableCore()
 		{
 			// CSV ファイルを DataTable に読み込み（共通 Helper 利用）
-			var housingTable = ReadCsv(csvHousingPath);
+			var housingTable = CsvHelpers.ReadCsv(csvHousingPath);
 
 			// LINQ to DataSet実装
 			var query = from s in housingTable.AsEnumerable()

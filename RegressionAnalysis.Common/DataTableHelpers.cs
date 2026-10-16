@@ -1,6 +1,4 @@
 ﻿using System.Data;
-using System.Text;
-using Microsoft.VisualBasic.FileIO;
 using MySqlConnector;
 
 namespace RegressionAnalysis.Common
@@ -10,37 +8,6 @@ namespace RegressionAnalysis.Common
 	/// </summary>
 	public static class DataTableHelpers
 	{
-		/// <summary>
-        /// CSVファイル読み込みメソッド
-        /// </summary>
-        /// <param name="path">CSVファイルパス</param>
-        /// <returns>読み込んだDataTable</returns>
-		public static DataTable ReadCsv(string path)
-		{
-			DataTable table = new();
-			using (var parser = new TextFieldParser(path, Encoding.UTF8))
-			{
-				// CSV設定
-				parser.TextFieldType = FieldType.Delimited;
-				parser.SetDelimiters(",");
-				parser.HasFieldsEnclosedInQuotes = true;
-
-				// ヘッダー行
-				if (!parser.EndOfData) {
-					string[] headers = parser.ReadFields() ?? [];
-					foreach (var h in headers) table.Columns.Add(h);
-				}
-
-				// データ行
-				while (!parser.EndOfData)
-				{
-					string[]? fields = parser.ReadFields();
-					if (fields != null) table.Rows.Add(fields);
-				}
-			}
-			return table;
-		}
-
 		/// <summary>
 		/// DataTableからフィールド名取得メソッド
 		/// </summary>

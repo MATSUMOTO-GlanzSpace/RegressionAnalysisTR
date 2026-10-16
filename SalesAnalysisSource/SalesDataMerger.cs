@@ -1,5 +1,4 @@
 using RegressionAnalysis.Common;
-using static RegressionAnalysis.Common.DataTableHelpers;
 using System.Data;
 using System.Data.Common;
 
@@ -66,9 +65,9 @@ public abstract class SalesDataMerger : DataMerger
 		protected override DataTable GetMergedDataTableCore()
 		{
 			// CSV ファイルを DataTable に読み込み（共通 Helper 利用）
-			var salesTable = ReadCsv(csvSalesPath);
-			var weatherTable = ReadCsv(csvWeatherPath);
-			var unitsTable = ReadCsv(csvUnitsPath);
+			var salesTable = CsvHelpers.ReadCsv(csvSalesPath);
+			var weatherTable = CsvHelpers.ReadCsv(csvWeatherPath);
+			var unitsTable = CsvHelpers.ReadCsv(csvUnitsPath);
 
 			// LINQ to DataSet で JOIN を実装
 			// 複数キーJOIN対応：year と month で weather テーブルと JOIN、品種で units テーブルと JOIN
