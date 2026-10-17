@@ -1,164 +1,275 @@
 ﻿# SalesDataMerger 説明書
 
-このドキュメントは、`DataMerger` 基底クラスの設計と、`SalesDataMerger` 派生体系における使用方法を説明するものです。
+このドキュメントは、現在の `SalesDataMerger` 実装と、DB 接続時に使う `DBDialect` の設定方法を整理して説明するものです。
 
 ## 目的
 
-- **`DataMerger` 基底クラス**：CSV・MySQL データソースに共通するマージロジックを集約
-- **`SalesDataMerger` 中間抽象クラス**：Sales ドメイン固有のマージ後列名を一元管理
-- **派生実装クラス**：データソース固有処理のみ実装
+- `DataMerger`：CSV / DB 対応の共通マージ処理を提供する基底クラス
+- `SalesDataMerger`：Sales ドメイン固有の統一列名と JOIN 定義を持つ中間抽象クラス
+- `CsvSalesDataMerger`：CSV 3 ファイルを LINQ JOIN で結合する実装
+- `DbSalesDataMerger`：DB の 3 テーブルを結合して DataTable を取得する実装
+- `DBDialect`：DB ごとの識別子クォートやパラメータ生成など SQL 生成時に必要な方言情報を扱うクラス
 
-## クラス設計階層
+## 現在のクラス構成
 
-DataMerger（基底クラス）
-├── SalesDataMerger（中間：Sales領域固有） 
-│   ├── SalesDataMerger.CsvSalesDataMerger（複数/単一 CSV） 
-│   └── SalesDataMerger.MySqlSalesDataMerger（MySQL） 
-└── その他の派生クラス
+```text
+DataMerger
+└── SalesDataMerger
+    ├── CsvSalesDataMerger
+    └── DbSalesDataMerger
 
-## 実装パターン
+DBDialect
+├── MySqlDialect
+└── (将来の他 DB 方言を追加可能)
+```
 
-### パターン1：複数 CSV ファイル結合
+## 実装の現状
+
+### 1. SalesDataMerger の基本構造
+
+現在の `SalesDataMerger` は `DataMerger` を継承し、DB 方言を受け取れるようにしてあります。
 
 ```csharp
-public class CsvSalesDataMerger( string salesCsvPath, string weatherCsvPath, string unitsCsvPath) : SalesDataMerger
+public abstract class SalesDataMerger : DataMerger
+{
+    public SalesDataMerger(DBDialect? dbDialect = null) : base(dbDialect)
+    {
+    }
+
+    public override string[] GetMergedDataTableColumnNames() =>
+    [
+        "部門", "大分類", "中分類", "品種", "年", "月", "売上",
+        "平均気温", "最高気温", "最低気温", "降水量合計", "日照時間", "単位"
+    ];
+}
+```
+
+ポイント:
+
+- `DataMerger` のコンストラクタに `DBDialect? dbDialect = null` を渡せる
+- `SalesDataMerger` 自体も `DBDialect` を保持できる
+- `DbSalesDataMerger` は `dialect ?? new MySqlDialect()` を使ってデフォルトの方言を設定する
+
+### 2. CSV 実装
+
+CSV 側は `CsvSalesDataMerger` が 3 つの CSV を読み込み、LINQ の `join` で `sales` / `weather` / `units` を結合しています。
+
+```csharp
+public class CsvSalesDataMerger(string csvSalesPath, string csvWeatherPath, string csvUnitsPath) : SalesDataMerger
 {
     protected override DataTable GetMergedDataTableCore()
     {
-        // CSV読み込み → LINQ JOIN → ApplyFiltersAndConvertToDataTable() 
-    }
+        var salesTable = CsvHelpers.ReadCsv(csvSalesPath);
+        var weatherTable = CsvHelpers.ReadCsv(csvWeatherPath);
+        var unitsTable = CsvHelpers.ReadCsv(csvUnitsPath);
 
-    protected override DataTable ConvertToDataTable<T>(IEnumerable<T> data)
-    {
-        // リフレクションで匿名型を統一列名の DataTable に変換
+        var query = from s in salesTable.AsEnumerable()
+                    join w in weatherTable.AsEnumerable()
+                        on new { year = s.Field<string>("年"), month = s.Field<string>("月") }
+                        equals new { year = w.Field<string>("年"), month = w.Field<string>("月") }
+                    join u in unitsTable.AsEnumerable()
+                        on s.Field<string>("品種") equals u.Field<string>("品種")
+                    select new
+                    {
+                        部門 = s.Field<string>("部門"),
+                        大分類 = s.Field<string>("大分類"),
+                        中分類 = s.Field<string>("中分類"),
+                        品種 = s.Field<string>("品種"),
+                        年 = s.Field<string>("年"),
+                        月 = s.Field<string>("月"),
+                        売上 = s.Field<string>("売上"),
+                        平均気温 = w.Field<string>("平均気温(℃)"),
+                        最高気温 = w.Field<string>("最高気温(℃)"),
+                        最低気温 = w.Field<string>("最低気温(℃)"),
+                        降水量合計 = w.Field<string>("降水量の合計(mm)"),
+                        日照時間 = w.Field<string>("日照時間(時間)"),
+                        単位 = u.Field<string>("単位")
+                    };
+
+        var filteredQuery = ApplyFilters(query);
+        return ConvertToDataTable(filteredQuery);
     }
 }
 ```
 
+CSV 版ではフィルタは `ApplyFilters(query)` によって LINQ 述語として評価されます。
 
-### パターン2：単一 CSV ファイル
+### 3. DB 実装
+
+DB 版は `DbSalesDataMerger` で、`sales` / `weather` / `units` を SQL の JOIN で結合します。
 
 ```csharp
-public class CsvSalesDataMerger(string salesCsvPath) : SalesDataMerger
+public class DbSalesDataMerger(
+    string salesTable,
+    string weatherTable,
+    string unitsTable,
+    DBDialect? dialect = null,
+    Func<DbConnection>? connectionFactory = null) : SalesDataMerger(dialect ?? new MySqlDialect())
 {
-    protected override DataTable GetMergedDataTableCore()
+    public override Dictionary<string, string> MergedColumnToSqlMapping { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
     {
-        // CSV読み込み → LINQ 投影（結合なし） → ApplyFiltersAndConvertToDataTable() 
-    }
-
-    protected override DataTable ConvertToDataTable<T>(IEnumerable<T> data)
-    {
-        // リフレクションで匿名型を統一列名の DataTable に変換
-    }
+        ["部門"] = "s.department",
+        ["大分類"] = "s.primary_item",
+        ["中分類"] = "s.secondary_item",
+        ["品種"] = "s.variety",
+        ["年"] = "s.year",
+        ["月"] = "s.month",
+        ["売上"] = "s.sales",
+        ["平均気温"] = "w.average_temperature",
+        ["最高気温"] = "w.maximum_temperature",
+        ["最低気温"] = "w.lowest_temperature",
+        ["降水量合計"] = "w.precipitation",
+        ["日照時間"] = "w.sunshine_hours",
+        ["単位"] = "u.unit"
+    };
 }
 ```
 
+ここで重要なのは、`DbSalesDataMerger` が `SalesDataMerger(dialect ?? new MySqlDialect())` として親クラスへ `DBDialect` を渡している点です。これにより `DataMerger.RequiredDBDialect` が利用可能になります。
 
-### パターン3：MySQL テーブル結合
+## DBDialect の設定方法
+
+### 1. 使う方言を明示して作成する
+
+現在の実装では MySQL を使う場合は `new MySqlDialect()` を指定します。
 
 ```csharp
-public class MySqlSalesDataMerger( string salesTable, string weatherTable, string unitsTable) : SalesDataMerger
+var merger = new SalesDataMerger.DbSalesDataMerger(
+    salesTable: "sales",
+    weatherTable: "weather",
+    unitsTable: "units",
+    dialect: new MySqlDialect());
+```
+
+### 2. 省略時の既定動作
+
+`dialect` を省略した場合は、`DbSalesDataMerger` のコンストラクタで自動的に `new MySqlDialect()` が使われます。
+
+```csharp
+var merger = new SalesDataMerger.DbSalesDataMerger(
+    "sales",
+    "weather",
+    "units");
+```
+
+内部的には次のような扱いです。
+
+```csharp
+: SalesDataMerger(dialect ?? new MySqlDialect())
+```
+
+つまり、MySQL 実行時の既定は `MySqlDialect` です。
+
+### 3. DBDialect の役割
+
+`DBDialect` は SQL 生成時に必要な DB ごとの差分を吸収します。
+
+現在の実装では、主に次の 3 点を担当します。
+
+- 識別子のクォート
+  - `QuoteIdentifier("sales")` → `` `sales` ``
+- パラメータ生成
+  - `CreateParameter(name, value)` -> `MySqlParameter`
+- エイリアスの正規化
+  - `NormalizeAlias()` は `ToLowerInvariant()` によりカルチャ依存を避ける
+
+```csharp
+public abstract class DBDialect
 {
-    public override Dictionary<string, string> MergedColumnToSqlMapping { get; } = new();
-
-    protected override DbConnection GetDbConnection()
+    public string QuoteIdentifier(string identifier)
     {
-        return MySqlConnectionFactory.CreateOpenConnection();
+        if (string.IsNullOrWhiteSpace(identifier) || !SafeIdentifierRegex.IsMatch(identifier))
+            throw new InvalidOperationException($"不正な識別子です: {identifier}");
+
+        return $"{IdentifierQuoteStart}{identifier}{IdentifierQuoteEnd}";
     }
 
-    protected override DataTable GetMergedDataTableCore()
-    {
-        // フィルタから SQL WHERE句生成 → SQL実行 → ExecuteMergedSqlQuery()
-    }
-
-    protected override DataTable ConvertToDataTable<T>(IEnumerable<T> data)
-    {
-        throw new NotSupportedException("...");
-    }
+    public abstract DbParameter CreateParameter(string name, object value);
+    public virtual string NormalizeAlias(string alias) => alias.ToLowerInvariant();
 }
 ```
 
+MySQL 版は次のように実装されています。
 
-## テンプレートメソッドのフロー
+```csharp
+public sealed class MySqlDialect : DBDialect
+{
+    protected override string IdentifierQuoteStart => "`";
+    protected override string IdentifierQuoteEnd => "`";
 
-### CSV（CsvSalesDataMerger）
+    public override DbParameter CreateParameter(string name, object value)
+        => new MySqlParameter(name, value);
+}
+```
 
-CSV読み込み → LINQ(JOIN or 投影) → ApplyFiltersAndConvertToDataTable() → Filters評価（述語） → ConvertToDataTable<T>（リフレクション） → DataTable返却
+### 4. どこで使われているか
 
+`DataMerger` 側で `RequiredDBDialect` を持っており、SQL 生成で必要な識別子やパラメータを通します。
 
-### MySQL（MySqlSalesDataMerger）
+```csharp
+protected DBDialect RequiredDBDialect =>
+    DBDialect ?? throw new InvalidOperationException("DB方言が設定されていません。");
+```
 
-Filters → SQL WHERE句生成 → ExecuteMergedSqlQuery() → SQL実行 → DbDataAdapter.Fill() → DataTable返却
-
+そのため、DB 実装では `RequiredDBDialect.QuoteIdentifier(...)` や `RequiredDBDialect.CreateParameter(...)` を使って SQL を組み立てます。
 
 ## 統一マージ後列名
 
-部門、大分類、中分類、品種、年、月、売上、平均気温、最高気温、最低気温、降水量合計、日照時間、単位
+`SalesDataMerger` はマージ後の列名を次の 13 列で固定します。
 
-## CSV と MySQL の差分
+- 部門
+- 大分類
+- 中分類
+- 品種
+- 年
+- 月
+- 売上
+- 平均気温
+- 最高気温
+- 最低気温
+- 降水量合計
+- 日照時間
+- 単位
 
-| 側面 | CSV | MySQL |
-|------|-----|-------|
-| フィルタ評価 | LINQ述語（メモリ） | SQL WHERE句（DB側） |
-| 列名マッピング | リフレクション（ConvertToDataTable） | AS エイリアス（SQL SELECT） |
-| MergedColumnToSqlMapping | 不要 | 必須 |
+CSV 版と DB 版のどちらでも、最終的にこの列順と列名になるように実装されています。
 
-## 新しい DataMerger（例：NewCsvDataMerger / NewMySqlDataMerger）追加手順
+## CSV と DB の違い
 
-### A. マージあり（複数ファイル/複数テーブル）
+| 観点 | CSV 実装 | DB 実装 |
+|------|----------|---------|
+| JOIN | LINQ `join` | SQL `JOIN` 句生成 |
+| フィルタ処理 | `ApplyFilters(query)` | `BuildSqlWhereClause(...)` |
+| 列名変換 | `ConvertToDataTable()` | SQL `AS` エイリアス |
+| DB 方言 | 不要 | `DBDialect` が必須 |
 
-1. クラスを追加（`SalesDataMerger` 継承）
-   - CSV: `NewCsvDataMerger(fileA, fileB, ...)`
-   - MySQL: `NewMySqlDataMerger(tableA, tableB, ...)`
-2. マージ仕様を定義
-   - `GetJoinSpecification()` で JOIN キーを定義
-3. `GetMergedDataTableCore()` を実装
-   - CSV: 読み込み → JOIN（LINQ）→ `ApplyFilters(...)` → DataTable 化
-   - MySQL: JOIN 句生成 → `BuildSqlWhereClause(...)` で WHERE 生成 → SQL 実行
-4. フィルタ処理を必ず有効化
-   - CSV: `ApplyFilters(...)` を通す
-   - MySQL: `BuildSqlWhereClause(...)` の戻り値を SQL に連結し、生成パラメータを `ExecuteMergedSqlQuery(...)` へ渡す
-5. 列名を統一
-   - `GetMergedDataTableColumnNames()` の列順と、CSV 投影 / SQL `AS` エイリアスを一致させる
+## 新しいマージャーを追加する際の方針
 
-### B. マージなし（単一ファイル/単一テーブル）
+### A. CSV 追加時
 
-1. クラスを追加（`SalesDataMerger` 継承）
-   - CSV: `NewCsvDataMerger(filePath)`
-   - MySQL: `NewMySqlDataMerger(tableName)`
+1. `SalesDataMerger` を継承する
 2. `GetMergedDataTableCore()` を実装
-   - CSV: 読み込み → 必要列へ投影 → `ApplyFilters(...)` → DataTable 化
-   - MySQL: 単一テーブル SELECT を構築 → `BuildSqlWhereClause(...)` を適用
-3. フィルタ処理を必ず有効化
-   - マージなしでも、CSV は述語フィルタ、MySQL は WHERE + パラメータを必須で適用
-4. 列名を統一
-   - `GetMergedDataTableColumnNames()` の列順と、投影結果/SQL エイリアスを一致させる
+3. LINQ で結合・投影を行う
+4. `ApplyFilters(...)` を通す
+5. `GetMergedDataTableColumnNames()` の列順と一致するように DataTable を生成する
 
-### 実装時の注意（共通）
+### B. DB 追加時
 
-- MySQL では `BuildSqlWhereClause(...)` で生成されたプレースホルダ名（例: `@p0`）と、実際に作成する `DbParameter.ParameterName` を一致させる。
-- `BuildSqlJoinClauses(...)` が返す JOIN 句に余計な記号（`{}` など）を混入させない。
-- 追加後は UI 側で列コンボ（目的変数/説明変数/フィルタ列）に列名が出ることを確認する。
+1. `SalesDataMerger` を継承する
+2. コンストラクタで `DBDialect` を渡す
+3. `GetJoinSpecification()` で JOIN 条件を定義する
+4. `BuildSqlWhereClause(...)` を使って SQL の `WHERE` を生成する
+5. `RequiredDBDialect.QuoteIdentifier(...)` と `CreateParameter(...)` を使って SQL を安全に組み立てる
+6. `MergedColumnToSqlMapping` を定義して `AS` 列名を統一する
 
-## 派生実装のチェックリスト
+## 実装時の注意
 
-- [ ] `SalesDataMerger` を継承
-- [ ] `GetMergedDataTableCore()` を実装
-- [ ] `GetMergedDataTableColumnNames()` の列定義と実データ列を一致
-- [ ] `ConvertToDataTable<T>()` を実装（必要な場合）
-- [ ] DB の場合：`GetDbConnection()`、`MergedColumnToSqlMapping` を実装
-- [ ] フィルタ処理（CSV: `ApplyFilters` / MySQL: `BuildSqlWhereClause`）を有効化
-
-## 設計上の注意点
-
-- **MergedColumnToSqlMapping**：DB固有のマッピングのため、MySQL実装に配置。他のDB対応時に基底移行を検討。
-- **CSV列名バリデーション**：現状は期待値と異なる場合の対応（エラー・ログ・空列埋め）を踏襲。運用で問題があれば明示的バリデーション追加を推奨。
-- **Null許可警告**：`factory.CreateDataAdapter()` など外部API戻り値が null許可型の場合、必要に応じて `#pragma warning disable` で抑制。
+- `DbSalesDataMerger` は `dialect` 未指定時に `MySqlDialect` を使うため、MySQL 以外を使う場合は明示的に指定する
+- `BuildSqlWhereClause(...)` のプレースホルダ名と `DbParameter.ParameterName` は一致させる必要がある
+- `DBDialect` を設定し忘れると `RequiredDBDialect` で `InvalidOperationException` になる
+- `QuoteIdentifier` は `^[A-Za-z_][A-Za-z0-9_]*$` 形式の安全な識別子のみ許可する
 
 ## 変更履歴
 
-- **2026-10-09**：新規 DataMerger 追加手順を追記（マージあり/なしを分離、両方でフィルタ適用必須を明記）。
-- **2026-10-09**：SalesDataMerger説明書を再作成。テンプレートメソッド設計、CSV（複数・単一）、MySQLの実装例を記載。
-
-
+- **2026-10-17**：現状の `SalesDataMerger` 実装に合わせて更新。`DBDialect` の設定方法と用途を追記。
+- **2026-10-09**：新規 DataMerger 追加手順と CSV/DB の違いを整理。
 
