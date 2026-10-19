@@ -156,7 +156,7 @@ var merger = new DbSalesDataMerger("sales", "weather", "units", new MySqlDialect
 merger.Filters.Add(new FilterCondition("", "売上", FilterOperator.Equals, "1500"));
 
 merger.MergedColumnToSqlMapping["売上"] = "s.sales";
-var merged = merger.GetMergedDataTable();
+var merged = merger.GetTable();
 ```
 
 この例では `merger.Filters` は結合後の結果に対する最終フィルタです。`MergedColumnToSqlMapping` は `売上` などの統一列名を `s.sales` のような SQL の実列へ変換し、DB 側の `WHERE` 生成で利用されます。

@@ -273,6 +273,30 @@ public abstract class DataImporter
 	}
 
 	/// <summary>
+	/// DataTable の有効行をフィルタリングするユーティリティメソッド
+	/// </summary>
+	/// <param name="source">フィルタリング対象の DataTable</param>
+	/// <param name="responseName">目的変数の列名</param>
+	/// <param name="predictorNames">説明変数の列名リスト</param>
+	/// <returns>有効行のみを含む DataTable</returns>
+	public static DataTable? FilterValidRows(DataTable source, string responseName, List<string> predictorNames)
+	{
+		if (source == null) return null;
+		// 目的変数と説明変数の列が存在するか確認
+		var validRows = source.AsEnumerable()
+			.Where(row =>
+				!row.IsNull(responseName) &&
+				!string.IsNullOrWhiteSpace(row[responseName]?.ToString()) &&
+				predictorNames.All(name =>
+					!row.IsNull(name) &&
+					!string.IsNullOrWhiteSpace(row[name]?.ToString())
+				)
+			).ToList();
+		// 有効行が存在する場合はコピーして返す、存在しない場合は空の DataTable を返す
+		return validRows.Count > 0 ? validRows.CopyToDataTable() : source.Clone();
+	}
+
+	/// <summary>
 	/// SQLクエリを実行してDataTableを取得
 	/// </summary>
 	/// <param name="sql">実行するSQLクエリ</param>

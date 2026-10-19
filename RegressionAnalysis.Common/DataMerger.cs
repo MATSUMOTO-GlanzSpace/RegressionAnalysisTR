@@ -22,26 +22,14 @@ namespace RegressionAnalysis.Common
 		}
 
 		/// <summary>
-		/// 結合データテーブル取得メソッド
-		/// </summary>
-		/// <returns>結合データテーブル</returns>
-		public DataTable GetMergedDataTable()
-		{
-			try
-			{
-				return GetMergedDataTableCore();
-			}
-			catch (Exception ex)
-			{
-				LogError(ex);
-				return new DataTable();
-			}
-		}
-
-		/// <summary>
 		/// Importer の GetTable() 相当の実装。Merger の最終合成結果を返す。
 		/// </summary>
-		protected override DataTable GetTableCore() => GetMergedDataTable();
+		protected override DataTable GetTableCore() => GetMergedDataTableCore();
+
+		/// <summary>
+		/// Importer の GetTableColumnNames() 相当の実装。Merger の合成後の列名一覧を返す。
+		/// </summary>
+		public override string[] GetTableColumnNames() => GetMergedDataTableColumnNames();
 
 		/// <summary>
 		/// 派生クラスで実装する結合ロジック
@@ -163,26 +151,6 @@ namespace RegressionAnalysis.Common
 
 			// フィルタ条件の優先度を返すヘルパー関数
 			static int Precedence(string op) => op == "AND" ? 2 : op == "OR" ? 1 : 0;
-		}
-
-		/// <summary>
-		/// 指定した目的変数・説明変数の有効な行のみを抽出したDataTableを返す
-		/// </summary>
-		public static DataTable? FilterValidRows(DataTable source, string responseName, List<string> predictorNames)
-		{
-			if (source == null) return null;
-			// 目的変数と説明変数のいずれかが欠損している行を除外
-			var validRows = source.AsEnumerable()
-				.Where(row =>
-					!row.IsNull(responseName) &&
-					!string.IsNullOrWhiteSpace(row[responseName]?.ToString()) &&
-					predictorNames.All(name =>
-						!row.IsNull(name) &&
-						!string.IsNullOrWhiteSpace(row[name]?.ToString())
-					)
-				).ToList();
-			// 有効な行が存在する場合はそれをコピーして新しいDataTableを返す。存在しない場合は空のDataTableを返す。
-			return validRows.Count > 0 ? validRows.CopyToDataTable() : source.Clone();
 		}
 
 		/// <summary>
