@@ -41,8 +41,8 @@ public abstract class HousingDataMerger : DataMerger
 		/// <returns>結合データを含む DataTable</returns>
 		protected override DataTable GetMergedDataTableCore()
 		{
-			// CSV ファイルを DataTable に読み込み（共通 Helper 利用）
-			var housingTable = CsvHelpers.ReadCsv(csvHousingPath);
+			var housingImporter = new CSVImporter(csvHousingPath);
+			var housingTable = housingImporter.GetTable();
 
 			// LINQ to DataSet実装
 			var query = from s in housingTable.AsEnumerable()

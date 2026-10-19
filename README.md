@@ -11,10 +11,10 @@
   - 主なクラス: HousingDataMerger (抽象), CsvHousingDataMerger, 現在はMySqlHousingDataMergerは未実装
 - SalesAnalysisSource (クラスライブラリ)
   - CSV / DB から販売・気象・単位データを読み込み、マージした DataTable を生成するマージャー群を提供。
-  - 主なクラス: SalesDataMerger (抽象), CsvSalesDataMerger, MySqlSalesDataMerger
+  - 主なクラス: SalesDataMerger (抽象), CsvSalesDataMerger, DbSalesDataMerger
 - RegressionAnalysis.Common (クラスライブラリ)
   - 共通ユーティリティと基底クラス群を提供。
-  - 主なクラス: DataMerger（抽象基底）, DataTableHelpers, ConfigurationHelper
+  - 主なクラス: DataImporter（1 CSV / 1 DB テーブル用基底）, CSVImporter, DBImporter, DataMerger（マージ用基底）, DataTableHelpers, ConfigurationHelper
 
 ## 実装されている主要クラス（簡易版）
 
@@ -27,17 +27,21 @@
     - HousingDataMerger
       - DataMerger を継承する抽象基底。マージ後の列名一覧を一元管理する（GetMergedDataTableColumnNames を実装）。
     - CsvHousingDataMerger
-      - CSVファイル（housing）を読み込み LINQ で結合し、マージ済み DataTable を返す。CSV 側の元列名を統一列名へマップする。
+      - CSVファイル（housing）を `CSVImporter` で取得し、マージ済み DataTable を返す。CSV 側の元列名は直接参照し、最終的な unified column は DataMerger 側で扱う。
 - 【販売データ】SalesAnalysisSource (クラスライブラリ)
     - SalesDataMerger
-      - DataMerger を継承する抽象基底。マージ後の列名一覧を一元管理する（GetMergedDataTableColumnNames を実装）。
+      - DataMerger を継承する抽象基底。マージ後の列名と結合仕様を定義する。
     - CsvSalesDataMerger
-      - CSVの3ファイル（sales, weather, units）を読み込み LINQ で結合し、マージ済み DataTable を返す。CSV 側の元列名を統一列名へマップする。
+      - 各 CSV を `CSVImporter` で読み込み、LINQ で結合し、最終 DataTable を返す。
     - DbSalesDataMerger
-      - DB（MySQL）から販売・気象・単位データを読み込み LINQ で結合し、マージ済み DataTable を返す。DB 側の元列名を統一列名へマップする。
+      - 各 DB テーブルを `DBImporter` で読み込み、DB での join とフィルタを組み合わせて DataTable を取得する。
 - 【共通ライブラリ】RegressionAnalysis.Common (クラスライブラリ)
+    - DataImporter
+      - 1 CSV / 1 DB テーブルの取得、元列名参照、ローカルフィルタを担う基底クラス。
+    - CSVImporter / DBImporter
+      - `GetTable()` と `GetTableColumnNames()` を実装し、単一ソースを DataTable として扱う。
     - DataMerger
-      - データ結合の抽象基底。GetMergedDataTable()（例外処理付き）、Filters 管理、CSV 用フィルタ述語生成等を提供。
+      - `DataImporter` を継承し、複数ソースの join / merge / unified columns / final filters を担当する。
     - DbDiagnostics
       - DB 接続の診断ユーティリティ。接続文字列から DB に接続できるかを確認する。
     - MySqlDiagnostics
@@ -52,67 +56,54 @@
       - appsettings.*.json から設定値を取得するユーティリティを提供。
     - LinearRegressionAnalysis
       - 線形回帰分析の計算を行うユーティリティ。最小二乗法で回帰係数を求める。
- 
- ## 設定ファイル
+  
+## 設定ファイル
 
-appsettings.Development.json を用いて接続文字列等を環境ごとに管理します。例:
+- 実行環境名は `DOTNET_ENVIRONMENT` で切り替えます。
+  - Visual Studio でのデバッグ時は `RegressionAnalysis/Properties/launchSettings.json` で設定します。
+  - 未設定の場合は `Development` として扱われます。
+- 設定ファイルは `RegressionAnalysis.Common/ConfigurationHelper.cs` で次の順に読み込まれます。
+  1. `appsettings.json`
+  2. `appsettings.{DOTNET_ENVIRONMENT}.json`
+  3. 環境変数
+- そのため、共通設定は `appsettings.json` に、環境ごとの差分は `appsettings.Development.json` や `appsettings.Production.json` に記述します。
+
+`launchSettings.json` の例:
 
 ```json
 {
-  "ConnectionStrings": {
-    "MySQLSales": "Server=localhost;Port=3306;Database=salesdb;User Id=root;Password=;Connection Timeout=300;"
+  "profiles": {
+    "RegressionAnalysis": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
   }
 }
 ```
 
+`appsettings.json` の例:
+
+```json
+{
+  "ConnectionStrings": {
+    "MySQLSales": "Server={Server};Port=3306;Database={DatabaseName};User Id={UserId};Password={Password};Connection Timeout=300;"
+  }
+}
+```
+
+`appsettings.Development.json` の例:（開発用に準備してください）
+
+```json
+{
+  "ConnectionStrings": {
+    "MySQLSales": "Server={Server};Port=3306;Database={DatabaseName};User Id={UserId};Password={Password};Connection Timeout=300;"
+  }
+}
+```
+
+接続文字列は `ConfigurationHelper.GetConnectionString()` から参照され、現在は `RegressionAnalysis/Program.cs` で読み込んでいます。
+
 ## 注意点
-
 - DB テーブル名や列名を SQL に直接埋め込む箇所があります。外部入力を直接埋め込まないよう注意してください（実運用ではエスケープ/検証を追加すること）。
-
-## 公開リポジトリ自動同期ルール
-
-連携元リポジトリ(private RegressionAnalysis)管理者向け情報です。
-
-- このリポジトリの for_training ブランチへの push を検知して、公開リポジトリ `MATSUMOTO-GlanzSpace/RegressionAnalysisTR` の master ブランチへ自動ミラーリングする GitHub Actions ワークフローを追加しています。
-- workflow設定は.gitignoreで除外されており、公開リポジトリには push されません。
-- 必要な Secret:
-  - `PUBLIC_REPO_PAT` — 公開リポジトリへ push できる personal access token をリポジトリの Settings → Secrets and variables → Actions に登録してください。
-- ワークフローの場所: `.github/workflows/push_to_public.yml`。
-- 挙動: for_training に push されると該当ワークフローが起動し、公開リポジトリの master を強制更新します（force push）。履歴上書きを避けたい場合はワークフローの `--force` を削除して手動マージに変更してください。
-
----
-
-## 履修生向け: 初期セットアップから演習まで
-
-### 1. 初期 clone（演習開始時）
-
-```bash
-# 公開リポジトリから clone
-git clone https://github.com/MATSUMOTO-GlanzSpace/RegressionAnalysisTR.git
-cd RegressionAnalysisTR
-
-# master ブランチで演習を開始
-# （デフォルトで master がチェックアウトされています）
-```
-
-### 2. 教材の最新版を取得・merge（演習中、教材が更新された場合）
-
-```bash
-# 最新版を fetch
-git fetch origin master
-
-# 現在のローカル変更を確認
-git status
-
-# master の最新版を現在のブランチにマージ
-git merge origin/master
-```
-
-> **conflict が発生した場合**:
-> ```bash
-> # conflict を手動で解決（エディタで編集）
-> # 解決後、add/commit
-> git add <conflict が発生したファイル>
-> git commit -m "Merge latest master"
-> ```
-

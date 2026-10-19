@@ -13,7 +13,12 @@
 ## 現在のクラス構成
 
 ```text
-DataMerger
+DataImporter
+├── CSVImporter
+├── DBImporter
+└── (1 CSV/1 テーブル単位の一般的な参照機能)
+
+DataMerger : DataImporter
 └── SalesDataMerger
     ├── CsvSalesDataMerger
     └── DbSalesDataMerger
@@ -27,7 +32,7 @@ DBDialect
 
 ### 1. SalesDataMerger の基本構造
 
-現在の `SalesDataMerger` は `DataMerger` を継承し、DB 方言を受け取れるようにしてあります。
+現在の `SalesDataMerger` は `DataMerger` を継承し、DB 方言と共通 import 機能を使えるようにしています。`DataImporter` により単一ソースの DataTable 参照が共通化され、`DataMerger` では結合後の統一列名とデータ依存ロジックを扱います。
 
 ```csharp
 public abstract class SalesDataMerger : DataMerger
@@ -52,16 +57,20 @@ public abstract class SalesDataMerger : DataMerger
 
 ### 2. CSV 実装
 
-CSV 側は `CsvSalesDataMerger` が 3 つの CSV を読み込み、LINQ の `join` で `sales` / `weather` / `units` を結合しています。
+CSV 側は `CsvSalesDataMerger` が `CSVImporter` で 3 つの CSV を個別に `DataTable` として取得し、その後 LINQ の `join` で `sales` / `weather` / `units` を結合しています。
 
 ```csharp
 public class CsvSalesDataMerger(string csvSalesPath, string csvWeatherPath, string csvUnitsPath) : SalesDataMerger
 {
     protected override DataTable GetMergedDataTableCore()
     {
-        var salesTable = CsvHelpers.ReadCsv(csvSalesPath);
-        var weatherTable = CsvHelpers.ReadCsv(csvWeatherPath);
-        var unitsTable = CsvHelpers.ReadCsv(csvUnitsPath);
+        var salesImporter = new CSVImporter(csvSalesPath);
+        var weatherImporter = new CSVImporter(csvWeatherPath);
+        var unitsImporter = new CSVImporter(csvUnitsPath);
+
+        var salesTable = salesImporter.GetTable();
+        var weatherTable = weatherImporter.GetTable();
+        var unitsTable = unitsImporter.GetTable();
 
         var query = from s in salesTable.AsEnumerable()
                     join w in weatherTable.AsEnumerable()
@@ -92,11 +101,11 @@ public class CsvSalesDataMerger(string csvSalesPath, string csvWeatherPath, stri
 }
 ```
 
-CSV 版ではフィルタは `ApplyFilters(query)` によって LINQ 述語として評価されます。
+CSV 版では `CSVImporter.GetTable()` が 1 CSV の列名ベースアクセスを提供し、`DataMerger` の join では統一列名の最終結合が行われます。
 
 ### 3. DB 実装
 
-DB 版は `DbSalesDataMerger` で、`sales` / `weather` / `units` を SQL の JOIN で結合します。
+DB 版は `DbSalesDataMerger` で、`DBImporter` を使って各テーブルを `DataTable` として取得し、その後で join を行います。`MergedColumnToSqlMapping` は最終出力の統一列名を DB 実際の列へ変換するために使います。
 
 ```csharp
 public class DbSalesDataMerger(
@@ -126,6 +135,33 @@ public class DbSalesDataMerger(
 ```
 
 ここで重要なのは、`DbSalesDataMerger` が `SalesDataMerger(dialect ?? new MySqlDialect())` として親クラスへ `DBDialect` を渡している点です。これにより `DataMerger.RequiredDBDialect` が利用可能になります。
+
+### 4. Filters と MergedColumnToSqlMapping の実利用例
+
+責務の分離は次のように使い分けます。
+
+- `DataImporter` は 1 CSV / 1 テーブルの読み取りとローカルフィルタを担当する
+- `DataMerger` は複数ソースの結合・統一列名・最終的なマージ結果を担当する
+
+```csharp
+var salesImporter = new DBImporter("sales", new MySqlDialect());
+salesImporter.Filters.Add(new FilterCondition("", "year", FilterOperator.Equals, "2024"));
+var salesTable = salesImporter.GetTable();
+```
+
+上記の `salesImporter.Filters` は `sales` テーブルに対するローカルな絞り込みです。`GetTableColumnNames()` は `"year"` などの元データ側の列名をそのまま返します。
+
+```csharp
+var merger = new DbSalesDataMerger("sales", "weather", "units", new MySqlDialect());
+merger.Filters.Add(new FilterCondition("", "売上", FilterOperator.Equals, "1500"));
+
+merger.MergedColumnToSqlMapping["売上"] = "s.sales";
+var merged = merger.GetMergedDataTable();
+```
+
+この例では `merger.Filters` は結合後の結果に対する最終フィルタです。`MergedColumnToSqlMapping` は `売上` などの統一列名を `s.sales` のような SQL の実列へ変換し、DB 側の `WHERE` 生成で利用されます。
+
+`SalesDataMerger / HousingDataMerger` の実装側では、各ソースを `CSVImporter` / `DBImporter` から `DataTable` として取得した後、Merger 側で join / unify / final filter を行います。
 
 ## DBDialect の設定方法
 

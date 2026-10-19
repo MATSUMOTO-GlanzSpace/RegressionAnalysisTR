@@ -11,26 +11,14 @@ namespace RegressionAnalysis.Common
 	/// <summary>
 	/// データ結合基底クラス
 	/// </summary>
-	public abstract class DataMerger
+	public abstract class DataMerger : DataImporter
 	{
-		/// <summary>
-		/// DB方言
-		/// </summary>
-		private DBDialect? DBDialect { get; }
-
-		/// <summary>
-		/// DB方言（必須）
-		/// </summary>
-		protected DBDialect RequiredDBDialect =>
-			DBDialect ?? throw new InvalidOperationException("DB方言が設定されていません。");
-
 		/// <summary>
 		/// コンストラクタ
 		/// </summary>
 		/// <param name="dbDialect">DB方言</param>
-		protected DataMerger(DBDialect? dbDialect = null)
+		protected DataMerger(DBDialect? dbDialect = null) : base(dbDialect)
 		{
-			DBDialect = dbDialect;
 		}
 
 		/// <summary>
@@ -41,41 +29,21 @@ namespace RegressionAnalysis.Common
 		{
 			try
 			{
-				// 派生クラスの実装を呼び出し
 				return GetMergedDataTableCore();
 			}
 			catch (Exception ex)
 			{
-				// エラーログ出力
 				LogError(ex);
-				// 空のDataTableを返す
 				return new DataTable();
-					}
 			}
+		}
 
-			/// <summary>
-			/// IEnumerable にフィルタを適用（DataTable 変換なし）
-			/// CSV 結合時など、フィルタ後の DataTable 生成が派生側で異なる場合に使用
-			/// </summary>
-			/// <typeparam name="T">クエリ結果の型</typeparam>
-			/// <param name="query">フィルタ対象のクエリ結果</param>
-			/// <returns>フィルタ適用後のクエリ</returns>
-			protected virtual IEnumerable<T> ApplyFilters<T>(IEnumerable<T> query)
-			{
-				// フィルタを適用
-				if (Filters.Count > 0)
-				{
-					var predicate = BuildLinqFilterPredicate();
-					if (predicate != null)
-					{
-						query = query.Where(x => x != null && predicate(x)).ToList();
-					}
-				}
+		/// <summary>
+		/// Importer の GetTable() 相当の実装。Merger の最終合成結果を返す。
+		/// </summary>
+		protected override DataTable GetTableCore() => GetMergedDataTable();
 
-				return query;
-			}
-
-			/// <summary>
+		/// <summary>
 		/// 派生クラスで実装する結合ロジック
 		/// </summary>
 		/// <returns>結合データテーブル</returns>
@@ -100,160 +68,71 @@ namespace RegressionAnalysis.Common
 		/// <returns>変換後の DataTable</returns>
 		protected virtual DataTable ConvertToDataTable<T>(IEnumerable<T> data)
 		{
-			// データテーブルに列を追加（統一列名を使用）
+			// 結合後の列名を取得
 			DataTable mergedTable = new();
 			foreach (var colName in GetMergedDataTableColumnNames())
 			{
 				mergedTable.Columns.Add(colName);
 			}
 
-			// 結合データを DataTable に追加
+			// データを DataTable に変換
 			foreach (var row in data)
 			{
 				if (row == null) continue;
-				// リフレクションで匿名型のプロパティ値を取得し、DataTable に追加
 				var colNames = GetMergedDataTableColumnNames();
 				var type = row.GetType();
 				var values = colNames.Select(c =>
 				{
-					// プロパティ名を取得
 					var prop = type.GetProperty(c);
 					if (prop == null) return DBNull.Value;
-
 					var value = prop.GetValue(row);
 					return value ?? DBNull.Value;
 				}).ToArray();
-				// DataRow に追加
 				mergedTable.Rows.Add(values);
 			}
 			return mergedTable;
 		}
 
 		/// <summary>
-		/// エラーログ出力メソッド
-		/// </summary>
-		/// <param name="ex">例外オブジェクト</param>
-		protected virtual void LogError(Exception ex)
-		{
-			// 標準出力にエラーログ
-			Console.WriteLine($"[DataMerger Error] {ex.Message}");
-		}
-
-		/// <summary>
-		/// フィルタ条件リスト
-		/// </summary>
-		public List<FilterElement> Filters { get; } = [];
-
-		/// <summary>
-		/// フィルタ条件追加メソッド（互換用）
-		/// </summary>
-		/// <param name="logic">論理演算子（AND/OR）</param>
-		/// <param name="field">フィールド名（テーブル名.フィールド名形式）</param>
-		/// <param name="condition">条件式（例: "='value'", "LIKE '%value%'"）</param>
-		public void AddFilterCondition(string logic, string field, string condition)
-		{
-			var parsed = ParseLegacyCondition(condition);
-			Filters.Add(new FilterCondition(logic, field, parsed.Operator, parsed.Value));
-		}
-
-		/// <summary>
-		/// フィルタ条件追加メソッド（推奨）
-		/// </summary>
-		/// <param name="logic">論理演算子（AND/OR）</param>
-		/// <param name="field">フィールド名（テーブル名.フィールド名形式）</param>
-		/// <param name="filterOperator">比較演算子</param>
-		/// <param name="value">比較値</param>
-		public void AddFilterCondition(string logic, string field, FilterOperator filterOperator, string value)
-			=> Filters.Add(new FilterCondition(logic, field, filterOperator, value));
-
-		/// <summary>
-		/// レガシー条件式を解析して比較演算子と値を取得
-		/// </summary>
-		/// <param name="condition">条件式（例: "='value'", "LIKE '%value%'"）</param>
-		/// <returns>比較演算子と値のタプル</returns>
-		private static (FilterOperator Operator, string Value) ParseLegacyCondition(string condition)
-		{
-			var condTrim = condition.Trim();
-			if (condTrim.StartsWith("LIKE", StringComparison.OrdinalIgnoreCase))
-			{
-				var pattern = condTrim.Substring(4).Trim().Trim('\'', '"');
-				var startsWithWildcard = pattern.StartsWith("%");
-				var endsWithWildcard = pattern.EndsWith("%");
-				var core = pattern.Trim('%');
-
-				if (startsWithWildcard && endsWithWildcard) return (FilterOperator.Contains, core);
-				if (startsWithWildcard) return (FilterOperator.EndsWith, core);
-				if (endsWithWildcard) return (FilterOperator.StartsWith, core);
-				return (FilterOperator.Equals, core);
-			}
-
-			return (FilterOperator.Equals, condTrim.Trim('=', '\'', '"'));
-		}
-
-		/// <summary>
-		/// フィルタグループ開始追加メソッド
-		/// </summary>
-		/// <param name="logic">論理演算子（AND/OR）</param>
-		public void AddGroupStart(string logic = "")
-			=> Filters.Add(new FilterGroupStart(logic));
-
-		/// <summary>
-		/// フィルタグループ終了追加メソッド
-		/// </summary>
-		public void AddGroupEnd()
-			=> Filters.Add(new FilterGroupEnd());
-
-		/// <summary>
 		/// CSV用フィルタ述語生成
 		/// </summary>
-		/// <param name="tableName">テーブル名</param>
-		/// <returns>フィルタ述語</returns>
-		/// <remarks>Shunting Yard AlgorithmでRPN変換し評価</remarks>
-		/// <see href="https://en.wikipedia.org/wiki/Shunting_yard_algorithm" />
 		public Func<DataRow, bool> BuildCsvFilterPredicate(string tableName)
 		{
-			// Shunting Yard AlgorithmでRPN変換
-			// RPN: Reverse Polish Notation（逆ポーランド記法）
-			// 出力キューと演算子スタック
+			// Shunting Yard Algorithm を使って中置記法のフィルタ条件を後置記法に変換
 			var output = new List<object>();
 			var ops = new Stack<string>();
 			foreach (var filter in Filters)
 			{
 				if (filter is FilterCondition cond && cond.Field.StartsWith(tableName + "."))
 				{
-					// フィルタ条件を出力キューに追加
 					output.Add(cond);
 				}
 				else if (filter is FilterGroupStart)
 				{
-					// グループ開始を演算子スタックに追加
 					ops.Push("(");
 				}
 				else if (filter is FilterGroupEnd)
 				{
-					// グループ終了まで演算子を出力キューに移動
 					while (ops.Count > 0 && ops.Peek() != "(")
 						output.Add(ops.Pop());
-					if (ops.Count > 0) ops.Pop(); // remove "("
+					if (ops.Count > 0) ops.Pop();
 				}
 				else if (filter is FilterCondition logicCond && (logicCond.Logic == "AND" || logicCond.Logic == "OR"))
 				{
-					// 論理演算子の優先度に基づき演算子スタックから出力キューに移動
 					while (ops.Count > 0 && Precedence(ops.Peek()) >= Precedence(logicCond.Logic))
 						output.Add(ops.Pop());
 					ops.Push(logicCond.Logic);
 				}
 			}
-			// 残りの演算子を出力キューに移動
 			while (ops.Count > 0) output.Add(ops.Pop());
 
-			// RPN評価
+			// 後置記法のフィルタ条件を評価する述語を生成
 			var stack = new Stack<Func<DataRow, bool>>();
 			foreach (var token in output)
 			{
+				// フィルタ条件の場合
 				if (token is FilterCondition cond && cond.Field.StartsWith(tableName + "."))
 				{
-					// フィルタ条件を述語に変換
 					var field = cond.Field.Substring(tableName.Length + 1);
 					var value = cond.Value;
 					stack.Push(row =>
@@ -270,31 +149,29 @@ namespace RegressionAnalysis.Common
 						};
 					});
 				}
+				// 論理演算子の場合
 				else if (token is string op && (op == "AND" || op == "OR"))
 				{
-					// 論理演算子適用
 					var right = stack.Pop();
 					var left = stack.Pop();
 					if (op == "AND") stack.Push(row => left(row) && right(row));
 					else stack.Push(row => left(row) || right(row));
 				}
 			}
+			// 最終的な述語を返す（スタックが空の場合は常に true を返す述語）
 			return stack.Count > 0 ? stack.Pop() : row => true;
 
-			// 演算子の優先度
+			// フィルタ条件の優先度を返すヘルパー関数
 			static int Precedence(string op) => op == "AND" ? 2 : op == "OR" ? 1 : 0;
 		}
 
 		/// <summary>
 		/// 指定した目的変数・説明変数の有効な行のみを抽出したDataTableを返す
 		/// </summary>
-		/// <param name="source">元のDataTable</param>
-		/// <param name="responseName">目的変数名</param>
-		/// <param name="predictorNames">説明変数名リスト</param>
-		/// <returns>有効な行のみのDataTable</returns>
 		public static DataTable? FilterValidRows(DataTable source, string responseName, List<string> predictorNames)
 		{
 			if (source == null) return null;
+			// 目的変数と説明変数のいずれかが欠損している行を除外
 			var validRows = source.AsEnumerable()
 				.Where(row =>
 					!row.IsNull(responseName) &&
@@ -304,368 +181,198 @@ namespace RegressionAnalysis.Common
 						!string.IsNullOrWhiteSpace(row[name]?.ToString())
 					)
 				).ToList();
-			// 有効な行のみのDataTableを返す
-			// 行がない場合はデータが空の（カラム情報は設定された）DataTableを返す
+			// 有効な行が存在する場合はそれをコピーして新しいDataTableを返す。存在しない場合は空のDataTableを返す。
 			return validRows.Count > 0 ? validRows.CopyToDataTable() : source.Clone();
 		}
 
 		/// <summary>
 		/// マージ後のDataTableの列名一覧を返す（派生クラスでオーバーライド）
 		/// </summary>
-		/// <returns>列名配列</returns>
 		public virtual string[] GetMergedDataTableColumnNames() => Array.Empty<string>();
 
 		/// <summary>
 		/// マージ後の列名 -> DB 側の alias.column へのマッピング
-		/// DB プッシュダウンを行うマージャーはここをオーバーライドしてマッピングを提供する
 		/// </summary>
 		public virtual Dictionary<string, string> MergedColumnToSqlMapping { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
 		/// <summary>
-		/// SQL WHERE句生成メソッド
+		/// SQL WHERE 句を構築する（派生クラスでオーバーライド）
 		/// </summary>
-		/// <param name="tableName">テーブル別名</param>
-		/// <param name="parameters">生成されたパラメータリスト</param>
-		/// <returns>WHERE句文字列（例："WHERE s.department = @p0 AND ..."）</returns>
-		public virtual string BuildSqlWhereClause(
-			string tableName,
-			out List<DbParameter> parameters)
+		/// <param name="tableName"></param>
+		/// <param name="parameters"></param>
+		/// <returns></returns>
+		public override string BuildSqlWhereClause(string tableName, out List<DbParameter> parameters)
 		{
 			var clauses = new List<string>();
-			parameters = new List<DbParameter>();
+			parameters = [];
 			int paramIndex = 0;
+			// MergedColumnToSqlMapping が null の場合は空の辞書を使用
 			var map = MergedColumnToSqlMapping ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 			// フィルタ条件を処理
 			foreach (var cond in Filters.OfType<FilterCondition>())
 			{
-				// フィールド名を正規化して SQL 形式に変換
+				// フィルタ条件のフィールドが tableName で始まる場合のみ処理
 				string? left = null;
 				if (cond.Field.Contains('.'))
 				{
-					// table.field 形式 -> alias.field
 					var parts = cond.Field.Split('.', 2);
 					var tbl = parts[0];
 					var col = parts[1];
 					_ = RequiredDBDialect.QuoteIdentifier(tbl);
-					var alias = tbl.Length > 0 ? RequiredDBDialect.NormalizeAlias(tbl.Substring(0, 1)) : tbl; // カルチャ環境に依存しない正規化
+					var alias = tbl.Length > 0 ? RequiredDBDialect.NormalizeAlias(tbl.Substring(0, 1)) : tbl;
 					left = $"{RequiredDBDialect.QuoteIdentifier(alias)}.{RequiredDBDialect.QuoteIdentifier(col)}";
 				}
+				// MergedColumnToSqlMapping にマッピングが存在する場合はそれを使用
 				else if (map.TryGetValue(cond.Field, out var mapped))
 				{
 					left = mapped;
 				}
 				else
 				{
-					// 未知のフィールドは無視
 					continue;
 				}
 
-				// left が null でないことを確認
 				if (string.IsNullOrEmpty(left)) continue;
-
 				// パラメータ名を生成
 				var paramName = "@p" + paramIndex;
 				var value = cond.Value;
+				// フィルタ条件の演算子に応じて SQL 句を構築
 				switch (cond.Operator)
 				{
 					case FilterOperator.Contains:
-						// 部分一致の場合、LIKE 演算子を使用
 						clauses.Add($"{(string.IsNullOrEmpty(cond.Logic) ? "" : cond.Logic + " ")}{left} LIKE {paramName}");
 						parameters.Add(RequiredDBDialect.CreateParameter(paramName, $"%{value}%"));
 						break;
 					case FilterOperator.StartsWith:
-						// 前方一致の場合、LIKE 演算子を使用
 						clauses.Add($"{(string.IsNullOrEmpty(cond.Logic) ? "" : cond.Logic + " ")}{left} LIKE {paramName}");
 						parameters.Add(RequiredDBDialect.CreateParameter(paramName, $"{value}%"));
 						break;
 					case FilterOperator.EndsWith:
-						// 後方一致の場合、LIKE 演算子を使用
 						clauses.Add($"{(string.IsNullOrEmpty(cond.Logic) ? "" : cond.Logic + " ")}{left} LIKE {paramName}");
 						parameters.Add(RequiredDBDialect.CreateParameter(paramName, $"%{value}"));
 						break;
 					default:
-						// 完全一致の場合、= 演算子を使用
 						clauses.Add($"{(string.IsNullOrEmpty(cond.Logic) ? "" : cond.Logic + " ")}{left} = {paramName}");
 						parameters.Add(RequiredDBDialect.CreateParameter(paramName, value));
 						break;
 				}
 				paramIndex++;
 			}
-			// WHERE句を生成
+			// WHERE 句を返す（条件がない場合は空文字列を返す）
 			return clauses.Count > 0 ? ("WHERE " + string.Join(" ", clauses)) : "";
-		}
-
-		/// <summary>
-		/// LINQ クエリ用フィルタ述語生成（匿名オブジェクト対応）
-		/// </summary>
-		/// <remarks>
-		/// Shunting Yard Algorithm で RPN 変換し、匿名オブジェクトに対する述語を生成します。
-		/// 複数のテーブルから結合された匿名オブジェクト（sales, weather, unit など のプロパティを持つ）に対応します。
-		/// </remarks>
-		public virtual Func<object, bool> BuildLinqFilterPredicate()
-		{
-			// Shunting Yard Algorithm で RPN 変換
-			var output = new List<object>();
-			var ops = new Stack<string>();
-			foreach (var filter in Filters)
-			{
-				// フィルタ条件を処理
-				if (filter is FilterCondition cond)
-				{
-					// 論理演算子処理
-					if (cond.Logic == "AND" || cond.Logic == "OR")
-					{
-						while (ops.Count > 0 && Precedence(ops.Peek()) >= Precedence(cond.Logic))
-							output.Add(ops.Pop());
-						ops.Push(cond.Logic);
-					}
-					else
-					{
-						output.Add(cond);
-					}
-				}
-				else if (filter is FilterGroupStart)
-				{
-					ops.Push("(");
-				}
-				else if (filter is FilterGroupEnd)
-				{
-					while (ops.Count > 0 && ops.Peek() != "(") output.Add(ops.Pop());
-					if (ops.Count > 0) ops.Pop();
-				}
-			}
-			while (ops.Count > 0) output.Add(ops.Pop());
-
-			// RPN 評価で述語を作成
-			var stack = new Stack<Func<object, bool>>();
-			foreach (var token in output)
-			{
-				if (token is FilterCondition condToken)
-				{
-					// フィルタ条件を匿名オブジェクトに対する述語に変換
-					var field = condToken.Field;
-					var value = condToken.Value;
-					stack.Push(obj =>
-					{
-						if (obj == null) return false;
-						string? targetValue;
-						if (field.Contains('.'))
-						{
-							// "table.field" 形式の場合、匿名オブジェクトのプロパティから DataRow を取得してフィールド値を取得
-							var parts = field.Split('.', 2);
-							var tbl = parts[0];
-							var col = parts[1];
-							var prop = obj.GetType().GetProperty(tbl);
-							if (prop == null) return false;
-							var row = prop.GetValue(obj) as DataRow;
-							if (row == null || !row.Table.Columns.Contains(col)) return false;
-							targetValue = row.Field<string>(col);
-						}
-						else
-						{
-							// フィールド名が単一の場合、匿名オブジェクトのプロパティから直接値を取得
-							var p = obj.GetType().GetProperty(field);
-							if (p == null) return false;
-							targetValue = p.GetValue(obj)?.ToString();
-						}
-
-						if (string.IsNullOrEmpty(targetValue)) return false;
-						return condToken.Operator switch
-						{
-							// フィルタ演算子に応じて比較
-							FilterOperator.Contains => targetValue.Contains(value),
-							FilterOperator.StartsWith => targetValue.StartsWith(value),
-							FilterOperator.EndsWith => targetValue.EndsWith(value),
-							_ => targetValue == value
-						};
-					});
-				}
-				else if (token is string op && (op == "AND" || op == "OR"))
-				{
-					// 論理演算子適用
-					var right = stack.Pop();
-					var left = stack.Pop();
-					if (op == "AND") stack.Push(obj => left(obj) && right(obj));
-					else stack.Push(obj => left(obj) || right(obj));
-				}
-			}
-			return stack.Count > 0 ? stack.Pop() : (obj => true);
-
-			// 演算子の優先度
-			static int Precedence(string op) => op == "AND" ? 2 : op == "OR" ? 1 : 0;
 		}
 
 		/// <summary>
 		/// SQLクエリを実行してDataTableを取得（テンプレートメソッド）
 		/// </summary>
-		/// <param name="sql">実行するSQL文</param>
-		/// <param name="parameters">パラメータリスト</param>
-		/// <param name="setupCommand">追加のコマンド設定（オプション）</param>
-		/// <returns>クエリ実行結果の DataTable</returns>
 		protected virtual DataTable ExecuteMergedSqlQuery(
 			string sql,
 			List<DbParameter> parameters,
 			Action<DbCommand>? setupCommand = null)
 		{
-			using var conn = GetDbConnection();
-			using var cmd = conn.CreateCommand();
-			// SQL文とパラメータを設定
-			cmd.CommandText = sql;
-			foreach (var p in parameters)
-				cmd.Parameters.Add(p);
-
-			// 追加のコマンド設定があれば実行
-			setupCommand?.Invoke(cmd);
-			// DbProviderFactory を使用して DataAdapter を作成
-			var factory = DbProviderFactories.GetFactory(conn);
-			var adapter = factory.CreateDataAdapter() 
-				?? throw new InvalidOperationException("DataAdapter の作成に失敗しました。");
-			try
-			{
-				// DataAdapter に SelectCommand を設定して DataTable に結果を取得
-				adapter.SelectCommand = cmd;
-				var table = new DataTable();
-				adapter.Fill(table);
-				return table;
-			}
-			finally
-			{
-				// DataAdapter を破棄
-				adapter.Dispose();
-			}
+			// データベース接続を取得して SQL クエリを実行し、結果を DataTable に変換して返す
+			return ExecuteSqlQuery(sql, parameters, GetDbConnection, setupCommand);
 		}
 
 		/// <summary>
 		/// LINQクエリにフィルタを適用してDataTableに変換（テンプレートメソッド）
 		/// </summary>
-		/// <typeparam name="T">クエリ結果の型</typeparam>
-		/// <param name="query">対象のクエリ結果</param>
-		/// <returns>変換後の DataTable</returns>
 		protected virtual DataTable ApplyFiltersAndConvertToDataTable<T>(IEnumerable<T> query)
 		{
-			// フィルタを適用（ApplyFilters へ委譲）
+			// LINQクエリにフィルタを適用して DataTable に変換して返す
 			var filteredQuery = ApplyFilters(query);
-
-			// DataTable に変換
 			return ConvertToDataTable(filteredQuery);
 		}
 
 		/// <summary>
 		/// JOIN 仕様から SQL JOIN 句を自動生成
-		/// 複数キー対応、複数 JOIN 対応
 		/// </summary>
 		protected string BuildSqlJoinClauses(JoinSpecification spec)
 		{
-			// JOIN 句を構築
 			var clauses = new System.Text.StringBuilder();
+			// JOIN 条件を順に処理して SQL JOIN 句を構築
 			foreach (var cond in spec.Conditions)
 			{
-				// テーブル名を DB 方言に従って引用符で囲む
 				_ = RequiredDBDialect.QuoteIdentifier(cond.LeftTable);
 				_ = RequiredDBDialect.QuoteIdentifier(cond.RightTable);
-
-				// テーブルエイリアスのマッピング
-				var leftAlias = cond.LeftTable.Length > 0 ? RequiredDBDialect.NormalizeAlias(cond.LeftTable[0].ToString()) : "l"; // カルチャ環境に依存しない正規化
-				var rightAlias = cond.RightTable.Length > 0 ? RequiredDBDialect.NormalizeAlias(cond.RightTable[0].ToString()) : "r"; // カルチャ環境に依存しない正規化
-
-				// キーの結合条件を生成（複数キー対応）
-				var joinKeys = string.Join(" AND ", 
-					cond.LeftKeys.Zip(cond.RightKeys, 
+				var leftAlias = cond.LeftTable.Length > 0 ? RequiredDBDialect.NormalizeAlias(cond.LeftTable[0].ToString()) : "l";
+				var rightAlias = cond.RightTable.Length > 0 ? RequiredDBDialect.NormalizeAlias(cond.RightTable[0].ToString()) : "r";
+				var joinKeys = string.Join(" AND ",
+					cond.LeftKeys.Zip(cond.RightKeys,
 						(lk, rk) => $"{RequiredDBDialect.QuoteIdentifier(leftAlias)}.{RequiredDBDialect.QuoteIdentifier(lk)} = {RequiredDBDialect.QuoteIdentifier(rightAlias)}.{RequiredDBDialect.QuoteIdentifier(rk)}"));
-				// JOIN 句を追加
 				clauses.AppendLine($"INNER JOIN {RequiredDBDialect.QuoteIdentifier(cond.RightTable)} {RequiredDBDialect.QuoteIdentifier(rightAlias)} ON {joinKeys}");
 			}
-			// 生成された JOIN 句を返す
 			return clauses.ToString();
 		}
 
 		/// <summary>
 		/// JOIN 仕様から LINQ JOIN を自動適用（CSV 側用）
-		/// 複数 DataTable を JoinSpecification に基づいて逐次 JOIN
 		/// </summary>
-		/// <param name="tableMap">テーブル名 -> DataTable のマップ</param>
-		/// <param name="spec">JOIN 仕様</param>
-		/// <returns>JOIN 結果の IEnumerable（各要素は { Left = ..., Right = ... } 形式）</returns>
-		protected virtual IEnumerable<dynamic> ApplyJoinSpecification(
-			Dictionary<string, DataTable> tableMap, 
-			JoinSpecification spec)
+		protected virtual IEnumerable<dynamic> ApplyJoinSpecification(Dictionary<string, DataTable> tableMap, JoinSpecification spec)
 		{
 			if (spec.Conditions.Count == 0)
 			{
-				// JOIN が指定されない場合は yield break
 				yield break;
 			}
 
-			// 最初の JOIN 条件から左テーブルを取得
+			// JOIN 仕様の最初の条件を基準にして、左テーブルから順に結合を適用
 			var firstCond = spec.Conditions[0];
 			var leftTableName = firstCond.LeftTable.ToLower();
-
 			if (!tableMap.ContainsKey(leftTableName))
 			{
 				yield break;
 			}
 
-			// 左テーブルを取得し、IEnumerable<dynamic> に変換
+			// 左テーブルを取得して、IEnumerable<dynamic> に変換
 			var leftTable = tableMap[leftTableName];
 			IEnumerable<dynamic> current = leftTable.AsEnumerable().Cast<dynamic>();
 
-			// 各 JOIN 条件を逐次適用
+			// JOIN 条件を順に処理して LINQ JOIN を適用
 			foreach (var cond in spec.Conditions)
 			{
 				var rightTableName = cond.RightTable.ToLower();
-				if (!tableMap.ContainsKey(rightTableName))
-				{
-					continue;
-				}
-				// 右テーブルを取得
+				if (!tableMap.ContainsKey(rightTableName)) continue;
 				var rightTable = tableMap[rightTableName];
 				var leftKeySelectors = cond.LeftKeys;
 				var rightKeySelectors = cond.RightKeys;
-
 				if (leftKeySelectors.Length == 1)
 				{
-					// 単一キー JOIN
+					// 単一キーの場合と複合キーの場合で JOIN の方法を分ける
 					var leftKey = leftKeySelectors[0];
 					var rightKey = rightKeySelectors[0];
-					// LINQ Join を適用
 					current = current.Join(
 						rightTable.AsEnumerable(),
 						leftRow =>
 						{
 							try
 							{
-								// leftRow が DataRow の場合と dynamic 匿名型の場合に対応
 								if (leftRow is DataRow dr)
-									return dr.Field<string>(leftKey)?? "";
-								else
-									return ((dynamic)leftRow).Left.Field<string>(leftKey) ?? "";
+									return dr.Field<string>(leftKey) ?? "";
+								return ((dynamic)leftRow).Left.Field<string>(leftKey) ?? "";
 							}
 							catch
 							{
 								return "";
 							}
 						},
-						// 右テーブルのキーを選択
 						rightRow => rightRow.Field<string>(rightKey) ?? "",
 						(left, right) => (dynamic)new { Left = left, Right = right }
 					);
 				}
 				else
 				{
-					// 複数キー JOIN（文字列結合）
+					// 複合キーの場合
 					current = current.Join(
 						rightTable.AsEnumerable(),
 						leftRow =>
 						{
 							try
 							{
-								// leftRow が DataRow の場合と dynamic 匿名型の場合に対応
 								DataRow dataRow;
 								if (leftRow is DataRow dr)
 									dataRow = dr;
 								else
 									dataRow = ((dynamic)leftRow).Left;
-								// 複数キーを結合して一意のキーを生成
 								var keyParts = leftKeySelectors.Select(k => dataRow.Field<string>(k) ?? "");
 								return string.Join("|", keyParts);
 							}
@@ -676,7 +383,6 @@ namespace RegressionAnalysis.Common
 						},
 						rightRow =>
 						{
-							// 右テーブルの複数キーを結合して一意のキーを生成
 							var keyParts = rightKeySelectors.Select(k => rightRow.Field<string>(k) ?? "");
 							return string.Join("|", keyParts);
 						},
@@ -684,7 +390,7 @@ namespace RegressionAnalysis.Common
 					);
 				}
 			}
-			// 最終的な JOIN 結果を返す
+
 			foreach (var item in current)
 			{
 				yield return item;
@@ -700,10 +406,6 @@ namespace RegressionAnalysis.Common
 	/// <summary>
 	/// フィルタ条件レコード
 	/// </summary>
-	/// <param name="Logic">論理演算子（AND/OR）</param>
-	/// <param name="Field">フィールド名（テーブル名.フィールド名形式）</param>
-	/// <param name="Operator">フィルタ演算子</param>
-	/// <param name="Value">比較値</param>
 	public record FilterCondition(string Logic, string Field, FilterOperator Operator, string Value) : FilterElement;
 
 	/// <summary>
@@ -711,7 +413,7 @@ namespace RegressionAnalysis.Common
 	/// </summary>
 	public enum FilterOperator
 	{
-		Equals,		// 完全一致
+		Equals,     // 完全一致
 		Contains,   // 部分一致
 		StartsWith, // 前方一致
 		EndsWith    // 後方一致
@@ -720,7 +422,6 @@ namespace RegressionAnalysis.Common
 	/// <summary>
 	/// フィルタグループ開始レコード"("
 	/// </summary>
-	/// <param name="Logic">論理演算子（AND/OR）</param>
 	public record FilterGroupStart(string Logic = "") : FilterElement;
 
 	/// <summary>
@@ -731,29 +432,30 @@ namespace RegressionAnalysis.Common
 
 /// <summary>
 /// JOIN 条件（複数テーブルの結合キーを定義）
-/// CSV、MySQL、その他データソース共通で使用可能
 /// </summary>
 public record JoinCondition(
 	string LeftTable,   // 左テーブル名
-	string[] LeftKeys,  // 左テーブルの結合キー列名配列
+	string[] LeftKeys,  // 左テーブルの結合キー列名
 	string RightTable,  // 右テーブル名
-	string[] RightKeys  // 右テーブルの結合キー列名配列
-);
+	string[] RightKeys);// 右テーブルの結合キー列名
 
 /// <summary>
 /// JOIN 仕様（複数の JOIN 条件を保持）
-/// JSON、YAML などのメタデータから自動生成も可能
 /// </summary>
 public class JoinSpecification
 {
+	// JOIN 条件のリスト
 	public List<JoinCondition> Conditions { get; } = [];
 
 	/// <summary>
-	/// JOIN 条件をビルダーパターンで追加
+	/// 結合条件を追加するメソッド
 	/// </summary>
-	public JoinSpecification Join(
-		string leftTable, string[] leftKeys,
-		string rightTable, string[] rightKeys)
+	/// <param name="leftTable"></param>
+	/// <param name="leftKeys"></param>
+	/// <param name="rightTable"></param>
+	/// <param name="rightKeys"></param>
+	/// <returns></returns>
+	public JoinSpecification Join(string leftTable, string[] leftKeys, string rightTable, string[] rightKeys)
 	{
 		Conditions.Add(new JoinCondition(leftTable, leftKeys, rightTable, rightKeys));
 		return this;
