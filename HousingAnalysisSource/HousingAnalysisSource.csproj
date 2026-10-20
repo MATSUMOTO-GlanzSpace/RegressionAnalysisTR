@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="HousingDataMerger.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\RegressionAnalysis.Common\RegressionAnalysis.Common.csproj" />
   </ItemGroup>
 
