@@ -62,35 +62,58 @@ namespace RegressionAnalysis.Common
 			return arr;
 		}
 
-		/// <summary>
-		/// MySQLデータベースから接続データベースの全テーブル名を取得するメソッド
-		/// </summary>
-		/// <param name="conn">MySqlConnectionオブジェクト</param>
-		/// <returns>テーブル名リスト</returns>
-		public static List<string> GetAllTableNames(MySqlConnection conn)
+		public enum TableType
 		{
-			// テーブル名リスト
-			var tableNames = new List<string>();
-			// SQLクエリで情報スキーマからテーブル名を取得
-			using var cmd = conn.CreateCommand();
-			cmd.CommandText = @"
-				SELECT table_name
-				FROM information_schema.tables
-				WHERE table_schema = @db
-				  AND table_type = 'BASE TABLE'
-				ORDER BY table_name;";
-			cmd.Parameters.AddWithValue("@db", conn.Database);
-
-			// クエリ実行
-			using var reader = cmd.ExecuteReader();
-			// 結果をリストに追加
-			while (reader.Read())
-			{
-				tableNames.Add(reader.GetString(0));
-			}
-			// テーブル名リストを返す
-			return tableNames;
+			TypeTable,
+			TypeView,
+			TypeAll
 		}
 
+		/// <summary>
+		/// MySQLデータベースから接続データベースの全テーブル名とビュー名を取得するメソッド
+		/// </summary>
+		/// <param name="conn">MySqlConnectionオブジェクト</param>
+		/// <param name="type">取得するテーブルの種類</param>
+		/// <returns>テーブル名とビュー名のリスト</returns>
+		/// <summary>
+		/// 接続中DBのテーブル/ビュー名と種類を取得する
+		/// </summary>
+		public static List<(string Name, string Type)> GetAllTableNames(MySqlConnection conn, TableType type=TableType.TypeAll)
+		{
+			var items = new List<(string Name, string Type)>();
+
+			using var cmd = conn.CreateCommand();
+
+			var sql = @"
+                SELECT table_name, table_type
+                FROM information_schema.tables
+                WHERE table_schema = @db";
+
+			switch (type)
+			{
+				case TableType.TypeTable:
+					sql += " AND table_type = 'BASE TABLE'";
+					break;
+				case TableType.TypeView:
+					sql += " AND table_type = 'VIEW'";
+					break;
+				case TableType.TypeAll:
+					sql += " AND table_type IN ('BASE TABLE', 'VIEW')";
+					break;
+			}
+
+			sql += " ORDER BY table_name;";
+
+			cmd.CommandText = sql;
+			cmd.Parameters.AddWithValue("@db", conn.Database);
+
+			using var reader = cmd.ExecuteReader();
+			while (reader.Read())
+			{
+				items.Add((reader.GetString(0), reader.GetString(1)));
+			}
+
+			return items;
+		}
 	}
 }
