@@ -142,6 +142,7 @@ public class DbSalesDataMerger(
 
 - `DataImporter` は 1 CSV / 1 テーブルの読み取りとローカルフィルタを担当する
 - `DataMerger` は複数ソースの結合・統一列名・最終的なマージ結果を担当する
+- フィルタ設定は `FilterOperator` ベースの API のみを使用し、旧仕様の文字列条件パーサーは持たない
 
 ```csharp
 var salesImporter = new DBImporter("sales", new MySqlDialect());

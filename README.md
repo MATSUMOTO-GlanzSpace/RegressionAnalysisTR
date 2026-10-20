@@ -16,6 +16,12 @@
   - 共通ユーティリティと基底クラス群を提供。
   - 主なクラス: DataImporter（1 CSV / 1 DB テーブル用基底）, CSVImporter, DBImporter, DataMerger（マージ用基底）, DataTableHelpers, ConfigurationHelper
 
+## フィルタ API
+
+- `DataImporter` / `DataMerger` のフィルタは、文字列ベースの旧仕様ヘルパーではなく `FilterOperator` を使う型安全な API を使用します。
+- 例: `DataImporter.AddFilterCondition("", "年", FilterOperator.Equals, "2024")`
+- この方式により、フィルタ条件の演算子が明示的になり、SQL / LINQ の両方で同じ意味で評価されます。
+
 ## 実装されている主要クラス（簡易版）
 
 - 【回帰分析アプリケーション】RegressionAnalysis (WinFormsアプリケーション)

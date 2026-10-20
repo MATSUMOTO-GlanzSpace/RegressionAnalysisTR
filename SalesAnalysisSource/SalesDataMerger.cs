@@ -45,13 +45,6 @@ public abstract class SalesDataMerger : DataMerger
 	/// <param name="csvUnitsPath">Units CSV ファイルパス</param>
 	public class CsvSalesDataMerger(string csvSalesPath, string csvWeatherPath, string csvUnitsPath) : SalesDataMerger
 	{
-		/// <summary>
-		/// CSV データ用 JOIN 仕様（デッドコード）
-		/// 
-		/// 仕様定義のため残している。
-		/// 実装：GetMergedDataTableCore() 内で LINQ to DataSet により実現
-		/// （複数キーJOINの複雑な結果処理を回避し、可読性を維持）
-		/// </summary>
 		public override JoinSpecification GetJoinSpecification()
 		{
 			return new JoinSpecification()

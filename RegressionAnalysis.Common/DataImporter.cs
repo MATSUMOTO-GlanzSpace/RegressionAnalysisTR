@@ -67,31 +67,10 @@ public abstract class DataImporter
 	public virtual Dictionary<string, string> TableColumnToSqlMapping { get; } = new(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
-	/// フィルタ条件追加メソッド（互換用）
-	/// </summary>
-	public void AddFilterCondition(string logic, string field, string condition)
-	{
-		var parsed = ParseLegacyCondition(condition);
-		Filters.Add(new FilterCondition(logic, field, parsed.Operator, parsed.Value));
-	}
-
-	/// <summary>
-	/// フィルタ条件追加メソッド（推奨）
+	/// フィルタ条件を追加する。
 	/// </summary>
 	public void AddFilterCondition(string logic, string field, FilterOperator filterOperator, string value)
 		=> Filters.Add(new FilterCondition(logic, field, filterOperator, value));
-
-	/// <summary>
-	/// フィルタグループ開始追加メソッド
-	/// </summary>
-	public void AddGroupStart(string logic = "")
-		=> Filters.Add(new FilterGroupStart(logic));
-
-	/// <summary>
-	/// フィルタグループ終了追加メソッド
-	/// </summary>
-	public void AddGroupEnd()
-		=> Filters.Add(new FilterGroupEnd());
 
 	/// <summary>
 	/// IEnumerable にフィルタを適用（DataTable 変換なし）
@@ -341,32 +320,7 @@ public abstract class DataImporter
 		Console.WriteLine($"[DataImporter Error] {ex.Message}");
 	}
 
-	/// <summary>
-	/// 旧仕様の条件式をパースして FilterOperator と値に変換する
-	/// </summary>
-	/// <param name="condition"></param>
-	/// <returns></returns>
-	private static (FilterOperator Operator, string Value) ParseLegacyCondition(string condition)
-	{
-		var condTrim = condition.Trim();
-		if (condTrim.StartsWith("LIKE", StringComparison.OrdinalIgnoreCase))
-		{
-			// LIKE 条件をパースして FilterOperator と値に変換
-			var pattern = condTrim.Substring(4).Trim().Trim('\'', '"');
-			var startsWithWildcard = pattern.StartsWith("%");
-			var endsWithWildcard = pattern.EndsWith("%");
-			var core = pattern.Trim('%');
-
-			// LIKE 条件のパターンに応じて FilterOperator を決定
-			if (startsWithWildcard && endsWithWildcard) return (FilterOperator.Contains, core);
-			if (startsWithWildcard) return (FilterOperator.EndsWith, core);
-			if (endsWithWildcard) return (FilterOperator.StartsWith, core);
-			return (FilterOperator.Equals, core);
-		}
-		// デフォルトは Equals 条件として扱う
-		return (FilterOperator.Equals, condTrim.Trim('=', '\'', '"'));
 	}
-}
 
 /// <summary>
 /// CSV 1ファイル取得用Importer
