@@ -1,6 +1,6 @@
 TRUNCATE `sales`;
 LOAD DATA INFILE 'C:/xampp/htdocs/sales_data.csv'
-INTO TABLE `housing`
+INTO TABLE `sales`
 FIELDS TERMINATED BY ',' 
 ENCLOSED BY '"'
 LINES TERMINATED BY '\n'
