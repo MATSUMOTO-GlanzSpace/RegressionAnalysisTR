@@ -1,256 +1,150 @@
-﻿using RegressionAnalysis.Common;
+﻿using System;
+using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
+using System.Linq;
+using RegressionAnalysis.Common;
 
 namespace SalesAnalysisSource;
 
 /// <summary>
-/// Sales データマージャー基底class
+/// 売上データマージ処理の共通基底クラス
 /// </summary>
 public abstract class SalesDataMerger : DataMerger
 {
 	/// <summary>
-	/// コンストラクタ
+	/// マージ後の列名を取得する
 	/// </summary>
-	/// <param name="dbDialect">DB方言</param>
-	public SalesDataMerger(DBDialect? dbDialect = null) : base(dbDialect)
-	{
-	}
-
-	/// <summary>
-	/// マージ後の列名一覧
-	/// </summary>
-	public override string[] GetMergedDataTableColumnNames() =>
+	public override string[] GetMergedColumnNames() =>
 	[
 		"部門", "大分類", "中分類", "品種", "年", "月", "売上",
 		"平均気温", "最高気温", "最低気温", "降水量合計", "日照時間", "単位"
 	];
 
 	/// <summary>
-	/// マージ後の統一列名 -> SQL エイリアス付きカラムのマッピング
+	/// CSVデータのマージ 
 	/// </summary>
-	public override Dictionary<string, string> MergedColumnToSqlMapping { get; } = [];
-
-	/// <summary>
-	/// JOIN 仕様を定義（MySQL側で実装）
-	/// CSV側は LINQ to DataSet で直接 JOIN を記述するため実装しない
-	/// </summary>
-	public abstract JoinSpecification GetJoinSpecification();
-
-	/// <summary>
-	/// CSV ファイルから Sales/Weather/Units の結合データ取得
-	/// </summary>
-	/// <param name="csvSalesPath">Sales CSV ファイルパス</param>
-	/// <param name="csvWeatherPath">Weather CSV ファイルパス</param>
-	/// <param name="csvUnitsPath">Units CSV ファイルパス</param>
-	public class CsvSalesDataMerger(string csvSalesPath, string csvWeatherPath, string csvUnitsPath) : SalesDataMerger
+	public class CsvSalesDataMerger : SalesDataMerger
 	{
-		public override JoinSpecification GetJoinSpecification()
-		{
-			return new JoinSpecification()
-				.Join("sales", new[] { "年", "月" }, "weather", new[] { "年", "月" })
-				.Join("sales", new[] { "品種" }, "units", new[] { "品種" });
-		}
-
 		/// <summary>
-		/// CSV ファイルから Sales/Weather/Units の結合データ取得
+		/// CSVソースをマージして1つのDataTableを作成する
 		/// </summary>
-		protected override DataTable GetMergedDataTableCore()
+		protected override DataTable MergeCore(IReadOnlyDictionary<string, IImportSource> sources)
 		{
-			// CSV ファイルを DataTable に読み込み
-			var salesTable = new CSVImporter(csvSalesPath).GetTable();
-			var weatherTable = new CSVImporter(csvWeatherPath).GetTable();
-			var unitsTable = new CSVImporter(csvUnitsPath).GetTable();
+			// CSVソースを取得する
+			var salesSource = RequireSource<IImportSource>(sources, "sales");
+			var weatherSource = RequireSource<IImportSource>(sources, "weather");
+			var unitsSource = RequireSource<IImportSource>(sources, "units");
+			// DataTableを取得する
+			var salesTable = salesSource.GetTable();
+			var weatherTable = weatherSource.GetTable();
+			var unitsTable = unitsSource.GetTable();
+			// LINQを使用して、売上データ、気象データ、単位データを結合する
+			var query =
+				from s in salesTable.AsEnumerable()
+				join w in weatherTable.AsEnumerable()
+					on new { year = s.Field<string>("年"), month = s.Field<string>("月") }
+					equals new { year = w.Field<string>("年"), month = w.Field<string>("月") }
+				join u in unitsTable.AsEnumerable()
+					on s.Field<string>("品種") equals u.Field<string>("品種")
+				select new
+				{
+					部門 = s.Field<string>("部門"),
+					大分類 = s.Field<string>("大分類"),
+					中分類 = s.Field<string>("中分類"),
+					品種 = s.Field<string>("品種"),
+					年 = s.Field<string>("年"),
+					月 = s.Field<string>("月"),
+					売上 = s.Field<string>("売上"),
+					平均気温 = w.Field<string>("平均気温(℃)"),
+					最高気温 = w.Field<string>("最高気温(℃)"),
+					最低気温 = w.Field<string>("最低気温(℃)"),
+					降水量合計 = w.Field<string>("降水量の合計(mm)"),
+					日照時間 = w.Field<string>("日照時間(時間)"),
+					単位 = u.Field<string>("単位")
+				};
 
-			// LINQ to DataSet で JOIN を実装
-			// 複数キーJOIN対応：year と month で weather テーブルと JOIN、品種で units テーブルと JOIN
-			//
-			var query = from s in salesTable.AsEnumerable()
-					join w in weatherTable.AsEnumerable() 
-						on new { year = s.Field<string>("年"), month = s.Field<string>("月") }
-						equals new { year = w.Field<string>("年"), month = w.Field<string>("月") }
-					join u in unitsTable.AsEnumerable() 
-						on s.Field<string>("品種") equals u.Field<string>("品種")
-					select new
-					{
-						部門 = s.Field<string>("部門"),
-						大分類 = s.Field<string>("大分類"),
-						中分類 = s.Field<string>("中分類"),
-						品種 = s.Field<string>("品種"),
-						年 = s.Field<string>("年"),
-						月 = s.Field<string>("月"),
-						売上 = s.Field<string>("売上"),
-						平均気温 = w.Field<string>("平均気温(℃)"),
-						最高気温 = w.Field<string>("最高気温(℃)"),
-						最低気温 = w.Field<string>("最低気温(℃)"),
-						降水量合計 = w.Field<string>("降水量の合計(mm)"),
-						日照時間 = w.Field<string>("日照時間(時間)"),
-						単位 = u.Field<string>("単位")
-					};
-
-			// DataMerger の共通フィルタ適用メソッドを利用
-			var filteredQuery = ApplyFilters(query);
-
-			// DataTable生成
-			DataTable mergedTable = new();
-			mergedTable.Columns.Add("部門");
-			mergedTable.Columns.Add("大分類");
-			mergedTable.Columns.Add("中分類");
-			mergedTable.Columns.Add("品種");
-			mergedTable.Columns.Add("年");
-			mergedTable.Columns.Add("月");
-			mergedTable.Columns.Add("売上");
-			mergedTable.Columns.Add("平均気温");
-			mergedTable.Columns.Add("最高気温");
-			mergedTable.Columns.Add("最低気温");
-			mergedTable.Columns.Add("降水量合計");
-			mergedTable.Columns.Add("日照時間");
-			mergedTable.Columns.Add("単位");
-
-			// 結合データを DataTable に追加（SQL結果と同様にフラットなデータが取得される）
-			foreach (var row in filteredQuery)
+			var mergedTable = new DataTable();
+			foreach (var col in GetMergedColumnNames())
 			{
-				try
-				{
-					mergedTable.Rows.Add(
-						row.部門, row.大分類, row.中分類, row.品種, row.年, row.月, row.売上,
-						row.平均気温, row.最高気温, row.最低気温, row.降水量合計, row.日照時間, row.単位);
-				}
-				catch (Exception ex)
-				{
-					LogError(new Exception($"行データ変換エラー: {ex.Message}", ex));
-					continue;
-				}
+				// マージ後の列名を追加する
+				mergedTable.Columns.Add(col);
 			}
 
+			foreach (var row in query)
+			{
+				// マージ後の行を追加する
+				mergedTable.Rows.Add(
+					row.部門, row.大分類, row.中分類, row.品種, row.年, row.月, row.売上,
+					row.平均気温, row.最高気温, row.最低気温, row.降水量合計, row.日照時間, row.単位
+				);
+			}
+			// マージ後のDataTableを返す
 			return mergedTable;
 		}
 	}
 
 	/// <summary>
-	/// DB 用 SalesDataMerger
+	/// DBデータのマージ
 	/// </summary>
-	/// <param name="salesTable">Sales テーブル名</param>
-	/// <param name="weatherTable">Weather テーブル名</param>
-	/// <param name="unitsTable">Units テーブル名</param>
-	/// <param name="dialect">DB方言（省略時はMySqlDialect）</param>
-	/// <param name="connectionFactory">オープン済みDbConnectionを返すファクトリ（省略時はMySqlConnectionFactory）</param>
-	public class DbSalesDataMerger(
-		string salesTable,
-		string weatherTable,
-		string unitsTable,
-		DBDialect? dialect = null,
-		Func<DbConnection>? connectionFactory = null) : SalesDataMerger(dialect ?? new MySqlDialect())
+	public class DbSalesDataMerger : SalesDataMerger
 	{
-		/// データベース接続ファクトリ（オープン済み DbConnection を返す）
-		private readonly Func<DbConnection> _connectionFactory = connectionFactory ?? MySqlConnectionFactory.CreateOpenConnection;
 		/// <summary>
-		/// マージ後列名 -> SQL エイリアス付きカラムのマッピング
+		/// DBソースをマージして1つのDataTableを作成する
 		/// </summary>
-		public override Dictionary<string, string> MergedColumnToSqlMapping { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+		/// <param name="sources">ソースの辞書</param>
+		/// <returns>マージ後のDataTable</returns>
+		protected override DataTable MergeCore(IReadOnlyDictionary<string, IImportSource> sources)
 		{
-			["部門"] = "s.department",
-			["大分類"] = "s.primary_item",
-			["中分類"] = "s.secondary_item",
-			["品種"] = "s.variety",
-			["年"] = "s.year",
-			["月"] = "s.month",
-			["売上"] = "s.sales",
-			["平均気温"] = "w.average_temperature",
-			["最高気温"] = "w.maximum_temperature",
-			["最低気温"] = "w.lowest_temperature",
-			["降水量合計"] = "w.precipitation",
-			["日照時間"] = "w.sunshine_hours",
-			["単位"] = "u.unit"
-		};
+			// DBソースを取得する
+			var salesSource = RequireSource<IDbImportSource>(sources, "sales");
+			var weatherSource = RequireSource<IDbImportSource>(sources, "weather");
+			var unitsSource = RequireSource<IDbImportSource>(sources, "units");
+			// DataTableを取得する
+			var salesTable = salesSource.GetTable();
+			var weatherTable = weatherSource.GetTable();
+			var unitsTable = unitsSource.GetTable();
+			// LINQを使用して、売上データ、気象データ、単位データを結合する
+			var query =
+				from s in salesTable.AsEnumerable()
+				join w in weatherTable.AsEnumerable()
+					on new { year = s.Field<int>("year"), month = s.Field<int>("month") }
+					equals new { year = w.Field<int>("year"), month = w.Field<int>("month") }
+				join u in unitsTable.AsEnumerable()
+					on s.Field<string>("variety") equals u.Field<string>("variety")
+				select new
+				{
+					部門 = s.Field<string>("department"),
+					大分類 = s.Field<string>("primary_item"),
+					中分類 = s.Field<string>("secondary_item"),
+					品種 = s.Field<string>("variety"),
+					年 = s.Field<int>("year").ToString(),
+					月 = s.Field<int>("month").ToString(),
+					売上 = s.Field<decimal>("sales").ToString(),
+					平均気温 = w.Field<decimal>("average_temperature").ToString(),
+					最高気温 = w.Field<decimal>("maximum_temperature").ToString(),
+					最低気温 = w.Field<decimal>("lowest_temperature").ToString(),
+					降水量合計 = w.Field<decimal>("precipitation").ToString(),
+					日照時間 = w.Field<decimal>("sunshine_hours").ToString(),
+					単位 = u.Field<string>("unit")
+				};
 
-		/// <summary>
-		/// MySQL データ用 JOIN 仕様の定義
-		/// </summary>
-		public override JoinSpecification GetJoinSpecification()
-		{
-			// 複数キーJOIN対応：year と month で weather テーブルと JOIN、品種で units テーブルと JOIN
-			return new JoinSpecification()
-				.Join(salesTable, new[] { "year", "month" }, weatherTable, new[] { "year", "month" })
-				.Join(salesTable, new[] { "variety" }, unitsTable, new[] { "variety" });
-		}
-
-		/// <summary>
-		/// データベース接続を取得
-		/// </summary>
-		protected override DbConnection GetDbConnection()
-		{
-			return _connectionFactory();
-		}
-
-		/// <summary>
-		/// DB テーブル結合ロジック実装
-		/// GetJoinSpecification() から SQL JOIN 句を自動生成
-		/// </summary>
-		/// <returns>結合データテーブル</returns>
-		protected override DataTable GetMergedDataTableCore()
-		{
-			// DBImporter を使用して各テーブルを DataTable に読み込み
-			var salesTableData = new DBImporter(salesTable, RequiredDBDialect, _connectionFactory).GetTable();
-			var weatherTableData = new DBImporter(weatherTable, RequiredDBDialect, _connectionFactory).GetTable();
-			var unitsTableData = new DBImporter(unitsTable, RequiredDBDialect, _connectionFactory).GetTable();
-			// LINQ to DataSet で JOIN を実装
-			var query = from s in salesTableData.AsEnumerable()
-					join w in weatherTableData.AsEnumerable()
-						on new { year = s.Field<string>("year"), month = s.Field<string>("month") }
-						equals new { year = w.Field<string>("year"), month = w.Field<string>("month") }
-					join u in unitsTableData.AsEnumerable()
-						on s.Field<string>("variety") equals u.Field<string>("variety")
-					select new
-					{
-						部門 = s.Field<string>("department"),
-						大分類 = s.Field<string>("primary_item"),
-						中分類 = s.Field<string>("secondary_item"),
-						品種 = s.Field<string>("variety"),
-						年 = s.Field<string>("year"),
-						月 = s.Field<string>("month"),
-						売上 = s.Field<string>("sales"),
-						平均気温 = w.Field<string>("average_temperature"),
-						最高気温 = w.Field<string>("maximum_temperature"),
-						最低気温 = w.Field<string>("lowest_temperature"),
-						降水量合計 = w.Field<string>("precipitation"),
-						日照時間 = w.Field<string>("sunshine_hours"),
-						単位 = u.Field<string>("unit")
-					};
-			// DataMerger の共通フィルタ適用メソッドを利用
-			var filteredQuery = ApplyFilters(query);
-			// DataTable生成
-			DataTable mergedTable = new();
-			mergedTable.Columns.Add("部門");
-			mergedTable.Columns.Add("大分類");
-			mergedTable.Columns.Add("中分類");
-			mergedTable.Columns.Add("品種");
-			mergedTable.Columns.Add("年");
-			mergedTable.Columns.Add("月");
-			mergedTable.Columns.Add("売上");
-			mergedTable.Columns.Add("平均気温");
-			mergedTable.Columns.Add("最高気温");
-			mergedTable.Columns.Add("最低気温");
-			mergedTable.Columns.Add("降水量合計");
-			mergedTable.Columns.Add("日照時間");
-			mergedTable.Columns.Add("単位");
-			// 結合データを DataTable に追加（SQL結果と同様にフラットなデータが取得される）
-			foreach (var row in filteredQuery)
+			// マージ後のDataTableを作成する
+			var mergedTable = new DataTable();
+			foreach (var col in GetMergedColumnNames())
 			{
-				try
-				{
-					// データ変換エラーが発生する可能性があるため、try-catch で保護
-					mergedTable.Rows.Add(
-						row.部門, row.大分類, row.中分類, row.品種, row.年, row.月, row.売上,
-						row.平均気温, row.最高気温, row.最低気温, row.降水量合計, row.日照時間, row.単位);
-				}
-				catch (Exception ex)
-				{
-					LogError(new Exception($"行データ変換エラー: {ex.Message}", ex));
-					continue;
-				}
+				// マージ後の列名を追加する
+				mergedTable.Columns.Add(col);
 			}
-			// 結合データテーブルを返す
+
+			foreach (var row in query)
+			{
+				// マージ後の行を追加する
+				mergedTable.Rows.Add(
+					row.部門, row.大分類, row.中分類, row.品種, row.年, row.月, row.売上,
+					row.平均気温, row.最高気温, row.最低気温, row.降水量合計, row.日照時間, row.単位
+				);
+			}
+			// マージ後のDataTableを返す
 			return mergedTable;
 		}
 	}
