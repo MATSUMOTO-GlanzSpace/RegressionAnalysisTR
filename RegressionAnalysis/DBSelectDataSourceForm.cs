@@ -10,9 +10,9 @@ using System.Windows.Forms;
 
 namespace RegressionAnalysis
 {
-	public partial class DBSelectDataSourceFormcs : Form
+	public partial class DBSelectDataSourceForm : Form
 	{
-		public DBSelectDataSourceFormcs()
+		public DBSelectDataSourceForm()
 		{
 			InitializeComponent();
 		}

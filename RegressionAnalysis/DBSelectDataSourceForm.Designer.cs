@@ -1,6 +1,6 @@
 ﻿namespace RegressionAnalysis
 {
-	partial class DBSelectDataSourceFormcs
+	partial class DBSelectDataSourceForm
 	{
 		/// <summary>
 		/// Required designer variable.
