@@ -1,5 +1,4 @@
 ﻿using RegressionAnalysis.Common;
-using SalesAnalysisSource;
 
 namespace RegressionAnalysis
 {

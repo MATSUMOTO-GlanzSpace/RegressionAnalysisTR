@@ -1,5 +1,4 @@
 ﻿using RegressionAnalysis.Common;
-using SalesAnalysisSource;
 using System.Data;
 using System.Text;
 

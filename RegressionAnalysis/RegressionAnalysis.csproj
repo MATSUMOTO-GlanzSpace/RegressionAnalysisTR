@@ -35,4 +35,8 @@
     <Folder Include="database\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\RegressionAnalysis.Common\RegressionAnalysis.Common.csproj" />
+  </ItemGroup>
+
 </Project>
