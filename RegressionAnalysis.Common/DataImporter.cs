@@ -320,17 +320,17 @@ public abstract class DataImporter : IImportSource
 	}
 
 	/// <summary>
-	/// フィルター条件に基づいて有効な行を抽出します。
+	///　指定されたデータテーブルから、目的変数と説明変数の列に有効な値を持つ行のみを抽出します。	
 	/// </summary>
 	/// <param name="source">元のデータテーブル</param>
-	/// <param name="responseName">応答変数の列名</param>
-	/// <param name="predictorNames">予測変数の列名リスト</param>
+	/// <param name="responseName">目的変数の列名</param>
+	/// <param name="predictorNames">説明変数の列名リスト</param>
 	/// <returns>有効な行のみを含むデータテーブル、無効な行がない場合は元のデータテーブルのクローン</returns>
-	public static DataTable? FilterValidRows(DataTable source, string responseName, List<string> predictorNames)
+	public static DataTable? GetValidRows(DataTable source, string responseName, List<string> predictorNames)
 	{
 		if (source == null) return null;
 
-		// 応答変数と予測変数の列が存在するか確認します。
+		// 目的変数と説明変数の列が存在し、値が null または空白でない行のみを抽出します。
 		var validRows = source.AsEnumerable()
 			.Where(row =>
 				!row.IsNull(responseName) &&
@@ -340,7 +340,7 @@ public abstract class DataImporter : IImportSource
 					!string.IsNullOrWhiteSpace(row[name]?.ToString())
 				)
 			).ToList();
-
+		// 有効な行が存在する場合は、それらの行を含む新しいデータテーブルを、存在しない場合は、元のデータテーブルの構造を持つ空のデータテーブルを返します。
 		return validRows.Count > 0 ? validRows.CopyToDataTable() : source.Clone();
 	}
 
